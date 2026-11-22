@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -110,5 +111,53 @@ func TestWorkspaceTabOnOpenFolder(t *testing.T) {
 	}
 	if !a.Settings.SidebarOpen {
 		t.Fatal("sidebar did not open")
+	}
+}
+
+func TestTreeClickSelectsRow(t *testing.T) {
+	dir := t.TempDir()
+	sub := filepath.Join(dir, "docs")
+	if err := os.MkdirAll(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+	a.Settings.SidebarOpen = true
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	if err := tt.Click("docs"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if a.treeSelected < 0 || a.treeSelected >= a.treeState.Rows() || a.treeState.Item(a.treeSelected) != sub {
+		t.Fatalf("tree selection %d is not the docs folder", a.treeSelected)
+	}
+}
+
+func TestTreeFileClickSelectsRow(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "a.txt")
+	if err := os.WriteFile(path, []byte("a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+	a.Settings.SidebarOpen = true
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	row, ok := tt.Find("a.txt")
+	if !ok {
+		t.Fatal("no a.txt in the tree")
+	}
+	// Open the file first, at the row's place, so the click takes the
+	// fast path and changes no document off the UI thread.
+	a.addDocument(docAt(path, "a"))
+	a.treeSelected = -1
+	tt.ClickAt(row.X+row.W/2, row.Y+row.H/2)
+	tt.Frame()
+	if a.treeSelected < 0 || a.treeSelected >= a.treeState.Rows() || a.treeState.Item(a.treeSelected) != path {
+		t.Fatalf("tree selection %d is not a.txt", a.treeSelected)
 	}
 }

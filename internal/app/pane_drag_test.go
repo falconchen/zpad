@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
@@ -24,12 +25,15 @@ func TestTreeFolderOpensWithOneClick(t *testing.T) {
 	if err := tt.Click("docs"); err != nil {
 		t.Fatal(err)
 	}
+	tt.Frame()
 	if !a.treeState.Open.Has(sub) {
 		t.Fatal("one click on a folder did not expand it")
 	}
+	tt.Advance(600 * time.Millisecond)
 	if err := tt.Click("docs"); err != nil {
 		t.Fatal(err)
 	}
+	tt.Frame()
 	if a.treeState.Open.Has(sub) {
 		t.Fatal("a second click on a folder did not close it")
 	}

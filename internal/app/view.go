@@ -337,6 +337,10 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 		}
 	}, sidebarMenuOptions(t))
 	if row.Clicked() {
+		// The row content takes the click from the outline row, so choose
+		// the row here as well as opening it.
+		a.selectTreePath(path)
+		a.update()
 		if isDir {
 			a.toggleFolder(path)
 		} else {
