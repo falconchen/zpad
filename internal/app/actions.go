@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -68,6 +69,69 @@ func (a *App) OpenPaths(paths []string) {
 	a.openPaths(paths, -1)
 }
 
+// OpenCommandLine opens the files and folders this process was started
+// with, skipping flags.
+func (a *App) OpenCommandLine(args []string) {
+	a.OpenPaths(commandLinePaths(args, ""))
+}
+
+// HandleSecondInstance opens what a later launch was asked to open and
+// brings this window forward. Windows and Linux start a process per file
+// opened from the file manager, whose command line arrives here; that
+// process exits at once.
+func (a *App) HandleSecondInstance(args []string, dir string) {
+	paths := commandLinePaths(args, dir)
+	if a.win != nil {
+		a.win.Restore()
+		a.win.Focus()
+	}
+	if len(paths) == 0 {
+		return
+	}
+	if a.win == nil {
+		// Still starting: Attach opens them with the first window.
+		a.pendingOpen = append(a.pendingOpen, paths...)
+		return
+	}
+	a.OpenPaths(paths)
+}
+
+// commandLinePaths returns the paths among command-line arguments, leaving
+// out flags: relative ones are relative to dir, or to the working directory
+// when dir is empty.
+func commandLinePaths(args []string, dir string) []string {
+	paths := make([]string, 0, len(args))
+	for _, arg := range args {
+		if arg == "" || strings.HasPrefix(arg, "-") {
+			continue
+		}
+		if dir != "" && !filepath.IsAbs(arg) {
+			arg = filepath.Join(dir, arg)
+		}
+		paths = append(paths, arg)
+	}
+	return paths
+}
+
+// beginLoading claims path for a read, and reports false when it is being
+// read already.
+func (a *App) beginLoading(path string) bool {
+	a.loadingMu.Lock()
+	defer a.loadingMu.Unlock()
+	if a.loadingPaths[path] {
+		return false
+	}
+	a.loadingPaths[path] = true
+	return true
+}
+
+// endLoading releases path once it is opened, or cannot be.
+func (a *App) endLoading(path string) {
+	a.loadingMu.Lock()
+	defer a.loadingMu.Unlock()
+	delete(a.loadingPaths, path)
+}
+
 // openPaths opens files and directories in a pane, -1 for the active one.
 // Documents already open go at once; the others are read off the UI
 // thread.
@@ -80,9 +144,12 @@ func (a *App) openPaths(paths []string, paneIdx int) {
 		for _, path := range paths {
 			if doc := a.findDocument(path); doc != nil {
 				a.addDocumentAt(paneIdx, doc)
-			} else {
-				pending = append(pending, path)
+				continue
 			}
+			if !a.beginLoading(path) {
+				continue // a launch, a drop or another request reads it
+			}
+			pending = append(pending, path)
 		}
 		if len(pending) > 0 {
 			a.loadPaths(pending, paneIdx)
@@ -106,6 +173,7 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 		for _, path := range paths {
 			info, err := os.Stat(path)
 			if err != nil {
+				a.endLoading(path)
 				a.fail(locales.OpenFailed(filepath.Base(path)), err)
 				continue
 			}
@@ -117,11 +185,15 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 		}
 		// A folder first, so files opened with it share its workspace.
 		for _, dir := range dirs {
-			a.onUI(func() { a.setWorkspace(dir) })
+			a.onUI(func() {
+				a.endLoading(dir)
+				a.setWorkspace(dir)
+			})
 		}
 		for _, path := range files {
 			doc, err := loadDocument(path, maxMB)
 			if err != nil {
+				a.endLoading(path)
 				a.fail(locales.OpenFailed(filepath.Base(path)), err)
 				continue
 			}
@@ -136,10 +208,14 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 					CancelButton:  1,
 				})
 				if err != nil || res.Button != 0 {
+					a.endLoading(path)
 					continue
 				}
 			}
-			a.onUI(func() { a.addDocumentAt(paneIdx, doc) })
+			a.onUI(func() {
+				a.endLoading(path)
+				a.addDocumentAt(paneIdx, doc)
+			})
 		}
 	}()
 }

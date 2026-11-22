@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -13,6 +12,13 @@ import (
 )
 
 func main() {
+	// One instance: on Windows and Linux, opening a file from the file
+	// manager starts another process, which hands its command line to this
+	// one and exits. macOS delivers the file to the running app itself.
+	if !mygo.App.RequestSingleInstanceLock() {
+		return
+	}
+
 	dir, err := mygo.App.Path(mygo.PathUserData)
 	if err != nil {
 		log.Fatal(err)
@@ -37,8 +43,10 @@ func main() {
 	// frame.
 	app.SetThemeSource(s.Theme)
 
-	// Open files the system asks for, from Finder or the command line.
+	// Open files the system asks for, from Finder, Explorer or the command
+	// line.
 	mygo.App.OnOpenFile(a.HandleOpenFile)
+	mygo.App.OnSecondInstance(a.HandleSecondInstance)
 	mygo.App.OnBeforeQuit(a.BeforeQuit)
 
 	mygo.App.WhenReady(func() {
@@ -55,16 +63,7 @@ func main() {
 			Content:   ui.View(a.View),
 		})
 		a.Attach(win)
-		var args []string
-		for _, arg := range os.Args[1:] {
-			if strings.HasPrefix(arg, "-") {
-				continue
-			}
-			args = append(args, arg)
-		}
-		if len(args) > 0 {
-			a.OpenPaths(args)
-		}
+		a.OpenCommandLine(os.Args[1:])
 	})
 
 	if err := mygo.App.Run(); err != nil {

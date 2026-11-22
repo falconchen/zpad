@@ -125,7 +125,7 @@ ZPad.app/Contents/MacOS/ZPad /path/to/file.md
 ZPad.app/Contents/MacOS/ZPad /path/to/folder
 ```
 
-- [ ] Windows / Linux 后续补 `RequestSingleInstanceLock` 与参数转发。
+- [x] Windows / Linux 单实例锁与参数转发（`RequestSingleInstanceLock` + `OnSecondInstance`）。
 - [ ] macOS Finder 双击 `.md` / `.txt` 验证关联生效（需要重新注册应用）。
 
 ### 3.5 macOS 打包
@@ -242,6 +242,7 @@ go tool mygo build
 - 外部修改：窗口获得焦点时比较 mtime / size；未修改自动重载并 toast，有修改时选择重新加载 / 保留我的修改 / 另存为。
 - 文件关联：`mygo.json` 声明常见文本扩展名，构建后的 Info.plist 含 `CFBundleDocumentTypes`。
 - `App.OnOpenFile` 支持窗口未就绪缓存、单/多文件打开；拖拽文件夹先于文件处理；支持命令行。
+- 单实例：`mygo.App.RequestSingleInstanceLock()` 在 `main` 开头拦住第二个进程；`OnSecondInstance` 把后续启动的文件 / 文件夹交给第一个实例并前置窗口（Windows / Linux；macOS 由系统派发）。参数由应用自行解析，因此不受 MyGo 只转发已登记扩展名的限制；正在读取的同一路径只读一次。
 - 正式应用图标（1024×1024，代码生成），JetBrains Mono OFL 许可随应用资源提供。
 - macOS `.app` 与 `.dmg` 打包，README 截图 / 快捷键 / 发布说明、CHANGELOG。
 
@@ -271,6 +272,15 @@ go tool mygo build
 - 应用内自绘的按钮、菜单按钮、标签、标签关闭、新建标签、文件树行、设置下拉与开关显示手型光标；原生菜单保持系统光标。
 - 标签栏隐藏横向滚动条；标签溢出时在末尾显示下拉按钮，列出该栏全部标签、当前项打勾，选择后切换并滚动到可见位置。
 - 设置面板改用 `ui.DialogBase` 直接绘制单层圆角面板，去掉 MyGo Modal 外层内边距与背景框；关闭按钮从标题栏移到「完成」左侧，Esc / 点击遮罩仍可关闭。
+
+Windows / Linux 单实例（同日追加）：
+
+- `main` 开头调用 `mygo.App.RequestSingleInstanceLock()`；第二个进程把命令行交给第一个实例后立即退出，不再出现第二个窗口。
+- `OnSecondInstance` 里 `Restore` + `Focus` 已有窗口，再按应用自己的规则解析参数（跳过 `-` 开头、相对路径按第二个进程的工作目录解析），文件和文件夹都交给 `OpenPaths`；窗口未就绪时并入 `pendingOpen`。
+- MyGo 的 `fileArgs` 只转发 `mygo.json` 中登记扩展名的参数，因此应用自行解析，`.go` / `.py` / 无扩展名等用「打开方式」选 ZPad 时也能打开。
+- `openPaths` 增加「正在读取」集合（`beginLoading` / `endLoading`），同一路径来自 `OnOpenFile` 和第二实例时只读一次；顺带消除启动时 `pendingOpen` 与 `os.Args` 重复读取。
+- Windows 安装包只把 ZPad 写入 `.ext\OpenWithProgids` 与 ProgID，默认应用仍需用户右键「打开方式 → 始终使用此应用」（系统限制，非应用问题）。
+- 待验证：真实 Windows 上的安装、首次设为默认、已运行时双击第二个文件只保留一个 `ZPad.exe`、退出后 `settings.json` / 会话不被旧实例覆盖。
 - 侧栏改为「打开的文件 / 工作区」双 Tab：打开文件列表汇总两栏文档、去重并显示目录；打开文件夹或恢复工作区时自动切到工作区。
 - 文件树改为单击打开文件、单击展开/收起文件夹，去掉双击处理。
 - 标签可拖到另一栏，源栏最后一个标签移走后自动收起分屏；同一文件已在目标栏时直接激活。

@@ -94,6 +94,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 脏文档按 `*Document` 去重；关闭协调器用 `closePromptOpen` / `allowClose` / `allowQuit` 防止重复弹窗。
 - 保存使用原子写；保留原文件权限、编码、BOM 和行尾。
 - 会话只保存有路径的文件；未命名文件不持久化。
+- 单实例用 `mygo.App.RequestSingleInstanceLock()`（`main` 开头）+ `mygo.App.OnSecondInstance(a.HandleSecondInstance)`：第二进程立即退出，第一个实例前置窗口后打开传来的文件 / 文件夹。参数由应用自己解析（MyGo 只转发 `fileAssociations` 里登记的扩展名），`openPaths` 用 `beginLoading` / `endLoading` 的「正在读取」集合保证同一路径只读一次。
 - 强制外观用 `mygo.Theme.SetSource`，UI 主题用 `c.SetTheme` / `ui.Themed`。
 - 弹窗菜单统一 `c.SetMenuPresentation(ui.PopoverMenus)` 在窗口内绘制；顶部系统菜单栏保持原生。侧栏树菜单用 `PopoverMenu` + `sidebarMenuOptions`，避免继承文件树的选中样式。
 - 菜单项手型光标在 `PopoverMenuOptions` / `PopoverMenuButtonOptions` 的 `Item` 中设置；MyGo 内部的编辑器右键与输入框编辑菜单无法从应用层设置，仍是箭头。
@@ -121,6 +122,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 分隔线宽度在切换分屏 / 关闭时保存，不在拖拽每一帧写盘。
 - 编码底层的错误详情可能仍为英文技术信息；主提示已本地化。
 - macOS 构建未签名、未公证；正式分发需 Apple Developer 账号。
+- Windows 安装包只把 ZPad 登记到「打开方式」，默认应用需用户手动选择；Windows / Linux 打包尚未验证。
 - UTF-16 无 BOM 检测失败时通过状态栏手动切换编码，没有独立预览选择框。
 
 ## 工作流程

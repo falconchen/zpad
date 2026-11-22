@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"sync"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -95,10 +96,14 @@ type App struct {
 	revealPane  int
 	revealDoc   string
 
-	focusEditor      bool
-	untitledSeq      int
-	busy             bool
-	loading          int
+	focusEditor bool
+	untitledSeq int
+	busy        bool
+	loading     int
+	// loadingPaths holds the files being read, so that one asked for twice,
+	// as a second instance and the system may, is read and opened once.
+	loadingMu        sync.Mutex
+	loadingPaths     map[string]bool
 	externalChecking bool
 	lastDirty        bool
 	pendingOpen      []string
@@ -141,6 +146,7 @@ func New(s settings.Settings, settingsDir string) *App {
 		splitWidth:   600,
 		fontSize:     float64(s.FontSize),
 		lineHeight:   float64(s.LineHeight),
+		loadingPaths: map[string]bool{},
 	}
 }
 
