@@ -114,3 +114,37 @@ func TestUTF8BOMEncode(t *testing.T) {
 		t.Fatal("UTF-8 BOM missing")
 	}
 }
+
+func TestGB18030FourByteSequence(t *testing.T) {
+	text := "𠀀"
+	data, err := Encode(text, GB18030)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(data) < 4 {
+		t.Fatalf("GB18030 encoded %q in %d bytes, want 4", text, len(data))
+	}
+	got, err := Decode(data, GB18030)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != text {
+		t.Fatalf("got %q, want %q", got, text)
+	}
+}
+
+func TestDecodeUTF16WithoutBOMExplicitly(t *testing.T) {
+	for _, kind := range []Kind{UTF16LE, UTF16BE} {
+		data, err := Encode("hello\nworld", kind)
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, err := Decode(data[2:], kind)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != "hello\nworld" {
+			t.Fatalf("%s without BOM: got %q", kind, got)
+		}
+	}
+}

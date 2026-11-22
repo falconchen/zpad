@@ -1,0 +1,111 @@
+package app
+
+import (
+	"os"
+
+	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui/editor"
+	"github.com/helloxz/zpad/locales"
+)
+
+// checkExternalChanges compares the files of the open documents with the
+// disk when the window gains focus.
+func (a *App) checkExternalChanges() {
+	if a.externalChecking || a.busy {
+		return
+	}
+	a.externalChecking = true
+	go func() {
+		defer a.onUI(func() { a.externalChecking = false })
+		for _, doc := range a.allDocs() {
+			if doc.Path == "" || doc.ModTime.IsZero() {
+				continue
+			}
+			info, err := os.Stat(doc.Path)
+			if err != nil {
+				// A deleted file asks on save; keep the open document.
+				continue
+			}
+			if info.Size() == doc.Size && info.ModTime().Equal(doc.ModTime) {
+				continue
+			}
+			if !doc.Buffer.Modified() {
+				a.reloadExternal(doc)
+				continue
+			}
+			res, err := mygo.Dialog.Message(mygo.MessageOptions{
+				Parent:             a.win,
+				Type:               mygo.MessageWarning,
+				Message:            locales.ExternalChangeQuestion(),
+				Detail:             doc.DisplayPath(a.root),
+				Buttons:            []string{locales.Reload(), locales.KeepMine(), locales.SaveAs()},
+				DefaultButton:      0,
+				CancelButton:       -1,
+				DestructiveButtons: []int{0},
+			})
+			if err != nil {
+				continue
+			}
+			switch res.Button {
+			case 0:
+				a.reloadExternal(doc)
+			case 1:
+				a.onUI(func() {
+					doc.Size = info.Size()
+					doc.ModTime = info.ModTime()
+				})
+			case 2:
+				a.onUI(func() {
+					if tab := a.findTab(doc); tab != nil {
+						a.saveTab(tab, true, nil)
+					}
+				})
+			}
+		}
+	}()
+}
+
+func (a *App) allDocs() []*Document {
+	seen := map[*Document]bool{}
+	var out []*Document
+	for _, p := range []*Pane{&a.left, &a.right} {
+		for _, tab := range p.tabs {
+			if !seen[tab.doc] {
+				seen[tab.doc] = true
+				out = append(out, tab.doc)
+			}
+		}
+	}
+	return out
+}
+
+func (a *App) findTab(doc *Document) *Tab {
+	for _, p := range []*Pane{&a.left, &a.right} {
+		for _, tab := range p.tabs {
+			if tab.doc == doc {
+				return tab
+			}
+		}
+	}
+	return nil
+}
+
+func (a *App) reloadExternal(doc *Document) {
+	loaded, err := loadDocumentWith(doc.Path, doc.Encoding, a.Settings.LargeFileMB)
+	if err != nil {
+		a.fail(locales.ReopenFailed(), err)
+		return
+	}
+	a.onUI(func() {
+		doc.Buffer.Reset(loaded.Buffer.String())
+		doc.Buffer.SetLanguage(editor.LanguageFor(doc.Path))
+		doc.Encoding = loaded.Encoding
+		doc.Raw = loaded.Raw
+		doc.Size = loaded.Size
+		doc.ModTime = loaded.ModTime
+		a.setDocReadOnly(doc, loaded.ReadOnly)
+		doc.Buffer.MarkSaved()
+		a.updateTitle()
+		a.SetToast(locales.Reloaded())
+	})
+}

@@ -6,12 +6,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/atomicfile"
 	"github.com/helloxz/zpad/internal/encoding"
 	"github.com/helloxz/zpad/locales"
 )
+
+const maxLines = 500_000
 
 // Document is an open file and the text the editor edits.
 type Document struct {
@@ -21,6 +24,8 @@ type Document struct {
 	Encoding encoding.Kind
 	Raw      []byte
 	Size     int64
+	ModTime  time.Time
+	ReadOnly bool
 }
 
 // loadDocument reads a file and detects its encoding.
@@ -39,9 +44,6 @@ func loadDocument(path string, maxMB int) (*Document, error) {
 	if info.IsDir() {
 		return nil, errors.New(locales.IsFolder())
 	}
-	if info.Size() > maxBytes {
-		return nil, errors.New(locales.FileTooLarge(maxMB))
-	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -53,7 +55,13 @@ func loadDocument(path string, maxMB int) (*Document, error) {
 	if kind != encoding.UTF16LE && kind != encoding.UTF16BE && isBinary(data) {
 		return nil, errors.New(locales.BinaryFile())
 	}
-	return newDocument(path, data, kind, info.Size())
+	doc, err := newDocument(path, data, kind, info.Size())
+	if err != nil {
+		return nil, err
+	}
+	doc.ModTime = info.ModTime()
+	doc.ReadOnly = info.Size() > maxBytes || doc.Buffer.LineCount() > maxLines
+	return doc, nil
 }
 
 // loadDocumentWith reads a file again, interpreting its bytes as kind.
@@ -72,9 +80,6 @@ func loadDocumentWith(path string, kind encoding.Kind, maxMB int) (*Document, er
 	if info.IsDir() {
 		return nil, errors.New(locales.IsFolder())
 	}
-	if info.Size() > maxBytes {
-		return nil, errors.New(locales.FileTooLarge(maxMB))
-	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -82,7 +87,13 @@ func loadDocumentWith(path string, kind encoding.Kind, maxMB int) (*Document, er
 	if kind != encoding.UTF16LE && kind != encoding.UTF16BE && isBinary(data) {
 		return nil, errors.New(locales.BinaryFile())
 	}
-	return newDocument(path, data, kind, info.Size())
+	doc, err := newDocument(path, data, kind, info.Size())
+	if err != nil {
+		return nil, err
+	}
+	doc.ModTime = info.ModTime()
+	doc.ReadOnly = info.Size() > maxBytes || doc.Buffer.LineCount() > maxLines
+	return doc, nil
 }
 
 func newDocument(path string, data []byte, kind encoding.Kind, size int64) (*Document, error) {

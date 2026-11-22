@@ -57,11 +57,13 @@ type App struct {
 	splitWidth float32
 	activePane int // 0 left, 1 right
 
-	focusEditor bool
-	untitledSeq int
-	busy        bool
-	lastDirty   bool
-	pendingOpen []string
+	focusEditor      bool
+	untitledSeq      int
+	busy             bool
+	loading          int
+	externalChecking bool
+	lastDirty        bool
+	pendingOpen      []string
 
 	showSettings bool
 	fontSize     float64
@@ -123,6 +125,7 @@ func (a *App) Prepare() {
 func (a *App) Attach(win *mygo.Window) {
 	a.win = win
 	win.OnClose(a.onWindowClose)
+	win.OnFocus(func() { a.checkExternalChanges() })
 	win.OnFileDrop(func(e *mygo.FileDropEvent) {
 		a.OpenPaths(e.Paths)
 	})
@@ -206,6 +209,17 @@ func (a *App) setActivePane(i int) {
 	a.update()
 }
 
+func (a *App) setDocReadOnly(doc *Document, readOnly bool) {
+	doc.ReadOnly = readOnly
+	for _, p := range []*Pane{&a.left, &a.right} {
+		for _, tab := range p.tabs {
+			if tab.doc == doc {
+				tab.state.ReadOnly = readOnly
+			}
+		}
+	}
+}
+
 func (a *App) findDocument(path string) *Document {
 	for _, p := range []*Pane{&a.left, &a.right} {
 		for _, tab := range p.tabs {
@@ -233,7 +247,7 @@ func (a *App) addDocument(doc *Document) {
 			return
 		}
 	}
-	st := &editor.State{Buffer: doc.Buffer}
+	st := &editor.State{Buffer: doc.Buffer, ReadOnly: doc.ReadOnly}
 	p.tabs = append(p.tabs, &Tab{doc: doc, state: st})
 	p.active = len(p.tabs) - 1
 	a.focusEditor = true
@@ -290,7 +304,7 @@ func (a *App) toggleSplit() {
 			if !found {
 				a.right.tabs = append(a.right.tabs, &Tab{
 					doc:   tab.doc,
-					state: &editor.State{Buffer: tab.doc.Buffer},
+					state: &editor.State{Buffer: tab.doc.Buffer, ReadOnly: tab.doc.ReadOnly},
 				})
 				a.right.active = len(a.right.tabs) - 1
 			}

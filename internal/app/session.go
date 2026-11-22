@@ -71,7 +71,7 @@ func (a *App) restoreSession(st session.State) {
 			y := float64(ts.ScrollY)
 			p.tabs = append(p.tabs, &Tab{
 				doc:           doc,
-				state:         &editor.State{Buffer: doc.Buffer},
+				state:         &editor.State{Buffer: doc.Buffer, ReadOnly: doc.ReadOnly},
 				pendingScroll: &y,
 			})
 		}

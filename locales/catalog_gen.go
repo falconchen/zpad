@@ -1054,11 +1054,11 @@ func (msgs Messages) MissingFiles(count int) string {
 	return Catalog.Format(msgs.locale, "missingFiles", map[string]any{"count": count})
 }
 
-// FileTooLarge says "Files larger than {mb} MB are not supported yet"
+// FileTooLarge says "Files larger than {mb} MB open read-only"
 // in the language the app shows.
 func FileTooLarge(mb int) string { return In(i18n.Locale()).FileTooLarge(mb) }
 
-// FileTooLarge says "Files larger than {mb} MB are not supported yet"
+// FileTooLarge says "Files larger than {mb} MB open read-only"
 // in the language of msgs.
 func (msgs Messages) FileTooLarge(mb int) string {
 	return Catalog.Format(msgs.locale, "fileTooLarge", map[string]any{"mb": mb})
@@ -1192,4 +1192,104 @@ func DecodeFailed() string { return In(i18n.Locale()).DecodeFailed() }
 // in the language of msgs.
 func (msgs Messages) DecodeFailed() string {
 	return Catalog.Format(msgs.locale, "decodeFailed", nil)
+}
+
+// LargeFileQuestion says "This file is large. Open it read-only?"
+// in the language the app shows.
+func LargeFileQuestion() string { return In(i18n.Locale()).LargeFileQuestion() }
+
+// LargeFileQuestion says "This file is large. Open it read-only?"
+// in the language of msgs.
+func (msgs Messages) LargeFileQuestion() string {
+	return Catalog.Format(msgs.locale, "largeFileQuestion", nil)
+}
+
+// OpenReadOnly says "Open Read-Only"
+// in the language the app shows.
+func OpenReadOnly() string { return In(i18n.Locale()).OpenReadOnly() }
+
+// OpenReadOnly says "Open Read-Only"
+// in the language of msgs.
+func (msgs Messages) OpenReadOnly() string {
+	return Catalog.Format(msgs.locale, "openReadOnly", nil)
+}
+
+// ReadOnly says "Read-Only"
+// in the language the app shows.
+func ReadOnly() string { return In(i18n.Locale()).ReadOnly() }
+
+// ReadOnly says "Read-Only"
+// in the language of msgs.
+func (msgs Messages) ReadOnly() string {
+	return Catalog.Format(msgs.locale, "readOnly", nil)
+}
+
+// Opening says "Opening…"
+// in the language the app shows.
+func Opening() string { return In(i18n.Locale()).Opening() }
+
+// Opening says "Opening…"
+// in the language of msgs.
+func (msgs Messages) Opening() string {
+	return Catalog.Format(msgs.locale, "opening", nil)
+}
+
+// Reloaded says "Reloaded from disk"
+// in the language the app shows.
+func Reloaded() string { return In(i18n.Locale()).Reloaded() }
+
+// Reloaded says "Reloaded from disk"
+// in the language of msgs.
+func (msgs Messages) Reloaded() string {
+	return Catalog.Format(msgs.locale, "reloaded", nil)
+}
+
+// ExternalChangeQuestion says "The file changed on disk. What do you want to do?"
+// in the language the app shows.
+func ExternalChangeQuestion() string { return In(i18n.Locale()).ExternalChangeQuestion() }
+
+// ExternalChangeQuestion says "The file changed on disk. What do you want to do?"
+// in the language of msgs.
+func (msgs Messages) ExternalChangeQuestion() string {
+	return Catalog.Format(msgs.locale, "externalChangeQuestion", nil)
+}
+
+// Reload says "Reload"
+// in the language the app shows.
+func Reload() string { return In(i18n.Locale()).Reload() }
+
+// Reload says "Reload"
+// in the language of msgs.
+func (msgs Messages) Reload() string {
+	return Catalog.Format(msgs.locale, "reload", nil)
+}
+
+// KeepMine says "Keep Mine"
+// in the language the app shows.
+func KeepMine() string { return In(i18n.Locale()).KeepMine() }
+
+// KeepMine says "Keep Mine"
+// in the language of msgs.
+func (msgs Messages) KeepMine() string {
+	return Catalog.Format(msgs.locale, "keepMine", nil)
+}
+
+// FileMissingQuestion says "The file no longer exists. Recreate it?"
+// in the language the app shows.
+func FileMissingQuestion() string { return In(i18n.Locale()).FileMissingQuestion() }
+
+// FileMissingQuestion says "The file no longer exists. Recreate it?"
+// in the language of msgs.
+func (msgs Messages) FileMissingQuestion() string {
+	return Catalog.Format(msgs.locale, "fileMissingQuestion", nil)
+}
+
+// Recreate says "Recreate"
+// in the language the app shows.
+func Recreate() string { return In(i18n.Locale()).Recreate() }
+
+// Recreate says "Recreate"
+// in the language of msgs.
+func (msgs Messages) Recreate() string {
+	return Catalog.Format(msgs.locale, "recreate", nil)
 }

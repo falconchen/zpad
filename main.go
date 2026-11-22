@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -53,6 +55,16 @@ func main() {
 			Content:   ui.View(a.View),
 		})
 		a.Attach(win)
+		var args []string
+		for _, arg := range os.Args[1:] {
+			if strings.HasPrefix(arg, "-") {
+				continue
+			}
+			args = append(args, arg)
+		}
+		if len(args) > 0 {
+			a.OpenPaths(args)
+		}
 	})
 
 	if err := mygo.App.Run(); err != nil {

@@ -102,7 +102,7 @@
   "saveSettingsFailed": "保存设置失败",
   "loadSettingsFailed": "读取设置失败",
   "missingFiles": "有 {count} 个文件未能恢复",
-  "fileTooLarge": "文件超过 {mb} MB，暂不支持",
+  "fileTooLarge": "超过 {mb} MB 的文件将以只读方式打开",
   "isFolder": "这是一个文件夹",
   "binaryFile": "这是二进制文件，无法作为文本编辑",
   "unknownEncoding": "无法识别文件编码，请在状态栏选择编码重新打开。",
@@ -115,5 +115,15 @@
   "reopenWithEncoding": "重新以…编码打开",
   "saveWithEncoding": "以…编码保存",
   "lineEnding": "换行符",
-  "decodeFailed": "无法用所选编码解码该文件。"
+  "decodeFailed": "无法用所选编码解码该文件。",
+  "largeFileQuestion": "文件较大，将以只读方式打开，是否继续？",
+  "openReadOnly": "只读打开",
+  "readOnly": "只读",
+  "opening": "正在打开…",
+  "reloaded": "已从磁盘重新加载",
+  "externalChangeQuestion": "文件已被外部修改，要如何处理？",
+  "reload": "重新加载",
+  "keepMine": "保留我的修改",
+  "fileMissingQuestion": "文件已不存在，是否重新创建？",
+  "recreate": "重新创建"
 }

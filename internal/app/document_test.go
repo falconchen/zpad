@@ -78,6 +78,25 @@ func TestLineEndingsPreservedAndConverted(t *testing.T) {
 	}
 }
 
+func TestMixedLineEndingsPreserved(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mixed.txt")
+	raw := []byte("a\r\nb\nc\rd")
+	if err := os.WriteFile(path, raw, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	doc, err := loadDocument(path, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := writeDocument(doc, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != string(raw) {
+		t.Fatalf("saved %q, want %q", data, raw)
+	}
+}
+
 func TestLoadBinaryRejected(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "image.png")
 	if err := os.WriteFile(path, []byte{0x89, 'P', 'N', 'G', 0, 0, 0}, 0o644); err != nil {

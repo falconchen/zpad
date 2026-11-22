@@ -342,6 +342,7 @@ func (a *App) newTabButton(c *ui.Context, t *ui.Theme, paneIdx int) {
 func (a *App) configureEditor(tab *Tab, t *ui.Theme) {
 	st := tab.state
 	st.SoftWrap = a.Settings.SoftWrap
+	st.ReadOnly = tab.doc.ReadOnly
 	switch a.Settings.LineNumbers {
 	case "relative":
 		st.LineNumbers = editor.LineNumbersRelative
@@ -457,7 +458,9 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 			tab := a.activeTab()
 			if tab == nil {
 				msg, col := locales.Ready(), t.TextMuted
-				if a.errMsg != "" {
+				if a.loading > 0 {
+					msg, col = locales.Opening(), t.Accent
+				} else if a.errMsg != "" {
 					msg, col = a.errMsg, t.Danger
 				}
 				ui.Text(c, msg).FontSize(11).TextColor(col).SingleLine()
@@ -467,6 +470,9 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 			}
 
 			doc := tab.doc
+			if a.loading > 0 {
+				ui.Text(c, locales.Opening()).FontSize(11).TextColor(t.Accent)
+			}
 			if a.errMsg != "" {
 				ui.Text(c, a.errMsg).FontSize(11).TextColor(t.Danger).MaxWidth(420).SingleLine()
 			} else {
@@ -474,12 +480,15 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 					MaxWidth(320).SingleLine()
 			}
 			ui.Text(c, languageName(doc)).FontSize(11).TextColor(t.TextMuted)
+			if doc.ReadOnly {
+				ui.Text(c, locales.ReadOnly()).FontSize(11).TextColor(t.Warning)
+			}
 
 			ui.MenuButton(c, encoding.Label(doc.Encoding), func(m *ui.Menu) {
 				m.Submenu(locales.ReopenWithEncoding(), func(mm *ui.Menu) {
 					for _, kind := range encoding.All {
 						k := kind
-						if mm.Item(encoding.Label(k)).Chosen() {
+						if mm.Item(encoding.Label(k)).Checked(doc.Encoding == k).Chosen() {
 							a.ReopenWithEncoding(k)
 						}
 					}
@@ -487,7 +496,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 				m.Submenu(locales.SaveWithEncoding(), func(mm *ui.Menu) {
 					for _, kind := range encoding.All {
 						k := kind
-						if mm.Item(encoding.Label(k)).Chosen() {
+						if mm.Item(encoding.Label(k)).Checked(doc.Encoding == k).Chosen() {
 							a.SaveWithEncoding(k)
 						}
 					}

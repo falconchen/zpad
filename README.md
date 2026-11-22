@@ -3,7 +3,15 @@
 基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器。
 单窗口、左右双栏、每栏多标签，不启动 WebView，界面全部由 Go 绘制。
 
-当前进度：**M3 视觉、设置、字体与中英双语**。已支持完整亮 / 暗主题、设置面板、JetBrains Mono、中英切换，以及 M1 / M2 的全部编辑、分屏与会话能力。
+当前进度：**M4 加固与 macOS 发布**。功能、设置、双语、分屏、会话与打包均已完成，等待 0.1.0 验收。
+
+## 截图
+
+| 亮色 | 暗色 |
+| --- | --- |
+| ![亮色](./docs/screenshots/editor-light.png) | ![暗色](./docs/screenshots/editor-dark.png) |
+
+![设置面板](./docs/screenshots/settings-dark.png)
 
 ## 环境
 
@@ -26,11 +34,13 @@ go tool mygo build   # 打包 macOS 应用
 ```
 .
 ├── main.go                 # 应用入口：设置、窗口、主题源
-├── mygo.json               # 应用名称 / 标识 / 版本
+├── fonts.go                # 嵌入并注册 JetBrains Mono
+├── fonts/                  # JetBrains Mono TTF + OFL
+├── mygo.json               # 应用名称 / 标识 / 版本 / 文件关联
 ├── go.mod                  # Go 1.27.4 + MyGo v0.10.0
-├── docs/                   # 需求与里程碑文档
-├── locales/                # 中英文 catalogs（M3）
-├── resources/              # 应用图标等资源
+├── docs/                   # 需求、里程碑、截图
+├── locales/                # 中英文 catalogs + 生成代码
+├── resources/              # 应用图标与字体许可
 └── internal/
     ├── app/                # 应用状态、文档、标签、视图、菜单
     ├── atomicfile/         # 原子写文件
@@ -51,6 +61,24 @@ go tool mygo build   # 打包 macOS 应用
 - [M2 左右双栏与会话恢复](./docs/03-m2-split-session.md)
 - [M3 视觉、设置、字体与中英双语](./docs/04-m3-appearance-settings.md)
 - [M4 加固、文件关联与 macOS 发布](./docs/05-m4-hardening-release.md)
+- [CHANGELOG](./CHANGELOG.md)
+
+## 快捷键
+
+| 快捷键 | 动作 |
+| --- | --- |
+| `Cmd+N` | 新建文件 |
+| `Cmd+O` | 打开文件 |
+| `Cmd+Shift+O` | 打开文件夹 |
+| `Cmd+S` | 保存 |
+| `Cmd+Shift+S` | 另存为 |
+| `Cmd+W` | 关闭标签 |
+| `Cmd+B` | 切换侧栏 |
+| `Cmd+\` | 切换分屏 |
+| `Cmd+,` | 设置 |
+| `Cmd+F` / `Cmd+Alt+F` | 查找 / 替换 |
+| `Ctrl+G` | 跳转到行 |
+| `Cmd+Z` / `Cmd+Shift+Z` | 撤销 / 重做 |
 
 ## 已实现
 
@@ -72,14 +100,35 @@ go tool mygo build   # 打包 macOS 应用
 - 内置 JetBrains Mono（OFL），字体列表只列等宽字体。
 - 中英双语，运行期切换，无需重启。
 - 查找栏、跳行栏、滚动条与焦点环统一风格。
+- 大文件只读打开（按设置阈值或 50 万行）；二进制文件拒绝。
+- 外部修改检测：窗口聚焦时比较 mtime / size，未修改自动重载，有修改时选择重载 / 保留 / 另存为。
+- 文件关联：常见文本扩展名；支持 Finder、拖拽、命令行打开。
+- 文件保存失败、只读目录、文件被删除等错误处理。
+
+## macOS 发布
+
+```sh
+go tool mygo build
+```
+
+产物：
+
+- `build/darwin-arm64/ZPad.app`
+- `build/darwin-arm64/zpad-0.1.0-arm64.dmg`
+
+`mygo.json` 已声明 `fileAssociations`（txt / md / html / css / json / js 等）。构建后 Finder 双击对应文件可用 ZPad 打开；如系统未立即刷新关联，可重新登录或清理 LaunchServices 缓存。
+
+当前构建未签名、未公证。首次打开可能被 Gatekeeper 拦截：右键应用选择“打开”，或在系统设置中允许。正式分发需要 Apple Developer 账号并完成签名 / 公证。
 
 ## 当前限制
 
-- 全局搜索、Markdown 预览、外部修改监听在二期。
-- 超过设置阈值（默认 20 MB）的文件当前直接拒绝；M4 改为只读打开。
+- 全局搜索、Markdown 预览在二期；外部修改只做窗口聚焦时的 mtime 检查，不含完整监听与三方合并。
 - 标签中键关闭、拖拽排序未实现。
 - 设置修改立即写盘，未做防抖。
+- 超过 50 万行的文件只读；大文件不参与会话恢复的完整滚动精度。
+- Windows / Linux 打包与单实例参数转发后续处理。
 
 ## 许可证
 
-AGPL-3.0，见 [LICENSE](./LICENSE)。
+- 应用：AGPL-3.0，见 [LICENSE](./LICENSE)。
+- 内置字体 JetBrains Mono：SIL Open Font License 1.1，见 [fonts/OFL.txt](./fonts/OFL.txt)。

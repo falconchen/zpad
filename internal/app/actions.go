@@ -1,9 +1,11 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui/editor"
@@ -66,7 +68,16 @@ func (a *App) OpenPaths(paths []string) {
 	if len(paths) == 0 {
 		return
 	}
+	maxMB := a.Settings.LargeFileMB
+	a.onUI(func() { a.loading++ })
+	defer a.onUI(func() {
+		if a.loading > 0 {
+			a.loading--
+		}
+		a.update()
+	})
 	go func() {
+		var dirs, files []string
 		for _, path := range paths {
 			info, err := os.Stat(path)
 			if err != nil {
@@ -74,13 +85,34 @@ func (a *App) OpenPaths(paths []string) {
 				continue
 			}
 			if info.IsDir() {
-				a.onUI(func() { a.setWorkspace(path) })
-				continue
+				dirs = append(dirs, path)
+			} else {
+				files = append(files, path)
 			}
-			doc, err := loadDocument(path, a.Settings.LargeFileMB)
+		}
+		// A folder first, so files opened with it share its workspace.
+		for _, dir := range dirs {
+			a.onUI(func() { a.setWorkspace(dir) })
+		}
+		for _, path := range files {
+			doc, err := loadDocument(path, maxMB)
 			if err != nil {
 				a.fail(locales.OpenFailed(filepath.Base(path)), err)
 				continue
+			}
+			if doc.ReadOnly {
+				res, err := mygo.Dialog.Message(mygo.MessageOptions{
+					Parent:        a.win,
+					Type:          mygo.MessageInfo,
+					Message:       locales.LargeFileQuestion(),
+					Detail:        filepath.Base(path) + " · " + locales.FileTooLarge(maxMB),
+					Buttons:       []string{locales.OpenReadOnly(), locales.Cancel()},
+					DefaultButton: 0,
+					CancelButton:  1,
+				})
+				if err != nil || res.Button != 0 {
+					continue
+				}
 			}
 			a.onUI(func() { a.addDocument(doc) })
 		}
@@ -94,7 +126,7 @@ func (a *App) NewFile() {
 
 // Undo takes back the active buffer's last edit.
 func (a *App) Undo() {
-	if tab := a.activeTab(); tab != nil {
+	if tab := a.activeTab(); tab != nil && !tab.doc.ReadOnly {
 		tab.doc.Buffer.Undo()
 		a.updateTitle()
 		a.update()
@@ -103,7 +135,7 @@ func (a *App) Undo() {
 
 // Redo makes the active buffer's last undone edit again.
 func (a *App) Redo() {
-	if tab := a.activeTab(); tab != nil {
+	if tab := a.activeTab(); tab != nil && !tab.doc.ReadOnly {
 		tab.doc.Buffer.Redo()
 		a.updateTitle()
 		a.update()
@@ -176,6 +208,8 @@ func (a *App) reloadAs(tab *Tab, kind encoding.Kind) {
 			tab.doc.Encoding = kind
 			tab.doc.Raw = doc.Raw
 			tab.doc.Size = doc.Size
+			tab.doc.ModTime = doc.ModTime
+			a.setDocReadOnly(tab.doc, doc.ReadOnly)
 			tab.doc.Buffer.MarkSaved()
 			a.updateTitle()
 		})
@@ -185,7 +219,7 @@ func (a *App) reloadAs(tab *Tab, kind encoding.Kind) {
 // SetLineEnding converts every line of the active tab to eol.
 func (a *App) SetLineEnding(eol string) {
 	tab := a.activeTab()
-	if tab == nil {
+	if tab == nil || tab.doc.ReadOnly {
 		return
 	}
 	tab.doc.Buffer.SetLineEnding(eol)
@@ -196,7 +230,7 @@ func (a *App) SetLineEnding(eol string) {
 // ConvertCase changes the case of the active tab's selections.
 func (a *App) ConvertCase(mode caseconv.Mode) {
 	tab := a.activeTab()
-	if tab == nil {
+	if tab == nil || tab.doc.ReadOnly {
 		return
 	}
 	applyCase(tab, mode)
@@ -275,6 +309,7 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 	go func() {
 		defer a.onUI(func() { a.busy = false })
 
+		saveAs = saveAs || tab.doc.ReadOnly
 		path := tab.doc.Path
 		if saveAs || path == "" {
 			defaultPath := path
@@ -297,18 +332,43 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 			path = p
 		}
 
+		if !saveAs && tab.doc.Path != "" {
+			if _, statErr := os.Stat(path); errors.Is(statErr, os.ErrNotExist) {
+				res, err := mygo.Dialog.Message(mygo.MessageOptions{
+					Parent:        a.win,
+					Type:          mygo.MessageWarning,
+					Message:       locales.FileMissingQuestion(),
+					Detail:        path,
+					Buttons:       []string{locales.Recreate(), locales.Cancel()},
+					DefaultButton: 0,
+					CancelButton:  1,
+				})
+				if err != nil || res.Button != 0 {
+					return
+				}
+			}
+		}
+
 		data, err := writeDocument(tab.doc, path)
 		if err != nil {
 			a.fail(locales.SaveFailed(), err)
-			mygo.Dialog.Error(locales.SaveFailed(), err.Error())
+			mygo.Dialog.Error(locales.SaveFailed(), path+": "+err.Error())
 			return
+		}
+		var modTime time.Time
+		if info, statErr := os.Stat(path); statErr == nil {
+			modTime = info.ModTime()
 		}
 		a.onUI(func() {
 			tab.doc.Path = path
 			tab.doc.ID = path
 			tab.doc.Size = int64(len(data))
+			tab.doc.ModTime = modTime
 			tab.doc.Buffer.SetLanguage(editor.LanguageFor(path))
 			tab.doc.Buffer.MarkSaved()
+			if saveAs {
+				a.setDocReadOnly(tab.doc, false)
+			}
 			a.updateTitle()
 			if then != nil {
 				then()

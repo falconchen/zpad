@@ -146,7 +146,7 @@
       }
     }
   },
-  "fileTooLarge": "Files larger than {mb} MB are not supported yet",
+  "fileTooLarge": "Files larger than {mb} MB open read-only",
   "@fileTooLarge": {
     "placeholders": {
       "mb": {
@@ -167,5 +167,15 @@
   "reopenWithEncoding": "Reopen with Encoding",
   "saveWithEncoding": "Save with Encoding",
   "lineEnding": "Line Ending",
-  "decodeFailed": "Could not decode the file with the selected encoding."
+  "decodeFailed": "Could not decode the file with the selected encoding.",
+  "largeFileQuestion": "This file is large. Open it read-only?",
+  "openReadOnly": "Open Read-Only",
+  "readOnly": "Read-Only",
+  "opening": "Opening…",
+  "reloaded": "Reloaded from disk",
+  "externalChangeQuestion": "The file changed on disk. What do you want to do?",
+  "reload": "Reload",
+  "keepMine": "Keep Mine",
+  "fileMissingQuestion": "The file no longer exists. Recreate it?",
+  "recreate": "Recreate"
 }
