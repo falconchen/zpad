@@ -184,6 +184,13 @@ func TestTreeContextMenu(t *testing.T) {
 			t.Fatalf("menu %q does not show %q", menu, want)
 		}
 	}
+	if r, ok := tt.Find(locales.Rename()); ok {
+		tt.Move(r.X+r.W/2, r.Y+r.H/2)
+		tt.Frame()
+		if got := tt.Cursor(); got != ui.CursorPointer {
+			t.Fatalf("cursor over the tree menu %v, want the pointing hand", got)
+		}
+	}
 	if err := tt.ChooseMenuItem(locales.OpenInOtherPane()); err != nil {
 		t.Fatal(err)
 	}
@@ -255,5 +262,45 @@ func TestRenameValidation(t *testing.T) {
 		if !a.renameOpen {
 			t.Errorf("rename %q closed the dialog", tc.name)
 		}
+	}
+}
+
+func TestOpenFilesContextMenu(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "a.txt")
+	if err := os.WriteFile(path, []byte("a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+	a.Settings.SidebarOpen = true
+	a.sidebarTab = sidebarFiles
+	doc := docAt(path, "a")
+	a.addDocument(doc)
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	if err := tt.RightClick("a.txt"); err != nil {
+		t.Fatal(err)
+	}
+	menu := tt.Menu()
+	for _, want := range []string{locales.OpenInOtherPane(), locales.Rename(), locales.Delete()} {
+		found := false
+		for _, item := range menu {
+			if item == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("open files menu %q does not show %q", menu, want)
+		}
+	}
+	if err := tt.ChooseMenuItem(locales.OpenInOtherPane()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !a.split || a.activePane != 1 || len(a.right.tabs) != 1 || a.right.tabs[0].doc != doc {
+		t.Fatalf("split %v, active pane %d, right tabs %d", a.split, a.activePane, len(a.right.tabs))
 	}
 }

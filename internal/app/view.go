@@ -17,6 +17,7 @@ import (
 func (a *App) View(c *ui.Context) {
 	t := theme.For(a.Dark)
 	c.SetTheme(t)
+	c.SetMenuPresentation(ui.PopoverMenus)
 
 	ui.Themed(c, t).Fill().Children(func() {
 		a.toolbar(c, t)
@@ -66,7 +67,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 				tab.state.Run(editor.Find)
 			}
 		}).KeyShortcuts(ui.Cmd, ui.KeyF)
-		ui.MenuButton(c, "Aa", func(m *ui.Menu) {
+		ui.PopoverMenuButton(c, "Aa", func(m *ui.Menu) {
 			if m.Item(locales.UpperCase()).Chosen() {
 				a.ConvertCase(caseconv.Upper)
 			}
@@ -79,11 +80,11 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 			if m.Item(locales.InvertCase()).Chosen() {
 				a.ConvertCase(caseconv.Invert)
 			}
-		}).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu()).Cursor(ui.CursorPointer)
+		}, menuButtonCursorOptions()).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu()).Cursor(ui.CursorPointer)
 		ui.Spacer(c)
 		a.iconButton(c, t, iconSplit, locales.ToggleSplit(), a.split, a.toggleSplit).
 			KeyShortcuts(ui.Cmd, ui.KeyBackslash)
-		ui.MenuButton(c, locales.Theme(), func(m *ui.Menu) {
+		ui.PopoverMenuButton(c, locales.Theme(), func(m *ui.Menu) {
 			if m.Item(locales.ThemeLight()).Checked(a.ThemeIndex == 0).Chosen() {
 				a.setThemeIndex(0)
 			}
@@ -93,7 +94,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 			if m.Item(locales.ThemeSystem()).Checked(a.ThemeIndex == 2).Chosen() {
 				a.setThemeIndex(2)
 			}
-		}).Label(locales.Theme()).Tooltip(locales.Theme()).Cursor(ui.CursorPointer)
+		}, menuButtonCursorOptions()).Label(locales.Theme()).Tooltip(locales.Theme()).Cursor(ui.CursorPointer)
 		a.iconButton(c, t, iconSettings, locales.Settings(), a.showSettings, a.openSettings).
 			KeyShortcuts(ui.Cmd, ui.KeyComma)
 	}).Padding(8, 10).Background(t.Surface).
@@ -115,8 +116,7 @@ func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string,
 }
 
 func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
-	tt := theme.FileTree(t)
-	ui.Themed(c, tt).Fill().Background(theme.Sidebar(t)).Children(func() {
+	ui.Column(c).Fill().Background(theme.Sidebar(t)).Children(func() {
 		ui.Row(c).Height(38).Padding(0, 8).AlignItems(ui.Center).Gap(2).Children(func() {
 			a.sidebarTabButton(c, t, locales.OpenFiles(), sidebarFiles)
 			a.sidebarTabButton(c, t, locales.Workspace(), sidebarWorkspace)
@@ -125,9 +125,9 @@ func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
 		})
 		switch a.sidebarTab {
 		case sidebarWorkspace:
-			a.workspacePanel(c, tt)
+			a.workspacePanel(c, t)
 		default:
-			a.openFilesPanel(c, t, tt)
+			a.openFilesPanel(c, t, theme.FileTree(t))
 		}
 	})
 }
@@ -188,7 +188,7 @@ func (a *App) sidebarMenuButton(c *ui.Context, t *ui.Theme) {
 func (a *App) openFilesPanel(c *ui.Context, t, tree *ui.Theme) {
 	docs := a.openDocuments()
 	if len(docs) == 0 {
-		ui.Column(c).Fill().Center().Gap(10).Padding(16).Children(func() {
+		ui.Column(c).Grow(1).Center().Gap(10).Padding(16).Children(func() {
 			ui.Text(c, locales.NoOpenFiles()).FontSize(12).TextColor(t.TextMuted)
 			ui.Row(c).Gap(6).Children(func() {
 				if ui.Button(c, locales.NewFile()).Cursor(ui.CursorPointer).Clicked() {
@@ -245,6 +245,20 @@ func (a *App) openFileRow(c *ui.Context, t, tree *ui.Theme, doc *Document, activ
 	if row.Clicked() {
 		a.activateDocument(doc)
 	}
+	if doc.Path != "" {
+		row.PopoverMenu(func(m *ui.Menu) {
+			if m.Item(locales.OpenInOtherPane()).Chosen() {
+				a.openInOtherPane(doc.Path)
+			}
+			if m.Item(locales.Rename()).Chosen() {
+				a.beginRename(doc.Path)
+			}
+			m.Separator()
+			if m.Item(locales.Delete()).Danger().Chosen() {
+				a.confirmDelete(doc.Path, false)
+			}
+		}, menuCursorOptions())
+	}
 }
 
 // documentDir is the directory shown beside an open file: its place under
@@ -273,7 +287,7 @@ func (a *App) documentTooltip(doc *Document) string {
 
 func (a *App) workspacePanel(c *ui.Context, t *ui.Theme) {
 	if a.tree == nil {
-		ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
+		ui.Column(c).Grow(1).Center().Gap(8).Padding(16).Children(func() {
 			ui.Text(c, locales.NoFolder()).FontSize(12).TextColor(t.TextMuted)
 			if ui.Button(c, locales.OpenFolder()).Cursor(ui.CursorPointer).Clicked() {
 				a.OpenFolderDialog()
@@ -285,11 +299,13 @@ func (a *App) workspacePanel(c *ui.Context, t *ui.Theme) {
 		ui.Icon(c, iconFolder).FontSize(13).TextColor(t.TextMuted)
 		ui.Text(c, a.tree.Name()).FontSize(12).Bold().SingleLine()
 	})
-	a.treeState.List.Selected = &a.treeSelected
-	a.treeState.Generation = a.treeGeneration
-	ui.Outline(c, &a.treeState, a.tree.Roots(), a.tree.Children, func(path string) {
-		a.treeRow(c, t, path)
-	}).Grow(1)
+	ui.Themed(c, theme.FileTree(t)).Grow(1).Background(ui.Transparent).Children(func() {
+		a.treeState.List.Selected = &a.treeSelected
+		a.treeState.Generation = a.treeGeneration
+		ui.Outline(c, &a.treeState, a.tree.Roots(), a.tree.Children, func(path string) {
+			a.treeRow(c, t, path)
+		}).Grow(1)
+	})
 }
 
 func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
@@ -305,7 +321,7 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 	if !isDir {
 		row.Drag(paneDrag{kind: dragFile, path: path})
 	}
-	row.ContextMenu(func(m *ui.Menu) {
+	row.PopoverMenu(func(m *ui.Menu) {
 		a.selectTreePath(path)
 		if !isDir {
 			if m.Item(locales.OpenInOtherPane()).Chosen() {
@@ -319,13 +335,44 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 		if m.Item(locales.Delete()).Danger().Chosen() {
 			a.confirmDelete(path, isDir)
 		}
-	})
+	}, sidebarMenuOptions(t))
 	if row.Clicked() {
 		if isDir {
 			a.toggleFolder(path)
 		} else {
 			a.OpenPaths([]string{path})
 		}
+	}
+}
+
+// menuCursorOptions gives the pointer the hand shape over menu items.
+func menuCursorOptions() ui.PopoverMenuOptions {
+	return ui.PopoverMenuOptions{Item: menuItemCursor}
+}
+
+// menuButtonCursorOptions is menuCursorOptions for a menu button.
+func menuButtonCursorOptions() ui.PopoverMenuButtonOptions {
+	return ui.PopoverMenuButtonOptions{Item: menuItemCursor}
+}
+
+func menuItemCursor(item ui.Element) {
+	item.Cursor(ui.CursorPointer)
+}
+
+// sidebarMenuOptions styles a menu drawn in the tree, whose theme keeps
+// its rows square and its accent as the selection wash.
+func sidebarMenuOptions(t *ui.Theme) ui.PopoverMenuOptions {
+	return ui.PopoverMenuOptions{
+		Panel: func(panel ui.Element) {
+			panel.Radius(t.Radius)
+		},
+		Item: func(item ui.Element) {
+			item.Cursor(ui.CursorPointer)
+			item.Radius(max(t.Radius-2, 0))
+			if item.Highlighted() {
+				item.Background(t.Accent).TextColor(t.AccentText)
+			}
+		},
 	}
 }
 
@@ -469,7 +516,7 @@ func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
 			})
 			if a.tabOverflow[index] {
 				a.newTabButton(c, t, index)
-				a.tabListButton(c, t, index, p)
+				a.tabListButton(c, index, p)
 			}
 			// The tabs fit when their row is no wider than the area that
 			// shows them; the bounds are the last frame's, so a change
@@ -483,21 +530,16 @@ func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
 
 // tabListButton shows a menu of all of a pane's tabs, for the ones a full
 // tab bar hides.
-func (a *App) tabListButton(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane) {
-	b := ui.ButtonBase(c.Key(fmt.Sprintf("tab-list-%d", paneIdx))).Size(28, 34).Center().
-		Radius(0).Label(locales.AllTabs()).Tooltip(locales.AllTabs()).Cursor(ui.CursorPointer)
-	if b.Hovered() {
-		b.Background(t.SurfaceHover)
-	}
-	b.Children(func() {
-		ui.Icon(c, iconChevron).FontSize(13).TextColor(t.TextMuted)
-	})
-	b.Menu(func(m *ui.Menu) {
-		for i, tab := range p.tabs {
-			if m.Item(tab.doc.Name()).ID(tab.doc.ID).Checked(i == p.active).Chosen() {
-				a.activateTab(paneIdx, i)
+func (a *App) tabListButton(c *ui.Context, paneIdx int, p *Pane) {
+	wrap := ui.Box(c).Size(28, 34).Label(locales.AllTabs()).Tooltip(locales.AllTabs())
+	wrap.Children(func() {
+		ui.PopoverMenuButton(c, "", func(m *ui.Menu) {
+			for i, tab := range p.tabs {
+				if m.Item(tab.doc.Name()).ID(tab.doc.ID).Checked(i == p.active).Chosen() {
+					a.activateTab(paneIdx, i)
+				}
 			}
-		}
+		}, menuButtonCursorOptions()).Fill().Center().Padding(0).Radius(0).Cursor(ui.CursorPointer)
 	})
 }
 
@@ -709,7 +751,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 				ui.Text(c, locales.ReadOnly()).FontSize(11).TextColor(t.Warning)
 			}
 
-			ui.MenuButton(c, encoding.Label(doc.Encoding), func(m *ui.Menu) {
+			ui.PopoverMenuButton(c, encoding.Label(doc.Encoding), func(m *ui.Menu) {
 				m.Submenu(locales.ReopenWithEncoding(), func(mm *ui.Menu) {
 					for _, kind := range encoding.All {
 						k := kind
@@ -726,10 +768,10 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 						}
 					}
 				})
-			}).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer)
+			}, menuButtonCursorOptions()).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer)
 
 			currentEOL := doc.Buffer.LineEnding()
-			ui.MenuButton(c, eolLabel(currentEOL), func(m *ui.Menu) {
+			ui.PopoverMenuButton(c, eolLabel(currentEOL), func(m *ui.Menu) {
 				for _, item := range []struct{ label, value string }{
 					{"LF", "\n"}, {"CRLF", "\r\n"}, {"CR", "\r"},
 				} {
@@ -737,7 +779,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 						a.SetLineEnding(item.value)
 					}
 				}
-			}).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer)
+			}, menuButtonCursorOptions()).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer)
 
 			ui.Spacer(c)
 			ui.Text(c, cursorLabel(tab)).FontSize(11).TextColor(t.TextMuted)

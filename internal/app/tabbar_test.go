@@ -39,6 +39,7 @@ func TestTabListChoosesAHiddenTab(t *testing.T) {
 	if err := tt.Click(locales.AllTabs()); err != nil {
 		t.Fatal(err)
 	}
+	tt.Frame()
 	last := a.left.tabs[len(a.left.tabs)-1]
 	if err := tt.ChooseMenuItem(last.doc.Name()); err != nil {
 		t.Fatal(err)
