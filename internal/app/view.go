@@ -34,6 +34,9 @@ func (a *App) View(c *ui.Context) {
 		}
 		a.statusBar(c, t)
 		a.settingsModal(c, t)
+		if !a.showSettings {
+			a.renameModal(c, t)
+		}
 		if a.pendingToast != "" {
 			c.Toast(a.pendingToast)
 			a.pendingToast = ""
@@ -302,6 +305,21 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 	if !isDir {
 		row.Drag(paneDrag{kind: dragFile, path: path})
 	}
+	row.ContextMenu(func(m *ui.Menu) {
+		a.selectTreePath(path)
+		if !isDir {
+			if m.Item(locales.OpenInOtherPane()).Chosen() {
+				a.openInOtherPane(path)
+			}
+		}
+		if m.Item(locales.Rename()).Chosen() {
+			a.beginRename(path)
+		}
+		m.Separator()
+		if m.Item(locales.Delete()).Danger().Chosen() {
+			a.confirmDelete(path, isDir)
+		}
+	})
 	if row.Clicked() {
 		if isDir {
 			a.toggleFolder(path)

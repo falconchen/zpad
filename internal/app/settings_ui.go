@@ -12,6 +12,7 @@ import (
 )
 
 func (a *App) openSettings() {
+	a.renameOpen = false
 	a.fontSize = float64(a.Settings.FontSize)
 	a.lineHeight = float64(a.Settings.LineHeight)
 	a.showSettings = true

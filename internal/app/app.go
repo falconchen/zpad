@@ -109,6 +109,12 @@ type App struct {
 	fontFamilies []string
 	pendingToast string
 
+	renameOpen  bool
+	renamePath  string
+	renameValue string
+	renameErr   string
+	renameFocus bool
+
 	closePromptOpen bool
 	allowClose      bool
 	allowQuit       bool

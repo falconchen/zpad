@@ -94,6 +94,69 @@
   "noOpenFiles": "No open files",
   "workspace": "Workspace",
   "noFolder": "No folder open",
+  "openInOtherPane": "Open in Other Pane",
+  "rename": "Rename",
+  "renameLabel": "New Name",
+  "nameEmpty": "The name cannot be empty.",
+  "nameInvalid": "The name cannot contain “/” or “\\”.",
+  "nameExists": "A file or folder with that name already exists.",
+  "renameFailed": "Could not rename {name}",
+  "@renameFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.md"
+      }
+    }
+  },
+  "delete": "Delete",
+  "deleted": "Deleted {name}",
+  "@deleted": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.md"
+      }
+    }
+  },
+  "deleteFileQuestion": "Delete “{name}”?",
+  "@deleteFileQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.md"
+      }
+    }
+  },
+  "deleteFolderQuestion": "Delete “{name}” and everything in it?",
+  "@deleteFolderQuestion": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "docs"
+      }
+    }
+  },
+  "deletePermanent": "This cannot be undone.",
+  "deleteFailed": "Could not delete {name}",
+  "@deleteFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.md"
+      }
+    }
+  },
+  "deleteUnsavedTitle": "Unsaved Changes",
+  "deleteUnsavedDetail": "Save or close “{name}” before deleting it.",
+  "@deleteUnsavedDetail": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.md"
+      }
+    }
+  },
   "paneEmpty": "No file in this pane",
   "editorPlaceholder": "Start typing…",
   "ready": "Ready",

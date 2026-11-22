@@ -894,6 +894,156 @@ func (msgs Messages) NoFolder() string {
 	return Catalog.Format(msgs.locale, "noFolder", nil)
 }
 
+// OpenInOtherPane says "Open in Other Pane"
+// in the language the app shows.
+func OpenInOtherPane() string { return In(i18n.Locale()).OpenInOtherPane() }
+
+// OpenInOtherPane says "Open in Other Pane"
+// in the language of msgs.
+func (msgs Messages) OpenInOtherPane() string {
+	return Catalog.Format(msgs.locale, "openInOtherPane", nil)
+}
+
+// Rename says "Rename"
+// in the language the app shows.
+func Rename() string { return In(i18n.Locale()).Rename() }
+
+// Rename says "Rename"
+// in the language of msgs.
+func (msgs Messages) Rename() string {
+	return Catalog.Format(msgs.locale, "rename", nil)
+}
+
+// RenameLabel says "New Name"
+// in the language the app shows.
+func RenameLabel() string { return In(i18n.Locale()).RenameLabel() }
+
+// RenameLabel says "New Name"
+// in the language of msgs.
+func (msgs Messages) RenameLabel() string {
+	return Catalog.Format(msgs.locale, "renameLabel", nil)
+}
+
+// NameEmpty says "The name cannot be empty."
+// in the language the app shows.
+func NameEmpty() string { return In(i18n.Locale()).NameEmpty() }
+
+// NameEmpty says "The name cannot be empty."
+// in the language of msgs.
+func (msgs Messages) NameEmpty() string {
+	return Catalog.Format(msgs.locale, "nameEmpty", nil)
+}
+
+// NameInvalid says "The name cannot contain “/” or “\\”."
+// in the language the app shows.
+func NameInvalid() string { return In(i18n.Locale()).NameInvalid() }
+
+// NameInvalid says "The name cannot contain “/” or “\\”."
+// in the language of msgs.
+func (msgs Messages) NameInvalid() string {
+	return Catalog.Format(msgs.locale, "nameInvalid", nil)
+}
+
+// NameExists says "A file or folder with that name already exists."
+// in the language the app shows.
+func NameExists() string { return In(i18n.Locale()).NameExists() }
+
+// NameExists says "A file or folder with that name already exists."
+// in the language of msgs.
+func (msgs Messages) NameExists() string {
+	return Catalog.Format(msgs.locale, "nameExists", nil)
+}
+
+// RenameFailed says "Could not rename {name}"
+// in the language the app shows.
+func RenameFailed(name string) string { return In(i18n.Locale()).RenameFailed(name) }
+
+// RenameFailed says "Could not rename {name}"
+// in the language of msgs.
+func (msgs Messages) RenameFailed(name string) string {
+	return Catalog.Format(msgs.locale, "renameFailed", map[string]any{"name": name})
+}
+
+// Delete says "Delete"
+// in the language the app shows.
+func Delete() string { return In(i18n.Locale()).Delete() }
+
+// Delete says "Delete"
+// in the language of msgs.
+func (msgs Messages) Delete() string {
+	return Catalog.Format(msgs.locale, "delete", nil)
+}
+
+// Deleted says "Deleted {name}"
+// in the language the app shows.
+func Deleted(name string) string { return In(i18n.Locale()).Deleted(name) }
+
+// Deleted says "Deleted {name}"
+// in the language of msgs.
+func (msgs Messages) Deleted(name string) string {
+	return Catalog.Format(msgs.locale, "deleted", map[string]any{"name": name})
+}
+
+// DeleteFileQuestion says "Delete “{name}”?"
+// in the language the app shows.
+func DeleteFileQuestion(name string) string { return In(i18n.Locale()).DeleteFileQuestion(name) }
+
+// DeleteFileQuestion says "Delete “{name}”?"
+// in the language of msgs.
+func (msgs Messages) DeleteFileQuestion(name string) string {
+	return Catalog.Format(msgs.locale, "deleteFileQuestion", map[string]any{"name": name})
+}
+
+// DeleteFolderQuestion says "Delete “{name}” and everything in it?"
+// in the language the app shows.
+func DeleteFolderQuestion(name string) string { return In(i18n.Locale()).DeleteFolderQuestion(name) }
+
+// DeleteFolderQuestion says "Delete “{name}” and everything in it?"
+// in the language of msgs.
+func (msgs Messages) DeleteFolderQuestion(name string) string {
+	return Catalog.Format(msgs.locale, "deleteFolderQuestion", map[string]any{"name": name})
+}
+
+// DeletePermanent says "This cannot be undone."
+// in the language the app shows.
+func DeletePermanent() string { return In(i18n.Locale()).DeletePermanent() }
+
+// DeletePermanent says "This cannot be undone."
+// in the language of msgs.
+func (msgs Messages) DeletePermanent() string {
+	return Catalog.Format(msgs.locale, "deletePermanent", nil)
+}
+
+// DeleteFailed says "Could not delete {name}"
+// in the language the app shows.
+func DeleteFailed(name string) string { return In(i18n.Locale()).DeleteFailed(name) }
+
+// DeleteFailed says "Could not delete {name}"
+// in the language of msgs.
+func (msgs Messages) DeleteFailed(name string) string {
+	return Catalog.Format(msgs.locale, "deleteFailed", map[string]any{"name": name})
+}
+
+// DeleteUnsavedTitle says "Unsaved Changes"
+// in the language the app shows.
+func DeleteUnsavedTitle() string { return In(i18n.Locale()).DeleteUnsavedTitle() }
+
+// DeleteUnsavedTitle says "Unsaved Changes"
+// in the language of msgs.
+func (msgs Messages) DeleteUnsavedTitle() string {
+	return Catalog.Format(msgs.locale, "deleteUnsavedTitle", nil)
+}
+
+// DeleteUnsavedDetail says "Save or close “{name}” before deleting it."
+// in the language the app shows.
+func DeleteUnsavedDetail(name string) string { return In(i18n.Locale()).DeleteUnsavedDetail(name) }
+
+// DeleteUnsavedDetail says "Save or close “{name}” before deleting it."
+// in the language of msgs.
+func (msgs Messages) DeleteUnsavedDetail(name string) string {
+	return Catalog.Format(msgs.locale, "deleteUnsavedDetail", map[string]any{"name": name})
+}
+
 // PaneEmpty says "No file in this pane"
 // in the language the app shows.
 func PaneEmpty() string { return In(i18n.Locale()).PaneEmpty() }
