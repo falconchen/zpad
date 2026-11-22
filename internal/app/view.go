@@ -528,7 +528,7 @@ func (a *App) content(c *ui.Context, t *ui.Theme) {
 	a.paneContent(c, t, 0)
 }
 
-// halfSplit returns the width of the first pane that leaves the two panes
+// halfSplit returns the size of the first pane that leaves the two panes
 // equal in room DIPs, one of which is the divider between them.
 func halfSplit(room float32) float32 {
 	if room <= 2 {

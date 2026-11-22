@@ -42,6 +42,14 @@ func TestOpenSplitSwitchesDirection(t *testing.T) {
 		t.Fatal("switching direction did not center the new axis")
 	}
 
+	// Choosing the direction the split already has leaves it alone.
+	a.centerSplit = false
+	a.splitHeight = 300
+	a.openSplit(true)
+	if a.centerSplit || a.splitHeight != 300 {
+		t.Fatalf("re-choosing the current direction re-centered: centered %v, height %v", a.centerSplit, a.splitHeight)
+	}
+
 	a.closeSplit()
 	if a.split || len(a.right.tabs) != 0 {
 		t.Fatalf("split %v, right tabs %d after closing", a.split, len(a.right.tabs))

@@ -561,6 +561,9 @@ func (a *App) copyTabIndex(srcPane, idx, dstPane int) {
 // tab into the second pane. A split that is already open only changes
 // direction, keeping both panes' tabs, states and choice.
 func (a *App) openSplit(vertical bool) {
+	if a.split && a.splitVertical == vertical {
+		return
+	}
 	a.splitVertical = vertical
 	a.centerSplit = true
 	if !a.split {
