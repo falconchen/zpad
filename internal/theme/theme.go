@@ -44,6 +44,21 @@ func ActiveTab(t *ui.Theme) ui.Color {
 	return ui.Hex("#FFFFFF")
 }
 
+// Inverse is the fill of a tip and the color of text on it, as MyGo's own
+// tooltip and toast choose them: the theme's Inverse and InverseText where
+// it sets them, the text on the background otherwise. A tip that MyGo cannot
+// place shares the look of the ones it can.
+func Inverse(t *ui.Theme) (fill, text ui.Color) {
+	fill, text = t.Inverse, t.InverseText
+	if fill == ui.Transparent {
+		fill = t.Text
+	}
+	if text == ui.Transparent {
+		text = t.Background
+	}
+	return fill, text
+}
+
 // FileTree returns the palette of the sidebar's tree: the chosen row is a
 // faint, full-width wash rather than a filled accent, as VS Code's and
 // Zed's file trees, and its text keeps the normal color.

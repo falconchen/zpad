@@ -225,7 +225,7 @@ func (a *App) openFileRow(c *ui.Context, t, tree *ui.Theme, doc *Document, activ
 		label += ", " + dir
 	}
 	row := ui.Row(c).Height(26).Padding(0, 8).Gap(6).AlignItems(ui.Center).
-		Cursor(ui.CursorPointer).Label(label).Tooltip(a.documentTooltip(doc))
+		Cursor(ui.CursorPointer).Label(label)
 	switch {
 	case active:
 		row.Background(tree.Accent)
@@ -246,6 +246,7 @@ func (a *App) openFileRow(c *ui.Context, t, tree *ui.Theme, doc *Document, activ
 				MaxWidthPercent(42).TruncateStart()
 		}
 	})
+	pathTooltip(c, t, row, a.documentTooltip(doc))
 	if row.Clicked() {
 		a.activateDocument(doc)
 	}
@@ -287,6 +288,30 @@ func (a *App) documentTooltip(doc *Document) string {
 		return doc.Name()
 	}
 	return doc.Path
+}
+
+// pathTooltip shows text beside anchor's right edge, aligned with it, so a
+// long path does not cover the sidebar list it belongs to. Element.Tooltip
+// always goes above its anchor, centered, so this places the tip itself and
+// repeats the look of the theme's tooltip, wider to hold a path.
+func pathTooltip(c *ui.Context, t *ui.Theme, anchor ui.Element, text string) {
+	if text == "" {
+		return
+	}
+	fill, ink := theme.Inverse(t)
+	ui.TooltipBase(c, anchor, func(tip ui.Element) {
+		tip.AttachTo(anchor, ui.AnchorEnd, ui.AnchorStart).MarginStart(6).
+			MaxWidth(420).Padding(t.Space(1.25), t.Space(2)).
+			Radius(t.Space(1.25)).Background(fill).TextColor(ink).
+			FontSize(t.FontSize-1).
+			Shadow(0, 2, 8, 0, ui.RGBA(0, 0, 0, 0.2))
+		tip.Children(func() {
+			ui.Text(c, text)
+		})
+	})
+	// TooltipBase leaves the description to the caller, and assistive
+	// technology does not read the tip itself.
+	anchor.Description(text)
 }
 
 func (a *App) workspacePanel(c *ui.Context, t *ui.Theme) {
@@ -350,6 +375,7 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 	if !isDir {
 		row.Drag(paneDrag{kind: dragFile, path: path})
 	}
+	pathTooltip(c, t, row, path)
 	row.PopoverMenu(func(m *ui.Menu) {
 		a.selectTreePath(path)
 		if !isDir {

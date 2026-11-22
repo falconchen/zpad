@@ -274,3 +274,36 @@ func TestTreeOptionClickOpensAll(t *testing.T) {
 		t.Fatalf("a second Option-click did not close docs and notes: %v", a.treeState.Open)
 	}
 }
+
+// TestSidebarTipSitsBesideTheRow hovers a file row: the path tip shows to
+// the right of the sidebar, on the row's line, so it neither covers the
+// list nor the sidebar's header.
+func TestSidebarTipSitsBesideTheRow(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "internal", "app", "settings_ui.go")
+	a := New(settings.Default(), t.TempDir())
+	a.root = dir
+	a.Settings.SidebarOpen = true
+	a.addDocument(docAt(path, "x"))
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	row, ok := tt.Find("settings_ui.go, internal/app")
+	if !ok {
+		t.Fatalf("no open file row; texts %q", tt.Texts())
+	}
+	tt.Move(row.X+row.W/2, row.Y+row.H/2)
+	tt.Advance(700 * time.Millisecond)
+	tt.Frame()
+
+	tip, ok := tt.Find(path)
+	if !ok {
+		t.Fatalf("hovering the row showed no path tip; texts %q", tt.Texts())
+	}
+	if tip.X < row.X+row.W {
+		t.Fatalf("tip starts at x=%v, inside the sidebar (row ends at %v)", tip.X, row.X+row.W)
+	}
+	if tip.Y > row.Y+row.H || tip.Y+tip.H < row.Y {
+		t.Fatalf("tip y=%v h=%v is off the row's line (row y=%v h=%v)", tip.Y, tip.H, row.Y, row.H)
+	}
+}

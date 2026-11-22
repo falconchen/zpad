@@ -51,6 +51,21 @@ func TestScrollbarsAreThin(t *testing.T) {
 	}
 }
 
+func TestInverseColors(t *testing.T) {
+	for name, th := range map[string]*ui.Theme{"light": Light(), "dark": Dark()} {
+		fill, text := Inverse(th)
+		if fill != th.Text || text != th.Background {
+			t.Errorf("%s tip is %v on %v, want the text on the background", name, text, fill)
+		}
+	}
+	th := *Light()
+	th.Inverse = ui.Hex("#3A3A40")
+	th.InverseText = ui.Hex("#F2F2F7")
+	if fill, text := Inverse(&th); fill != th.Inverse || text != th.InverseText {
+		t.Errorf("tip %v on %v, want the theme's inverse colors", text, fill)
+	}
+}
+
 func TestFileTreeTheme(t *testing.T) {
 	base := Light()
 	tree := FileTree(base)

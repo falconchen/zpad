@@ -274,6 +274,7 @@ go tool mygo build
 - 文件树行改为整行自绘：缩进、折叠箭头、图标、文件名与左右空白都在同一个 `Row` 内，`ui.OutlineState.Prefix` 置空去掉 Outline 自带的缩进与箭头，行内任意位置单击都能打开文件 / 展开文件夹并同步选中；Option 点击行展开或收起其下全部文件夹。
 - 标签栏隐藏横向滚动条；标签溢出时在末尾显示下拉按钮，列出该栏全部标签、当前项打勾，选择后切换并滚动到可见位置。
 - 标签宽度设上限：文件名文本最多 180 DIP（标签整体约 240 DIP），短名保持自然宽度；超长名中间省略，同时保留开头与扩展名，悬停显示完整路径；脏点与关闭按钮不收缩。新增 `TestLongTabNameIsCapped`。
+- 侧栏的路径提示改到行的右侧：`pathTooltip` 用 `ui.TooltipBase` + `AttachTo(ui.AnchorEnd, ui.AnchorStart)`，与行垂直居中对齐，不再压住列表和「打开的文件 / 工作区」栏头；「打开的文件」和工作区文件树共用，宽度上限 420 DIP，长路径按分隔符换行；配色沿用主题 tooltip 的反色（新增 `theme.Inverse`）。新增 `TestSidebarTipSitsBesideTheRow`、`TestInverseColors`。
 - 设置面板改用 `ui.DialogBase` 直接绘制单层圆角面板，去掉 MyGo Modal 外层内边距与背景框；关闭按钮从标题栏移到「完成」左侧，Esc / 点击遮罩仍可关闭。
 
 Windows / Linux 单实例（同日追加）：
