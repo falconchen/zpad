@@ -124,6 +124,7 @@ docs/                      需求、里程碑、实现记录与签收
 
 ## 工作流程
 
+- 写 MyGo 相关代码前先加载项目 skill `mygo`（`.opencode/skills/mygo/SKILL.md`），按其中的顺序查 API，不要凭记忆猜。
 - 先读 `docs/README.md` 与对应里程碑文档；实现完成后在文档中补「实现记录」，状态改为「待签收」。
 - 未获得用户明确签收前，不自行把里程碑标记为「已签收」。
 - 修改后至少运行 `go test ./...`、`go vet ./...`、`go build ./...`；涉及打包时运行 `go tool mygo build`。
