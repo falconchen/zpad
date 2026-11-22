@@ -76,7 +76,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 			if m.Item(locales.InvertCase()).Chosen() {
 				a.ConvertCase(caseconv.Invert)
 			}
-		}).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu())
+		}).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu()).Cursor(ui.CursorPointer)
 		ui.Spacer(c)
 		a.iconButton(c, t, iconSplit, locales.ToggleSplit(), a.split, a.toggleSplit).
 			KeyShortcuts(ui.Cmd, ui.KeyBackslash)
@@ -90,7 +90,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 			if m.Item(locales.ThemeSystem()).Checked(a.ThemeIndex == 2).Chosen() {
 				a.setThemeIndex(2)
 			}
-		}).Label(locales.Theme()).Tooltip(locales.Theme())
+		}).Label(locales.Theme()).Tooltip(locales.Theme()).Cursor(ui.CursorPointer)
 		a.iconButton(c, t, iconSettings, locales.Settings(), a.showSettings, a.openSettings).
 			KeyShortcuts(ui.Cmd, ui.KeyComma)
 	}).Padding(8, 10).Background(t.Surface).
@@ -98,7 +98,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 }
 
 func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string, active bool, run func()) ui.Element {
-	b := ui.ButtonBase(c).Size(28, 28).Center().Radius(6).Label(label).Tooltip(label)
+	b := ui.ButtonBase(c).Size(28, 28).Center().Radius(6).Label(label).Tooltip(label).Cursor(ui.CursorPointer)
 	if active || b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}
@@ -112,7 +112,8 @@ func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string,
 }
 
 func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
-	ui.Themed(c, t).Fill().Background(theme.Sidebar(t)).Children(func() {
+	tt := theme.FileTree(t)
+	ui.Themed(c, tt).Fill().Background(theme.Sidebar(t)).Children(func() {
 		ui.Row(c).Height(36).Padding(0, 8).AlignItems(ui.Center).Gap(6).Children(func() {
 			name := locales.Explorer()
 			if a.tree != nil {
@@ -120,12 +121,13 @@ func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
 			}
 			ui.Text(c, name).FontSize(12).Bold().SingleLine().Grow(1)
 			menu := ui.ButtonBase(c).Size(26, 24).Center().Radius(6).
-				Background(theme.Sidebar(t)).Border(1, t.Border).Label(locales.SidebarMenu())
+				Background(theme.Sidebar(t)).Border(1, tt.Border).Label(locales.SidebarMenu()).
+				Cursor(ui.CursorPointer)
 			if menu.Hovered() {
-				menu.Background(t.SurfaceHover)
+				menu.Background(tt.SurfaceHover)
 			}
 			menu.Children(func() {
-				ui.Text(c, "⋯").FontSize(14).TextColor(t.TextMuted)
+				ui.Text(c, "⋯").FontSize(14).TextColor(tt.TextMuted)
 			})
 			menu.Menu(func(m *ui.Menu) {
 				if m.Item(locales.Refresh()).Chosen() {
@@ -142,8 +144,8 @@ func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
 
 		if a.tree == nil {
 			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
-				ui.Text(c, locales.NoFolder()).FontSize(12).TextColor(t.TextMuted)
-				if ui.Button(c, locales.OpenFolder()).Clicked() {
+				ui.Text(c, locales.NoFolder()).FontSize(12).TextColor(tt.TextMuted)
+				if ui.Button(c, locales.OpenFolder()).Cursor(ui.CursorPointer).Clicked() {
 					a.OpenFolderDialog()
 				}
 			})
@@ -153,14 +155,14 @@ func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
 		a.treeState.List.Selected = &a.treeSelected
 		a.treeState.Generation = a.treeGeneration
 		ui.Outline(c, &a.treeState, a.tree.Roots(), a.tree.Children, func(path string) {
-			a.treeRow(c, t, path)
+			a.treeRow(c, tt, path)
 		}).Grow(1)
 	})
 }
 
 func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 	isDir := a.tree.IsDir(path)
-	row := ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
+	row := ui.Row(c).Gap(6).AlignItems(ui.Center).Cursor(ui.CursorPointer).Children(func() {
 		if isDir {
 			ui.Icon(c, iconFolder).FontSize(14).TextColor(t.TextMuted)
 		} else {
@@ -253,11 +255,11 @@ func (a *App) emptyPane(c *ui.Context, t *ui.Theme, index int) {
 	ui.Column(c).Fill().Center().Gap(10).Children(func() {
 		ui.Text(c, locales.PaneEmpty()).FontSize(13).TextColor(t.TextMuted)
 		ui.Row(c).Gap(8).Children(func() {
-			if ui.Button(c, locales.OpenFile()).Clicked() {
+			if ui.Button(c, locales.OpenFile()).Cursor(ui.CursorPointer).Clicked() {
 				a.setActivePane(index)
 				a.OpenFileDialog()
 			}
-			if ui.Button(c, locales.NewFile()).Clicked() {
+			if ui.Button(c, locales.NewFile()).Cursor(ui.CursorPointer).Clicked() {
 				a.setActivePane(index)
 				a.NewFile()
 			}
@@ -270,16 +272,53 @@ func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
 	if a.split && index == a.activePane {
 		bg = theme.ActiveTab(t)
 	}
-	ui.ScrollHorizontal(c).Height(34).FillWidth().Background(bg).
+	ui.Row(c).Height(34).FillWidth().Background(bg).
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
 		Children(func() {
-			ui.Row(c).Height(34).Children(func() {
-				for i, tab := range p.tabs {
-					a.tabItem(c, t, index, p, i, tab)
-				}
-				a.newTabButton(c, t, index)
+			area := ui.ScrollHorizontal(c).Height(34).Grow(1).Scrollbars(false)
+			var inner ui.Element
+			area.Children(func() {
+				inner = ui.Row(c).Height(34).Children(func() {
+					for i, tab := range p.tabs {
+						a.tabItem(c, t, index, p, i, tab)
+					}
+					if !a.tabOverflow[index] {
+						a.newTabButton(c, t, index)
+					}
+				})
 			})
+			if a.tabOverflow[index] {
+				a.newTabButton(c, t, index)
+				a.tabListButton(c, t, index, p)
+			}
+			// The tabs fit when their row is no wider than the area that
+			// shows them; the bounds are the last frame's, so a change
+			// asks for the frame that shows or hides the button.
+			if over := inner.Bounds().W > area.Bounds().W+1; over != a.tabOverflow[index] {
+				a.tabOverflow[index] = over
+				a.update()
+			}
 		})
+}
+
+// tabListButton shows a menu of all of a pane's tabs, for the ones a full
+// tab bar hides.
+func (a *App) tabListButton(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane) {
+	b := ui.ButtonBase(c.Key(fmt.Sprintf("tab-list-%d", paneIdx))).Size(28, 34).Center().
+		Radius(0).Label(locales.AllTabs()).Tooltip(locales.AllTabs()).Cursor(ui.CursorPointer)
+	if b.Hovered() {
+		b.Background(t.SurfaceHover)
+	}
+	b.Children(func() {
+		ui.Icon(c, iconChevron).FontSize(13).TextColor(t.TextMuted)
+	})
+	b.Menu(func(m *ui.Menu) {
+		for i, tab := range p.tabs {
+			if m.Item(tab.doc.Name()).ID(tab.doc.ID).Checked(i == p.active).Chosen() {
+				a.activateTab(paneIdx, i)
+			}
+		}
+	})
 }
 
 func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, tab *Tab) {
@@ -292,7 +331,7 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 	}
 	key := fmt.Sprintf("tab-%d-%s", paneIdx, tab.doc.ID)
 	b := ui.ButtonBase(c.Key(key)).Height(32).Padding(0, 10).Gap(6).
-		Radius(0).Background(bg).Label(tab.doc.Name())
+		Radius(0).Background(bg).Label(tab.doc.Name()).Cursor(ui.CursorPointer)
 	if !active && b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}
@@ -303,7 +342,7 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		}
 		ui.Text(c, tab.doc.Name()).FontSize(12).TextColor(text).SingleLine()
 		close := ui.ButtonBase(c.Key(key+"-close")).Size(16, 16).Center().
-			Radius(4).Label(locales.Close()).Tooltip(locales.Close())
+			Radius(4).Label(locales.Close()).Tooltip(locales.Close()).Cursor(ui.CursorPointer)
 		close.Children(func() {
 			ui.Icon(c, iconClose).FontSize(11).TextColor(t.TextMuted)
 		})
@@ -322,11 +361,16 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		a.updateTitle()
 		a.update()
 	}
+	if a.revealDoc != "" && a.revealPane == paneIdx && a.revealDoc == tab.doc.ID {
+		b.ScrollIntoView(ui.ScrollIntoViewOptions{Inline: ui.ScrollNearest})
+		a.revealDoc = ""
+		a.revealPane = -1
+	}
 }
 
 func (a *App) newTabButton(c *ui.Context, t *ui.Theme, paneIdx int) {
 	b := ui.ButtonBase(c.Key(fmt.Sprintf("new-tab-%d", paneIdx))).Size(28, 32).Center().Radius(0).
-		Label(locales.NewFile()).Tooltip(locales.NewFile())
+		Label(locales.NewFile()).Tooltip(locales.NewFile()).Cursor(ui.CursorPointer)
 	if b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}
@@ -434,13 +478,13 @@ func (a *App) emptyState(c *ui.Context, t *ui.Theme) {
 		ui.Text(c, "ZPad").FontSize(30).Bold()
 		ui.Text(c, locales.AppTagline()).FontSize(13).TextColor(t.TextMuted)
 		ui.Row(c).Gap(8).Children(func() {
-			if ui.PrimaryButton(c, locales.OpenFile()).Clicked() {
+			if ui.PrimaryButton(c, locales.OpenFile()).Cursor(ui.CursorPointer).Clicked() {
 				a.OpenFileDialog()
 			}
-			if ui.Button(c, locales.OpenFolder()).Clicked() {
+			if ui.Button(c, locales.OpenFolder()).Cursor(ui.CursorPointer).Clicked() {
 				a.OpenFolderDialog()
 			}
-			if ui.Button(c, locales.NewFile()).Clicked() {
+			if ui.Button(c, locales.NewFile()).Cursor(ui.CursorPointer).Clicked() {
 				a.NewFile()
 			}
 		})
@@ -501,7 +545,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 						}
 					}
 				})
-			}).FontSize(11).Padding(0, 3)
+			}).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer)
 
 			currentEOL := doc.Buffer.LineEnding()
 			ui.MenuButton(c, eolLabel(currentEOL), func(m *ui.Menu) {
@@ -512,7 +556,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 						a.SetLineEnding(item.value)
 					}
 				}
-			}).FontSize(11).Padding(0, 3)
+			}).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer)
 
 			ui.Spacer(c)
 			ui.Text(c, cursorLabel(tab)).FontSize(11).TextColor(t.TextMuted)

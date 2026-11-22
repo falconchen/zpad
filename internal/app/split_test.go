@@ -142,7 +142,9 @@ func TestSessionRoundTrip(t *testing.T) {
 	a.right.active = 1
 	a.saveSession()
 
-	b := New(settings.Default(), settingsDir)
+	bSettings := settings.Default()
+	bSettings.RestoreSession = true
+	b := New(bSettings, settingsDir)
 	b.RestoreSession()
 	if b.root != workspace || !b.split || b.splitWidth != 720 || b.activePane != 1 {
 		t.Fatalf("restored root %q, split %v, width %v, active %d", b.root, b.split, b.splitWidth, b.activePane)
@@ -204,7 +206,9 @@ func TestMissingSessionFileIsSkipped(t *testing.T) {
 	if err := session.Save(dir, st); err != nil {
 		t.Fatal(err)
 	}
-	a := New(settings.Default(), dir)
+	aSettings := settings.Default()
+	aSettings.RestoreSession = true
+	a := New(aSettings, dir)
 	a.RestoreSession()
 	if len(a.left.tabs) != 0 {
 		t.Fatalf("restored %d missing tabs", len(a.left.tabs))

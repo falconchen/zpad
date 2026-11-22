@@ -17,6 +17,12 @@ func TestLoadMissingUsesDefaults(t *testing.T) {
 	}
 }
 
+func TestRestoreSessionDefaultsOff(t *testing.T) {
+	if Default().RestoreSession {
+		t.Fatal("restore session is on by default")
+	}
+}
+
 func TestRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	want := Default()

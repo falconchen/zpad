@@ -32,3 +32,44 @@ func TestFor(t *testing.T) {
 		t.Fatalf("string color %v, want #047857", got)
 	}
 }
+
+func TestScrollbarsAreThin(t *testing.T) {
+	for name, th := range map[string]*ui.Theme{"light": Light(), "dark": Dark()} {
+		s := th.ScrollbarStyle
+		if s.ThumbWidth > 6 || th.ScrollbarWidth > 6 {
+			t.Errorf("%s scrollbar thumb %v (width %v), want at most 6", name, s.ThumbWidth, th.ScrollbarWidth)
+		}
+		if s.TrackWidth <= s.ThumbWidth {
+			t.Errorf("%s scrollbar track %v, thumb %v: no room to grab", name, s.TrackWidth, s.ThumbWidth)
+		}
+		if s.Radius <= 0 {
+			t.Errorf("%s scrollbar radius %v, want rounded", name, s.Radius)
+		}
+		if s.Thumb.A >= 200 {
+			t.Errorf("%s scrollbar thumb alpha %d, want translucent", name, s.Thumb.A)
+		}
+	}
+}
+
+func TestFileTreeTheme(t *testing.T) {
+	base := Light()
+	tree := FileTree(base)
+	if tree.Radius != 0 {
+		t.Errorf("tree radius %v, want square full-width rows", tree.Radius)
+	}
+	if tree.Accent == base.Accent {
+		t.Error("tree still fills chosen rows with the accent")
+	}
+	if tree.Accent.A >= 100 {
+		t.Errorf("tree wash alpha %d, want faint", tree.Accent.A)
+	}
+	if tree.AccentText != base.Text {
+		t.Error("tree chosen rows do not keep the text color")
+	}
+	if tree.InactiveAccent != tree.Accent {
+		t.Error("tree chosen rows change in an inactive window")
+	}
+	if base.Radius == 0 || base.AccentText == base.Text {
+		t.Error("FileTree changed the theme it copied")
+	}
+}

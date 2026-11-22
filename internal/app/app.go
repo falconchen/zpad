@@ -57,6 +57,13 @@ type App struct {
 	splitWidth float32
 	activePane int // 0 left, 1 right
 
+	// tabOverflow says whether a pane's tab bar is wider than the pane,
+	// which shows the tab list button; revealPane and revealDoc ask the
+	// tab about to build to scroll into view.
+	tabOverflow [2]bool
+	revealPane  int
+	revealDoc   string
+
 	focusEditor      bool
 	untitledSeq      int
 	busy             bool
@@ -209,6 +216,21 @@ func (a *App) setActivePane(i int) {
 	a.update()
 }
 
+// activateTab chooses tab i of a pane, as a click on it does, and sees it
+// into view once the tab bar is laid out.
+func (a *App) activateTab(paneIdx, i int) {
+	p := a.pane(paneIdx)
+	if i < 0 || i >= len(p.tabs) {
+		return
+	}
+	p.active = i
+	a.activePane = paneIdx
+	a.focusEditor = true
+	a.revealPane, a.revealDoc = paneIdx, p.tabs[i].doc.ID
+	a.updateTitle()
+	a.update()
+}
+
 func (a *App) setDocReadOnly(doc *Document, readOnly bool) {
 	doc.ReadOnly = readOnly
 	for _, p := range []*Pane{&a.left, &a.right} {
@@ -250,6 +272,7 @@ func (a *App) addDocument(doc *Document) {
 	st := &editor.State{Buffer: doc.Buffer, ReadOnly: doc.ReadOnly}
 	p.tabs = append(p.tabs, &Tab{doc: doc, state: st})
 	p.active = len(p.tabs) - 1
+	a.revealPane, a.revealDoc = a.activePane, doc.ID
 	a.focusEditor = true
 	a.updateTitle()
 }

@@ -164,6 +164,16 @@ func (msgs Messages) CloseTab() string {
 	return Catalog.Format(msgs.locale, "closeTab", nil)
 }
 
+// AllTabs says "All Tabs"
+// in the language the app shows.
+func AllTabs() string { return In(i18n.Locale()).AllTabs() }
+
+// AllTabs says "All Tabs"
+// in the language of msgs.
+func (msgs Messages) AllTabs() string {
+	return Catalog.Format(msgs.locale, "allTabs", nil)
+}
+
 // Close says "Close"
 // in the language the app shows.
 func Close() string { return In(i18n.Locale()).Close() }

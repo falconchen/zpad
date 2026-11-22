@@ -45,7 +45,7 @@ func (a *App) settingsModal(c *ui.Context, t *ui.Theme) {
 	if !a.showSettings {
 		return
 	}
-	ui.Modal(c, &a.showSettings, func() {
+	ui.DialogBase(c, &a.showSettings, func(backdrop, panel ui.Element) {
 		c.SetTheme(t)
 		w, h := c.Size()
 		cw := min(float32(620), w-80)
@@ -56,34 +56,35 @@ func (a *App) settingsModal(c *ui.Context, t *ui.Theme) {
 		if ch < 320 {
 			ch = h - 32
 		}
-		ui.Column(c).Width(cw).Height(ch).Padding(20).Gap(14).
+		backdrop.Background(ui.RGBA(0, 0, 0, 0.4))
+		panel.Width(cw).Height(ch).Padding(20).Gap(14).
 			Background(t.Background).Border(1, t.Border).Radius(14).
-			Shadow(0, 16, 48, 0, ui.RGBA(0, 0, 0, 0.28)).
-			Children(func() {
-				ui.Row(c).AlignItems(ui.Center).Children(func() {
-					ui.Text(c, locales.SettingsTitle()).FontSize(18).Bold().Grow(1)
-					if ui.Button(c, locales.Close()).Clicked() {
-						a.showSettings = false
-					}
-				})
-				ui.Scroll(c).Grow(1).Children(func() {
-					ui.Column(c).Gap(18).Children(func() {
-						a.settingsAppearance(c, t)
-						a.settingsEditor(c, t)
-						a.settingsFiles(c, t)
-						a.settingsWorkspace(c, t)
-					})
-				})
-				ui.Row(c).AlignItems(ui.Center).Gap(8).Children(func() {
-					if ui.Button(c, locales.RestoreDefaults()).Clicked() {
-						go a.confirmRestoreDefaults()
-					}
-					ui.Spacer(c)
-					if ui.PrimaryButton(c, locales.Done()).Clicked() {
-						a.showSettings = false
-					}
+			Shadow(0, 16, 48, 0, ui.RGBA(0, 0, 0, 0.28))
+		panel.Children(func() {
+			ui.Row(c).AlignItems(ui.Center).Children(func() {
+				ui.Text(c, locales.SettingsTitle()).FontSize(18).Bold()
+			})
+			ui.Scroll(c).Grow(1).Children(func() {
+				ui.Column(c).Gap(18).Children(func() {
+					a.settingsAppearance(c, t)
+					a.settingsEditor(c, t)
+					a.settingsFiles(c, t)
+					a.settingsWorkspace(c, t)
 				})
 			})
+			ui.Row(c).AlignItems(ui.Center).Gap(8).Children(func() {
+				if ui.Button(c, locales.RestoreDefaults()).Cursor(ui.CursorPointer).Clicked() {
+					go a.confirmRestoreDefaults()
+				}
+				ui.Spacer(c)
+				if ui.Button(c, locales.Close()).Cursor(ui.CursorPointer).Clicked() {
+					a.showSettings = false
+				}
+				if ui.PrimaryButton(c, locales.Done()).Cursor(ui.CursorPointer).Clicked() {
+					a.showSettings = false
+				}
+			})
+		})
 	})
 }
 
@@ -211,7 +212,7 @@ func (a *App) settingsWorkspace(c *ui.Context, t *ui.Theme) {
 func (a *App) selectField(c *ui.Context, label, current string, options []string, apply func(string)) {
 	ui.Field(c, label, func() {
 		sel := current
-		if ui.Select(c, &sel, options).Width(300).Changed() {
+		if ui.Select(c, &sel, options).Width(300).Cursor(ui.CursorPointer).Changed() {
 			apply(sel)
 			a.saveSettings()
 			a.update()
@@ -221,7 +222,7 @@ func (a *App) selectField(c *ui.Context, label, current string, options []string
 
 func (a *App) switchField(c *ui.Context, label string, v *bool) {
 	ui.Field(c, label, func() {
-		if ui.Switch(c, v).Changed() {
+		if ui.Switch(c, v).Cursor(ui.CursorPointer).Changed() {
 			a.saveSettings()
 			a.update()
 		}

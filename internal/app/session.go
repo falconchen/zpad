@@ -98,6 +98,9 @@ func (a *App) restoreSession(st session.State) {
 		a.activePane = 0
 	}
 	a.focusEditor = len(a.left.tabs)+len(a.right.tabs) > 0
+	if tab := a.pane(a.activePane).activeTab(); tab != nil {
+		a.revealPane, a.revealDoc = a.activePane, tab.doc.ID
+	}
 	if missing > 0 {
 		a.errMsg = locales.MissingFiles(missing)
 	}

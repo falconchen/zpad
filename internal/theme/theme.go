@@ -44,6 +44,22 @@ func ActiveTab(t *ui.Theme) ui.Color {
 	return ui.Hex("#FFFFFF")
 }
 
+// FileTree returns the palette of the sidebar's tree: the chosen row is a
+// faint, full-width wash rather than a filled accent, as VS Code's and
+// Zed's file trees, and its text keeps the normal color.
+func FileTree(t *ui.Theme) *ui.Theme {
+	tree := *t
+	if t.Dark {
+		tree.Accent = ui.RGBA(255, 255, 255, 0.07)
+	} else {
+		tree.Accent = ui.RGBA(0, 0, 0, 0.06)
+	}
+	tree.InactiveAccent = tree.Accent
+	tree.AccentText = t.Text
+	tree.Radius = 0
+	return &tree
+}
+
 func lightTheme() *ui.Theme {
 	t := ui.LightTheme()
 	t.Background = ui.Hex("#FFFFFF")
@@ -64,11 +80,11 @@ func lightTheme() *ui.Theme {
 	t.Focus = ui.RGBA(79, 70, 229, 0.55)
 	t.FocusRingWidth = 2
 	t.FocusRingOffset = 1
-	t.Scrollbar = ui.RGBA(0, 0, 0, 0.28)
-	t.ScrollbarWidth = 10
+	t.Scrollbar = ui.RGBA(0, 0, 0, 0.18)
+	t.ScrollbarWidth = 6
 	t.ScrollbarStyle = ui.ScrollbarStyle{
-		TrackWidth: 10, ThumbWidth: 10, MinLength: 24,
-		Thumb: ui.RGBA(0, 0, 0, 0.22), Hover: ui.RGBA(0, 0, 0, 0.35), Active: ui.RGBA(0, 0, 0, 0.45),
+		TrackWidth: 10, ThumbWidth: 6, Radius: 3, MinLength: 20,
+		Thumb: ui.RGBA(0, 0, 0, 0.18), Hover: ui.RGBA(0, 0, 0, 0.28), Active: ui.RGBA(0, 0, 0, 0.38),
 	}
 	t.Radius = 8
 	t.Spacing = 4
@@ -177,11 +193,11 @@ func darkTheme() *ui.Theme {
 	t.Focus = ui.RGBA(124, 140, 255, 0.60)
 	t.FocusRingWidth = 2
 	t.FocusRingOffset = 1
-	t.Scrollbar = ui.RGBA(255, 255, 255, 0.30)
-	t.ScrollbarWidth = 10
+	t.Scrollbar = ui.RGBA(255, 255, 255, 0.16)
+	t.ScrollbarWidth = 6
 	t.ScrollbarStyle = ui.ScrollbarStyle{
-		TrackWidth: 10, ThumbWidth: 10, MinLength: 24,
-		Thumb: ui.RGBA(255, 255, 255, 0.22), Hover: ui.RGBA(255, 255, 255, 0.35), Active: ui.RGBA(255, 255, 255, 0.45),
+		TrackWidth: 10, ThumbWidth: 6, Radius: 3, MinLength: 20,
+		Thumb: ui.RGBA(255, 255, 255, 0.16), Hover: ui.RGBA(255, 255, 255, 0.26), Active: ui.RGBA(255, 255, 255, 0.36),
 	}
 	t.Radius = 8
 	t.Spacing = 4

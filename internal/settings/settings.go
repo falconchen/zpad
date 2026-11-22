@@ -67,7 +67,7 @@ func Default() Settings {
 		SidebarOpen:    false,
 		SidebarWidth:   240,
 		ShowHidden:     false,
-		RestoreSession: true,
+		RestoreSession: false,
 		ConfirmClose:   true,
 	}
 }
