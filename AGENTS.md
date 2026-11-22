@@ -98,7 +98,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 强制外观用 `mygo.Theme.SetSource`，UI 主题用 `c.SetTheme` / `ui.Themed`。
 - 弹窗菜单统一 `c.SetMenuPresentation(ui.PopoverMenus)` 在窗口内绘制；顶部系统菜单栏保持原生。侧栏树菜单用 `PopoverMenu` + `sidebarMenuOptions`，避免继承文件树的选中样式。
 - 菜单项手型光标在 `PopoverMenuOptions` / `PopoverMenuButtonOptions` 的 `Item` 中设置；MyGo 内部的编辑器右键与输入框编辑菜单无法从应用层设置，仍是箭头。
-- 文件树行同时承担拖拽与单击打开；点击处理用 `Clicked()` 并手动 `selectTreePath`，因为 `RowClicked()` 会被拖拽源吞掉，导致侧栏选中不跟随。
+- 文件树行同时承担拖拽与单击打开；整行（缩进、箭头、文件名、左右空白）都由 `treeRow` 自己绘制，`ui.OutlineState.Prefix` 置空以去掉 Outline 自带的缩进和箭头，因此行内任意位置都能命中同一个 Row。点击处理用 `Clicked()` 并手动 `selectTreePath`：整行是应用自己的元素，Outline 的行收不到点击，选中必须自己同步。
 - 不引入 WebView。
 
 ## 当前进度

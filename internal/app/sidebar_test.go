@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
@@ -159,5 +160,117 @@ func TestTreeFileClickSelectsRow(t *testing.T) {
 	tt.Frame()
 	if a.treeSelected < 0 || a.treeSelected >= a.treeState.Rows() || a.treeState.Item(a.treeSelected) != path {
 		t.Fatalf("tree selection %d is not a.txt", a.treeSelected)
+	}
+}
+
+// TestTreeRowClickAnywhereOpens clicks a tree row left of its name, on the
+// indentation, and right of it, on the row's blank end: the whole row opens
+// the file, not only its text, where the outline's own row would just
+// choose it.
+func TestTreeRowClickAnywhereOpens(t *testing.T) {
+	dir := t.TempDir()
+	sub := filepath.Join(dir, "docs")
+	if err := os.MkdirAll(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(sub, "a.txt")
+	if err := os.WriteFile(path, []byte("a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+	a.Settings.SidebarOpen = true
+	a.treeState.Open.Add(sub) // shows a.txt one level deep
+	// Both are open already, so a click takes the fast path and changes no
+	// document off the UI thread.
+	doc := docAt(path, "a")
+	other := docAt(filepath.Join(dir, "b.txt"), "b")
+	a.addDocument(doc)
+	a.addDocument(other)
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	row, ok := tt.Find("a.txt")
+	if !ok {
+		t.Fatalf("no a.txt in the tree; texts %q", tt.Texts())
+	}
+	y := row.Y + row.H/2
+	for _, x := range []float32{4, 20, a.Settings.SidebarWidth - 12} {
+		a.activateDocument(other)
+		if tab := a.activeTab(); tab == nil || tab.doc != other {
+			t.Fatal("setup: b is not the active tab")
+		}
+		tt.ClickAt(x, y)
+		tt.Frame()
+		if tab := a.activeTab(); tab == nil || tab.doc != doc {
+			t.Fatalf("a click at x=%v did not open a.txt; the active tab is %v", x, a.activeTab())
+		}
+	}
+}
+
+// TestTreeFolderGutterClickToggles opens and closes a folder with clicks
+// left of its name, where its arrow is drawn.
+func TestTreeFolderGutterClickToggles(t *testing.T) {
+	dir := t.TempDir()
+	sub := filepath.Join(dir, "docs")
+	if err := os.MkdirAll(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+	a.Settings.SidebarOpen = true
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	row, ok := tt.Find("docs")
+	if !ok {
+		t.Fatalf("no docs in the tree; texts %q", tt.Texts())
+	}
+	y := row.Y + row.H/2
+	tt.ClickAt(4, y)
+	tt.Frame()
+	if !a.treeState.Open.Has(sub) {
+		t.Fatal("a click left of the name did not open the folder")
+	}
+	tt.Advance(600 * time.Millisecond)
+	tt.ClickAt(4, y)
+	tt.Frame()
+	if a.treeState.Open.Has(sub) {
+		t.Fatal("a second click left of the name did not close the folder")
+	}
+}
+
+// TestTreeOptionClickOpensAll opens and closes a folder with the folders
+// inside it, as Option-clicking a row does.
+func TestTreeOptionClickOpensAll(t *testing.T) {
+	dir := t.TempDir()
+	sub := filepath.Join(dir, "docs")
+	deeper := filepath.Join(sub, "notes")
+	if err := os.MkdirAll(deeper, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+	a.Settings.SidebarOpen = true
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	row, ok := tt.Find("docs")
+	if !ok {
+		t.Fatalf("no docs in the tree; texts %q", tt.Texts())
+	}
+	tt.ClickAtWith(ui.Alt, 4, row.Y+row.H/2)
+	tt.Frame()
+	if !a.treeState.Open.Has(sub) || !a.treeState.Open.Has(deeper) {
+		t.Fatalf("an Option-click did not open docs and notes: %v", a.treeState.Open)
+	}
+	tt.Advance(600 * time.Millisecond)
+	if row, ok = tt.Find("docs"); !ok {
+		t.Fatal("docs left the tree")
+	}
+	tt.ClickAtWith(ui.Alt, 4, row.Y+row.H/2)
+	tt.Frame()
+	if a.treeState.Open.Has(sub) || a.treeState.Open.Has(deeper) {
+		t.Fatalf("a second Option-click did not close docs and notes: %v", a.treeState.Open)
 	}
 }

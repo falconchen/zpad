@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/egoist/mygo/ui"
@@ -302,21 +303,46 @@ func (a *App) workspacePanel(c *ui.Context, t *ui.Theme) {
 	ui.Themed(c, theme.FileTree(t)).Grow(1).Background(ui.Transparent).Children(func() {
 		a.treeState.List.Selected = &a.treeSelected
 		a.treeState.Generation = a.treeGeneration
+		// treeRow draws the indentation and the arrow itself, inside the
+		// row, so that the whole row is one click target; an outline row
+		// would keep them outside its content and a click there would only
+		// choose the row.
+		a.treeState.Prefix = func(ui.OutlineRow) {}
 		ui.Outline(c, &a.treeState, a.tree.Roots(), a.tree.Children, func(path string) {
 			a.treeRow(c, t, path)
 		}).Grow(1)
 	})
 }
 
+// treeRow draws a row of the workspace tree whole: its indentation, its
+// arrow and its name all sit inside the row, so a click anywhere in it,
+// from the left edge to the right, opens the file or the folder.
 func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 	isDir := a.tree.IsDir(path)
-	row := ui.Row(c).Gap(6).AlignItems(ui.Center).Cursor(ui.CursorPointer).Children(func() {
-		if isDir {
-			ui.Icon(c, iconFolder).FontSize(14).TextColor(t.TextMuted)
-		} else {
-			ui.Icon(c, iconFile).FontSize(14).TextColor(t.TextMuted)
+	open := a.treeState.Open.Has(path)
+	row := ui.Row(c).FillWidth().Padding(t.Space(1), t.Space(2)).Gap(t.Space(1)).
+		AlignItems(ui.Center).Cursor(ui.CursorPointer)
+	row.Children(func() {
+		if depth := a.treeDepth(path); depth > 0 {
+			ui.Box(c).Width(float32(depth) * t.Space(4)).Shrink(0)
 		}
-		ui.Text(c, filepath.Base(path)).FontSize(12).SingleLine()
+		arrow := ui.Box(c).Size(t.Space(4), t.Space(4)).Shrink(0).Center()
+		arrow.Children(func() {
+			if isDir {
+				chevron := ui.Icon(c, iconChevron).FontSize(12).TextColor(t.TextMuted)
+				if open {
+					chevron.Rotate(90)
+				}
+			}
+		})
+		ui.Row(c).Gap(6).AlignItems(ui.Center).Children(func() {
+			if isDir {
+				ui.Icon(c, iconFolder).FontSize(14).TextColor(t.TextMuted)
+			} else {
+				ui.Icon(c, iconFile).FontSize(14).TextColor(t.TextMuted)
+			}
+			ui.Text(c, filepath.Base(path)).FontSize(12).SingleLine()
+		})
 	})
 	if !isDir {
 		row.Drag(paneDrag{kind: dragFile, path: path})
@@ -337,16 +363,50 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 		}
 	}, sidebarMenuOptions(t))
 	if row.Clicked() {
-		// The row content takes the click from the outline row, so choose
-		// the row here as well as opening it.
+		// The whole row is this view's own, so the outline's row sees no
+		// click and the choice is made here too.
 		a.selectTreePath(path)
 		a.update()
-		if isDir {
-			a.toggleFolder(path)
-		} else {
+		switch {
+		case !isDir:
 			a.OpenPaths([]string{path})
+		case row.ClickModifiers()&ui.Alt != 0:
+			a.toggleFolderAll(path)
+		default:
+			a.toggleFolder(path)
 		}
 	}
+}
+
+// treeDepth is how deep path sits in the workspace: 0 for an entry at the
+// workspace root, matching the indentation the rows draw.
+func (a *App) treeDepth(path string) int {
+	rel, err := filepath.Rel(a.tree.Root(), path)
+	if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return 0
+	}
+	return strings.Count(rel, string(filepath.Separator))
+}
+
+// toggleFolderAll opens path with every folder inside it, or closes them
+// all, as Option-clicking a tree row does.
+func (a *App) toggleFolderAll(path string) {
+	open := !a.treeState.Open.Has(path)
+	var walk func(dir string)
+	walk = func(dir string) {
+		if open {
+			a.treeState.Open.Add(dir)
+		} else {
+			a.treeState.Open.Remove(dir)
+		}
+		for _, child := range a.tree.Children(dir) {
+			if a.tree.IsDir(child) {
+				walk(child)
+			}
+		}
+	}
+	walk(path)
+	a.update()
 }
 
 // menuCursorOptions gives the pointer the hand shape over menu items.
