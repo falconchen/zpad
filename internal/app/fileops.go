@@ -262,9 +262,7 @@ func (a *App) forgetTreePaths(path string) {
 func (a *App) openInOtherPane(path string) {
 	target := 1 - a.activePane
 	if !a.split {
-		a.split = true
-		a.centerSplit = true
-		a.right = Pane{active: -1}
+		a.ensureSplit()
 		a.activePane = 1
 		a.focusEditor = true
 		target = 1

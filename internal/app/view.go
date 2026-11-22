@@ -558,7 +558,8 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 	key := fmt.Sprintf("tab-%d-%s", paneIdx, tab.doc.ID)
 	b := ui.ButtonBase(c.Key(key)).Height(32).Padding(0, 10).Gap(6).
 		Radius(0).Background(bg).Label(tab.doc.Name()).Cursor(ui.CursorPointer).
-		Drag(paneDrag{kind: dragTab, pane: paneIdx, id: tab.doc.ID})
+		Drag(paneDrag{kind: dragTab, pane: paneIdx, id: tab.doc.ID}).
+		PopoverMenu(func(m *ui.Menu) { a.tabContextMenu(m, paneIdx, i) }, menuCursorOptions())
 	if !active && b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}
@@ -592,6 +593,44 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		b.ScrollIntoView(ui.ScrollIntoViewOptions{Inline: ui.ScrollNearest})
 		a.revealDoc = ""
 		a.revealPane = -1
+	}
+}
+
+// tabContextMenu fills a tab's context menu: closing it or the tabs
+// beside it, and moving or copying it to the other pane.
+func (a *App) tabContextMenu(m *ui.Menu, paneIdx, i int) {
+	p := a.pane(paneIdx)
+	if i < 0 || i >= len(p.tabs) {
+		return
+	}
+	if m.Item(locales.CloseTab()).Chosen() {
+		a.CloseTab(paneIdx, i)
+	}
+	if m.Item(locales.CloseTabsLeft()).Disabled(i == 0).Chosen() {
+		a.closeTabs(paneIdx, p.tabs[:i])
+	}
+	if m.Item(locales.CloseTabsRight()).Disabled(i == len(p.tabs)-1).Chosen() {
+		a.closeTabs(paneIdx, p.tabs[i+1:])
+	}
+	m.Separator()
+	toMain := paneIdx != 0
+	if m.Item(locales.MoveToMainPane()).Disabled(!toMain).Chosen() {
+		a.moveTabIndex(paneIdx, i, 0)
+	}
+	// A pane cannot stay empty, so the only tab of a lone pane cannot
+	// move into the split it would have to create.
+	canMoveOther := paneIdx == 0 && (a.split || len(p.tabs) > 1)
+	if m.Item(locales.MoveToOtherPane()).Disabled(!canMoveOther).Chosen() {
+		a.ensureSplit()
+		a.moveTabIndex(paneIdx, i, 1)
+	}
+	m.Separator()
+	if m.Item(locales.CopyToMainPane()).Disabled(!toMain).Chosen() {
+		a.copyTabIndex(paneIdx, i, 0)
+	}
+	if m.Item(locales.CopyToOtherPane()).Disabled(paneIdx == 1).Chosen() {
+		a.ensureSplit()
+		a.copyTabIndex(paneIdx, i, 1)
 	}
 }
 

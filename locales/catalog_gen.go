@@ -164,6 +164,66 @@ func (msgs Messages) CloseTab() string {
 	return Catalog.Format(msgs.locale, "closeTab", nil)
 }
 
+// CloseTabsLeft says "Close Tabs to the Left"
+// in the language the app shows.
+func CloseTabsLeft() string { return In(i18n.Locale()).CloseTabsLeft() }
+
+// CloseTabsLeft says "Close Tabs to the Left"
+// in the language of msgs.
+func (msgs Messages) CloseTabsLeft() string {
+	return Catalog.Format(msgs.locale, "closeTabsLeft", nil)
+}
+
+// CloseTabsRight says "Close Tabs to the Right"
+// in the language the app shows.
+func CloseTabsRight() string { return In(i18n.Locale()).CloseTabsRight() }
+
+// CloseTabsRight says "Close Tabs to the Right"
+// in the language of msgs.
+func (msgs Messages) CloseTabsRight() string {
+	return Catalog.Format(msgs.locale, "closeTabsRight", nil)
+}
+
+// MoveToMainPane says "Move to Main Pane"
+// in the language the app shows.
+func MoveToMainPane() string { return In(i18n.Locale()).MoveToMainPane() }
+
+// MoveToMainPane says "Move to Main Pane"
+// in the language of msgs.
+func (msgs Messages) MoveToMainPane() string {
+	return Catalog.Format(msgs.locale, "moveToMainPane", nil)
+}
+
+// MoveToOtherPane says "Move to Other Pane"
+// in the language the app shows.
+func MoveToOtherPane() string { return In(i18n.Locale()).MoveToOtherPane() }
+
+// MoveToOtherPane says "Move to Other Pane"
+// in the language of msgs.
+func (msgs Messages) MoveToOtherPane() string {
+	return Catalog.Format(msgs.locale, "moveToOtherPane", nil)
+}
+
+// CopyToMainPane says "Copy to Main Pane"
+// in the language the app shows.
+func CopyToMainPane() string { return In(i18n.Locale()).CopyToMainPane() }
+
+// CopyToMainPane says "Copy to Main Pane"
+// in the language of msgs.
+func (msgs Messages) CopyToMainPane() string {
+	return Catalog.Format(msgs.locale, "copyToMainPane", nil)
+}
+
+// CopyToOtherPane says "Copy to Other Pane"
+// in the language the app shows.
+func CopyToOtherPane() string { return In(i18n.Locale()).CopyToOtherPane() }
+
+// CopyToOtherPane says "Copy to Other Pane"
+// in the language of msgs.
+func (msgs Messages) CopyToOtherPane() string {
+	return Catalog.Format(msgs.locale, "copyToOtherPane", nil)
+}
+
 // AllTabs says "All Tabs"
 // in the language the app shows.
 func AllTabs() string { return In(i18n.Locale()).AllTabs() }

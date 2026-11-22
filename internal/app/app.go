@@ -419,6 +419,16 @@ func (a *App) dropOnPane(d paneDrag, toPane int) {
 	a.moveTab(d, toPane)
 }
 
+// ensureSplit opens the split with an empty right pane.
+func (a *App) ensureSplit() {
+	if a.split {
+		return
+	}
+	a.split = true
+	a.centerSplit = true
+	a.right = Pane{active: -1}
+}
+
 // openInPane opens path as a tab in a pane, sharing the document already
 // open elsewhere.
 func (a *App) openInPane(path string, paneIdx int) {
@@ -435,18 +445,27 @@ func (a *App) moveTab(from paneDrag, toPane int) {
 	if from.pane == toPane || from.pane < 0 || from.pane > 1 || toPane < 0 || toPane > 1 {
 		return
 	}
-	if toPane == 1 && !a.split {
-		return
-	}
-	src, dst := a.pane(from.pane), a.pane(toPane)
-	idx := -1
+	src := a.pane(from.pane)
 	for i, tab := range src.tabs {
 		if tab.doc.ID == from.id {
-			idx = i
-			break
+			a.moveTabIndex(from.pane, i, toPane)
+			return
 		}
 	}
-	if idx < 0 {
+}
+
+// moveTabIndex moves a pane's tab into the other pane, at the end, or
+// shows the copy the target pane already has. The source pane's split
+// closes when its last tab leaves.
+func (a *App) moveTabIndex(srcPane, idx, dstPane int) {
+	if srcPane == dstPane || srcPane < 0 || srcPane > 1 || dstPane < 0 || dstPane > 1 {
+		return
+	}
+	if dstPane == 1 && !a.split {
+		return
+	}
+	src, dst := a.pane(srcPane), a.pane(dstPane)
+	if idx < 0 || idx >= len(src.tabs) {
 		return
 	}
 	tab := src.tabs[idx]
@@ -473,13 +492,50 @@ func (a *App) moveTab(from paneDrag, toPane int) {
 		target = len(dst.tabs) - 1
 	}
 	dst.active = target
-	a.activePane = toPane
+	a.activePane = dstPane
 
 	if a.split && len(src.tabs) == 0 {
-		a.collapseSplit(from.pane)
+		a.collapseSplit(srcPane)
 	}
 	a.focusEditor = true
 	a.revealPane, a.revealDoc = a.activePane, tab.doc.ID
+	a.updateTitle()
+	a.saveSession()
+	a.update()
+}
+
+// copyTabIndex shows a pane's tab in the other pane, sharing its document,
+// or activates the copy that pane already has.
+func (a *App) copyTabIndex(srcPane, idx, dstPane int) {
+	if srcPane == dstPane || srcPane < 0 || srcPane > 1 || dstPane < 0 || dstPane > 1 {
+		return
+	}
+	if dstPane == 1 && !a.split {
+		return
+	}
+	src, dst := a.pane(srcPane), a.pane(dstPane)
+	if idx < 0 || idx >= len(src.tabs) {
+		return
+	}
+	tab := src.tabs[idx]
+	target := -1
+	for i, other := range dst.tabs {
+		if other.doc == tab.doc {
+			target = i
+			break
+		}
+	}
+	if target < 0 {
+		dst.tabs = append(dst.tabs, &Tab{
+			doc:   tab.doc,
+			state: &editor.State{Buffer: tab.doc.Buffer, ReadOnly: tab.doc.ReadOnly},
+		})
+		target = len(dst.tabs) - 1
+	}
+	dst.active = target
+	a.activePane = dstPane
+	a.focusEditor = true
+	a.revealPane, a.revealDoc = dstPane, tab.doc.ID
 	a.updateTitle()
 	a.saveSession()
 	a.update()

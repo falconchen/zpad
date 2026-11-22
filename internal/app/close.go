@@ -122,10 +122,87 @@ func dirtyDetail(docs []*Document) string {
 	return strings.Join(names, ", ")
 }
 
-func (a *App) saveAllForClose(reason string) {
-	docs := a.dirtyDocs()
+// closeTabs closes the tabs of a pane, asking once about the documents
+// among them with unsaved changes.
+func (a *App) closeTabs(paneIdx int, tabs []*Tab) {
+	if a.busy || len(tabs) == 0 {
+		return
+	}
+	docs := dirtyTabDocs(tabs)
 	if len(docs) == 0 {
-		a.executeClose(reason)
+		// Closing from a tab's menu happens during a frame; remove the
+		// tabs after it, not while the bar is being built.
+		a.onUI(func() { a.removeTabsByPointer(paneIdx, tabs) })
+		return
+	}
+	a.busy = true
+	go func() {
+		res, err := mygo.Dialog.Message(mygo.MessageOptions{
+			Parent:             a.win,
+			Type:               mygo.MessageWarning,
+			Message:            locales.UnsavedFilesQuestion(len(docs)),
+			Detail:             dirtyDetail(docs),
+			Buttons:            []string{locales.SaveAll(), locales.DontSave(), locales.Cancel()},
+			DefaultButton:      0,
+			CancelButton:       2,
+			DestructiveButtons: []int{1},
+		})
+		if err != nil {
+			a.onUI(func() {
+				a.busy = false
+				a.fail(locales.CloseTabFailed(), err)
+			})
+			return
+		}
+		switch res.Button {
+		case 0:
+			a.onUI(func() {
+				a.busy = false
+				a.saveDocsForClose(docs, func() { a.removeTabsByPointer(paneIdx, tabs) })
+			})
+		case 1:
+			a.onUI(func() {
+				a.busy = false
+				a.removeTabsByPointer(paneIdx, tabs)
+			})
+		default:
+			a.onUI(func() { a.busy = false })
+		}
+	}()
+}
+
+// dirtyTabDocs returns the modified documents among tabs, once each.
+func dirtyTabDocs(tabs []*Tab) []*Document {
+	seen := map[*Document]bool{}
+	var out []*Document
+	for _, tab := range tabs {
+		if tab.doc.Buffer.Modified() && !seen[tab.doc] {
+			seen[tab.doc] = true
+			out = append(out, tab.doc)
+		}
+	}
+	return out
+}
+
+// removeTabsByPointer closes the tabs still open by identity, since they
+// may have moved while the prompt was up.
+func (a *App) removeTabsByPointer(paneIdx int, tabs []*Tab) {
+	for _, tab := range tabs {
+		a.removeTabByPointer(paneIdx, tab)
+	}
+	a.saveSession()
+	a.update()
+}
+
+func (a *App) saveAllForClose(reason string) {
+	a.saveDocsForClose(a.dirtyDocs(), func() { a.executeClose(reason) })
+}
+
+// saveDocsForClose saves docs, asking where to save each untitled one, and
+// calls then once they are all saved.
+func (a *App) saveDocsForClose(docs []*Document, then func()) {
+	if len(docs) == 0 {
+		then()
 		return
 	}
 	if a.busy {
@@ -182,7 +259,7 @@ func (a *App) saveAllForClose(reason string) {
 			}
 			a.busy = false
 			a.updateTitle()
-			a.executeClose(reason)
+			then()
 		})
 	}()
 }
