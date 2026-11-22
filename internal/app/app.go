@@ -255,16 +255,6 @@ func (a *App) removeTab(paneIdx, i int) {
 	a.updateTitle()
 }
 
-func (a *App) removeTabByPointer(paneIdx int, t *Tab) {
-	p := a.pane(paneIdx)
-	for i, tab := range p.tabs {
-		if tab == t {
-			a.removeTab(paneIdx, i)
-			return
-		}
-	}
-}
-
 func (a *App) toggleSplit() {
 	if !a.split {
 		a.split = true
@@ -319,6 +309,8 @@ func (a *App) updateTitle() {
 	if tab != nil {
 		title = tab.doc.Name() + " — ZPad"
 		dirty = tab.doc.Buffer.Modified()
+	} else if a.root != "" {
+		title = filepath.Base(a.root) + " — ZPad"
 	}
 	a.lastDirty = dirty
 	if a.win != nil {

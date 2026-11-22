@@ -32,9 +32,11 @@ func main() {
 
 	// Open files the system asks for, from Finder or the command line.
 	mygo.App.OnOpenFile(a.HandleOpenFile)
+	mygo.App.OnBeforeQuit(a.BeforeQuit)
 
 	mygo.App.WhenReady(func() {
 		a.Prepare()
+		a.RestoreSession()
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Title:     "ZPad",
 			Width:     1200,

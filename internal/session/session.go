@@ -45,6 +45,12 @@ func Default() State {
 	}
 }
 
+// Exists reports whether dir has a session file.
+func Exists(dir string) bool {
+	_, err := os.Stat(filepath.Join(dir, fileName))
+	return err == nil
+}
+
 // Load reads dir/session.json. A missing or corrupt file returns the
 // defaults; a corrupt one is kept as session.json.bak.
 func Load(dir string) (State, error) {

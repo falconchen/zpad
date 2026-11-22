@@ -205,19 +205,21 @@ func (a *App) ConvertCase(mode caseconv.Mode) {
 
 // CloseActiveTab closes the active tab.
 func (a *App) CloseActiveTab() {
-	a.CloseTab(a.active)
+	p := a.activePaneObj()
+	a.CloseTab(a.activePane, p.active)
 }
 
-// CloseTab closes tab i, asking to save when it has changes.
-func (a *App) CloseTab(i int) {
-	if i < 0 || i >= len(a.tabs) || a.busy {
+// CloseTab closes tab i of a pane, asking to save when it has changes.
+func (a *App) CloseTab(paneIdx, i int) {
+	p := a.pane(paneIdx)
+	if i < 0 || i >= len(p.tabs) || a.busy {
 		return
 	}
-	tab := a.tabs[i]
+	tab := p.tabs[i]
 	if !tab.doc.Buffer.Modified() {
 		// Closing from a tab's button happens during a frame; remove the
 		// tab after it, not while its bar is being built.
-		a.onUI(func() { a.removeTabByPointer(tab) })
+		a.onUI(func() { a.removeTabByPointer(paneIdx, tab) })
 		return
 	}
 	a.busy = true
@@ -241,12 +243,12 @@ func (a *App) CloseTab(i int) {
 		case 0:
 			a.onUI(func() {
 				a.busy = false
-				a.saveTab(tab, false, func() { a.removeTabByPointer(tab) })
+				a.saveTab(tab, false, func() { a.removeTabByPointer(paneIdx, tab) })
 			})
 		case 1:
 			a.onUI(func() {
 				a.busy = false
-				a.removeTabByPointer(tab)
+				a.removeTabByPointer(paneIdx, tab)
 			})
 		default:
 			a.onUI(func() { a.busy = false })
@@ -254,10 +256,11 @@ func (a *App) CloseTab(i int) {
 	}()
 }
 
-func (a *App) removeTabByPointer(t *Tab) {
-	for i, tab := range a.tabs {
+func (a *App) removeTabByPointer(paneIdx int, t *Tab) {
+	p := a.pane(paneIdx)
+	for i, tab := range p.tabs {
 		if tab == t {
-			a.removeTab(i)
+			a.removeTab(paneIdx, i)
 			return
 		}
 	}

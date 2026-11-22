@@ -50,15 +50,15 @@ func TestTabs(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
 	a.NewFile()
 	a.NewFile()
-	if len(a.tabs) != 2 || a.active != 1 {
-		t.Fatalf("tabs %d, active %d", len(a.tabs), a.active)
+	if len(a.left.tabs) != 2 || a.left.active != 1 {
+		t.Fatalf("tabs %d, active %d", len(a.left.tabs), a.left.active)
 	}
-	a.removeTab(1)
-	if len(a.tabs) != 1 || a.active != 0 {
-		t.Fatalf("after remove: tabs %d, active %d", len(a.tabs), a.active)
+	a.removeTab(0, 1)
+	if len(a.left.tabs) != 1 || a.left.active != 0 {
+		t.Fatalf("after remove: tabs %d, active %d", len(a.left.tabs), a.left.active)
 	}
-	if a.tabs[0].doc.Name() != "未命名" {
-		t.Fatalf("tab name %q", a.tabs[0].doc.Name())
+	if a.left.tabs[0].doc.Name() != "未命名" {
+		t.Fatalf("tab name %q", a.left.tabs[0].doc.Name())
 	}
 }
 

@@ -38,6 +38,7 @@ func (a *App) View(c *ui.Context) {
 func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 	ui.Toolbar(c, func() {
 		a.iconButton(c, t, iconSidebar, "切换侧栏", a.Settings.SidebarOpen, a.toggleSidebar)
+		a.iconButton(c, t, iconSplit, "切换分屏", a.split, a.toggleSplit)
 		a.iconButton(c, t, iconPlus, "新建文件", false, a.NewFile)
 		a.iconButton(c, t, iconOpen, "打开文件", false, a.OpenFileDialog)
 		a.iconButton(c, t, iconFolder, "打开文件夹", false, a.OpenFolderDialog)
@@ -169,61 +170,111 @@ func (a *App) toggleFolder(path string) {
 }
 
 func (a *App) content(c *ui.Context, t *ui.Theme) {
-	ui.Column(c).Grow(1).FillWidth().Background(t.Background).Children(func() {
-		if len(a.tabs) == 0 {
-			a.emptyState(c, t)
+	if a.split {
+		sp := ui.Split(c, &a.splitWidth,
+			func() { a.paneContent(c, t, 0) },
+			func() { a.paneContent(c, t, 1) },
+		)
+		sp.Grow(1).FillWidth()
+		return
+	}
+	a.paneContent(c, t, 0)
+}
+
+func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
+	p := a.pane(index)
+	ui.Column(c).Fill().Background(t.Background).Children(func() {
+		if len(p.tabs) == 0 {
+			if a.split {
+				a.emptyPane(c, t, index)
+			} else {
+				a.emptyState(c, t)
+			}
 			return
 		}
-		a.tabBar(c, t)
-		tab := a.activeTab()
+		a.tabBar(c, t, index, p)
+		tab := p.activeTab()
 		if tab == nil {
 			return
 		}
 		a.configureEditor(tab, t)
-		if dirty := tab.doc.Buffer.Modified(); dirty != a.lastDirty {
-			a.lastDirty = dirty
-			if a.win != nil {
-				a.win.SetDocumentEdited(dirty)
+		if index == a.activePane {
+			if dirty := tab.doc.Buffer.Modified(); dirty != a.lastDirty {
+				a.lastDirty = dirty
+				if a.win != nil {
+					a.win.SetDocumentEdited(dirty)
+				}
 			}
 		}
 		drop := ui.Box(c).Grow(1).FillWidth().Children(func() {
 			v := editor.View(c, tab.state).Grow(1).FillWidth()
-			if a.focusEditor {
+			if tab.pendingScroll != nil {
+				y := *tab.pendingScroll
+				tab.pendingScroll = nil
+				tab.state.SetScrollY(y)
+			}
+			if a.focusEditor && index == a.activePane {
 				v.AutoFocus()
 				a.focusEditor = false
 			}
 		})
 		if files := drop.DroppedFiles(); len(files) > 0 {
+			a.setActivePane(index)
 			a.OpenPaths(files)
 		}
 		if drop.FileDragOver() {
 			drop.Border(2, t.Accent)
 		}
+		if tab.state.Focused() && a.activePane != index {
+			a.activePane = index
+			a.updateTitle()
+		}
 	})
 }
 
-func (a *App) tabBar(c *ui.Context, t *ui.Theme) {
-	ui.ScrollHorizontal(c).Height(38).FillWidth().Background(t.Surface).
+func (a *App) emptyPane(c *ui.Context, t *ui.Theme, index int) {
+	ui.Column(c).Fill().Center().Gap(10).Children(func() {
+		ui.Text(c, "此栏没有打开的文件").FontSize(13).TextColor(t.TextMuted)
+		ui.Row(c).Gap(8).Children(func() {
+			if ui.Button(c, "打开文件").Clicked() {
+				a.setActivePane(index)
+				a.OpenFileDialog()
+			}
+			if ui.Button(c, "新建文件").Clicked() {
+				a.setActivePane(index)
+				a.NewFile()
+			}
+		})
+	})
+}
+
+func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
+	bg := t.Surface
+	if a.split && index == a.activePane {
+		bg = t.Background
+	}
+	ui.ScrollHorizontal(c).Height(38).FillWidth().Background(bg).
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
 		Children(func() {
 			ui.Row(c).Height(38).Children(func() {
-				for i, tab := range a.tabs {
-					a.tabItem(c, t, i, tab)
+				for i, tab := range p.tabs {
+					a.tabItem(c, t, index, p, i, tab)
 				}
-				a.newTabButton(c, t)
+				a.newTabButton(c, t, index)
 			})
 		})
 }
 
-func (a *App) tabItem(c *ui.Context, t *ui.Theme, i int, tab *Tab) {
-	active := i == a.active
+func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, tab *Tab) {
+	active := i == p.active
 	bg := t.Surface
 	text := t.TextMuted
 	if active {
 		bg = t.Background
 		text = t.Text
 	}
-	b := ui.ButtonBase(c.Key(tab.doc.ID)).Height(36).Padding(0, 10).Gap(6).
+	key := fmt.Sprintf("tab-%d-%s", paneIdx, tab.doc.ID)
+	b := ui.ButtonBase(c.Key(key)).Height(36).Padding(0, 10).Gap(6).
 		Radius(0).Background(bg).Label(tab.doc.Name())
 	if !active && b.Hovered() {
 		b.Background(t.SurfaceHover)
@@ -234,13 +285,13 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, i int, tab *Tab) {
 			ui.Box(c).Size(6, 6).Radius(3).Background(t.Accent).Shrink(0)
 		}
 		ui.Text(c, tab.doc.Name()).FontSize(12).TextColor(text).SingleLine()
-		close := ui.ButtonBase(c.Key(tab.doc.ID+"-close")).Size(16, 16).Center().
+		close := ui.ButtonBase(c.Key(key+"-close")).Size(16, 16).Center().
 			Radius(4).Label("关闭").Tooltip("关闭")
 		close.Children(func() {
 			ui.Icon(c, iconClose).FontSize(11).TextColor(t.TextMuted)
 		})
 		if close.Clicked() {
-			a.CloseTab(i)
+			a.CloseTab(paneIdx, i)
 			closed = true
 		}
 	})
@@ -248,15 +299,16 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, i int, tab *Tab) {
 		b.BorderWidth(0, 0, 2, 0).BorderColor(t.Accent)
 	}
 	if b.Clicked() && !closed {
-		a.active = i
+		p.active = i
+		a.activePane = paneIdx
 		a.focusEditor = true
 		a.updateTitle()
 		a.update()
 	}
 }
 
-func (a *App) newTabButton(c *ui.Context, t *ui.Theme) {
-	b := ui.ButtonBase(c.Key("new-tab")).Size(28, 36).Center().Radius(0).
+func (a *App) newTabButton(c *ui.Context, t *ui.Theme, paneIdx int) {
+	b := ui.ButtonBase(c.Key(fmt.Sprintf("new-tab-%d", paneIdx))).Size(28, 36).Center().Radius(0).
 		Label("新建文件").Tooltip("新建文件")
 	if b.Hovered() {
 		b.Background(t.SurfaceHover)
@@ -265,6 +317,7 @@ func (a *App) newTabButton(c *ui.Context, t *ui.Theme) {
 		ui.Icon(c, iconPlus).FontSize(14).TextColor(t.TextMuted)
 	})
 	if b.Clicked() {
+		a.setActivePane(paneIdx)
 		a.NewFile()
 	}
 }
@@ -370,6 +423,9 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 	ui.Row(c).Height(28).FillWidth().Padding(0, 10).AlignItems(ui.Center).Gap(10).
 		Background(t.Surface).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).
 		Children(func() {
+			if a.split {
+				ui.Text(c, paneLabel(a.activePane)).FontSize(11).TextColor(t.Accent)
+			}
 			tab := a.activeTab()
 			if tab == nil {
 				msg, col := "就绪", t.TextMuted
@@ -431,6 +487,13 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 				ui.Box(c).Size(6, 6).Radius(3).Background(t.Accent)
 			}
 		})
+}
+
+func paneLabel(i int) string {
+	if i == 1 {
+		return "右栏"
+	}
+	return "左栏"
 }
 
 func languageName(doc *Document) string {

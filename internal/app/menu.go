@@ -39,6 +39,7 @@ func (a *App) InstallMenu() {
 
 	viewMenu := []*mygo.MenuItem{
 		{Label: "切换侧栏", Accelerator: "CmdOrCtrl+B", Click: func(*mygo.MenuItem, *mygo.Window) { a.toggleSidebar() }},
+		{Label: "切换分屏", Accelerator: "CmdOrCtrl+\\", Click: func(*mygo.MenuItem, *mygo.Window) { a.toggleSplit() }},
 		{Label: "刷新文件树", Click: func(*mygo.MenuItem, *mygo.Window) { a.refreshTree() }},
 		{Label: "查找…", Click: func(*mygo.MenuItem, *mygo.Window) {
 			if tab := a.activeTab(); tab != nil {
