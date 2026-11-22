@@ -607,6 +607,11 @@ func (a *App) tabListButton(c *ui.Context, paneIdx int, p *Pane) {
 	})
 }
 
+// tabTextWidth caps the name a tab shows so that one long file does not take
+// the whole bar and hide the others. The tab keeps the name's natural width
+// below it; the title tooltip and the tab list carry the rest.
+const tabTextWidth float32 = 180
+
 func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, tab *Tab) {
 	active := i == p.active
 	bg := theme.TabBar(t)
@@ -617,7 +622,8 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 	}
 	key := fmt.Sprintf("tab-%d-%s", paneIdx, tab.doc.ID)
 	b := ui.ButtonBase(c.Key(key)).Height(32).Padding(0, 10).Gap(6).
-		Radius(0).Background(bg).Label(tab.doc.Name()).Cursor(ui.CursorPointer).
+		Radius(0).Background(bg).Label(tab.doc.Name()).
+		Tooltip(a.documentTooltip(tab.doc)).Cursor(ui.CursorPointer).
 		Drag(paneDrag{kind: dragTab, pane: paneIdx, id: tab.doc.ID}).
 		PopoverMenu(func(m *ui.Menu) { a.tabContextMenu(m, paneIdx, i) }, menuCursorOptions())
 	if !active && b.Hovered() {
@@ -628,8 +634,9 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		if tab.doc.Buffer.Modified() {
 			ui.Box(c).Size(6, 6).Radius(3).Background(t.Accent).Shrink(0)
 		}
-		ui.Text(c, tab.doc.Name()).FontSize(12).TextColor(text).SingleLine()
-		close := ui.ButtonBase(c.Key(key+"-close")).Size(16, 16).Center().
+		ui.Text(c, tab.doc.Name()).FontSize(12).TextColor(text).SingleLine().
+			MaxWidth(tabTextWidth).TruncateMiddle()
+		close := ui.ButtonBase(c.Key(key+"-close")).Size(16, 16).Center().Shrink(0).
 			Radius(4).Label(locales.Close()).Tooltip(locales.Close()).Cursor(ui.CursorPointer)
 		close.Children(func() {
 			ui.Icon(c, iconClose).FontSize(11).TextColor(t.TextMuted)

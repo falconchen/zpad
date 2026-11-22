@@ -272,6 +272,7 @@ go tool mygo build
 - 应用内自绘的按钮、菜单按钮、标签、标签关闭、新建标签、文件树行、设置下拉与开关显示手型光标；原生菜单保持系统光标。
 - 文件树行改为整行自绘：缩进、折叠箭头、图标、文件名与左右空白都在同一个 `Row` 内，`ui.OutlineState.Prefix` 置空去掉 Outline 自带的缩进与箭头，行内任意位置单击都能打开文件 / 展开文件夹并同步选中；Option 点击行展开或收起其下全部文件夹。
 - 标签栏隐藏横向滚动条；标签溢出时在末尾显示下拉按钮，列出该栏全部标签、当前项打勾，选择后切换并滚动到可见位置。
+- 标签宽度设上限：文件名文本最多 180 DIP（标签整体约 240 DIP），短名保持自然宽度；超长名中间省略，同时保留开头与扩展名，悬停显示完整路径；脏点与关闭按钮不收缩。新增 `TestLongTabNameIsCapped`。
 - 设置面板改用 `ui.DialogBase` 直接绘制单层圆角面板，去掉 MyGo Modal 外层内边距与背景框；关闭按钮从标题栏移到「完成」左侧，Esc / 点击遮罩仍可关闭。
 
 Windows / Linux 单实例（同日追加）：
@@ -282,6 +283,14 @@ Windows / Linux 单实例（同日追加）：
 - `openPaths` 增加「正在读取」集合（`beginLoading` / `endLoading`），同一路径来自 `OnOpenFile` 和第二实例时只读一次；顺带消除启动时 `pendingOpen` 与 `os.Args` 重复读取。
 - Windows 安装包只把 ZPad 写入 `.ext\OpenWithProgids` 与 ProgID，默认应用仍需用户右键「打开方式 → 始终使用此应用」（系统限制，非应用问题）。
 - 待验证：真实 Windows 上的安装、首次设为默认、已运行时双击第二个文件只保留一个 `ZPad.exe`、退出后 `settings.json` / 会话不被旧实例覆盖。
+
+文件关联扩展（同日追加）：
+
+- `mygo.json` 拆成 `Text Document`（文档 / 数据 / 标记，40 个）与 `Source Code`（源码，46 个）两组，共 86 个扩展名；`internal/app/textExtensions`（打开对话框的文本筛选器）同步，`release_test.go` 校验两份列表完全一致、同一扩展名只出现在一个分组。
+- 覆盖 MyGo 编辑器能高亮的常见扩展名：文档类含 md / mdx / html / xhtml / css / scss / less / jsonc / yaml / toml / ini / properties / editorconfig / diff；源码类含 go / py / rs / c / cpp / h / java / kt / scala / swift / dart / cs / rb / php / lua / zig / sh / sql / proto / graphql / tf / nix / erb / jinja 等。
+- 有意不关联：`.command`（双击会执行脚本）、`.plist` / `.svg` / `.xib` / `.storyboard` / `.csproj`（系统或 IDE 资产）、`.ino`、`.m` / `.mm`（歧义多）。无扩展名文件（Dockerfile / Makefile / README）只按文件名高亮，系统关联只认扩展名。
+- macOS 的 `CFBundleDocumentTypes` 由 MyGo 统一写 `LSHandlerRank: Default`；Windows 安装包写入 `HKCU\Software\Classes` 的 ProgID 与 `OpenWithProgids`，默认程序仍由用户选择。
+- 已验证：`go tool mygo build` 产出的 Info.plist 含两组 `CFBundleDocumentTypes`，共 86 个扩展名、无重复，角色为 Editor、`LSHandlerRank` 为 Default；Finder「打开方式」可列出 ZPad。
 - 侧栏改为「打开的文件 / 工作区」双 Tab：打开文件列表汇总两栏文档、去重并显示目录；打开文件夹或恢复工作区时自动切到工作区。
 - 文件树改为单击打开文件、单击展开/收起文件夹，去掉双击处理。
 - 标签可拖到另一栏，源栏最后一个标签移走后自动收起分屏；同一文件已在目标栏时直接激活。

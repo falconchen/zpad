@@ -34,6 +34,28 @@ func TestTabBarOverflowShowsTabList(t *testing.T) {
 	}
 }
 
+// A name longer than the cap must not make one tab as wide as the bar, and
+// the tab keeps the name for tooltips and the tab list.
+func TestLongTabNameIsCapped(t *testing.T) {
+	name := "a-very-long-file-name-that-would-take-the-whole-bar.component.test.tsx"
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/"+name, "x"))
+	tt := ui.NewTester(a.View, 700, 500)
+	tt.Frame()
+
+	r, ok := tt.Find(name)
+	if !ok {
+		t.Fatalf("no tab for %q; texts %q", name, tt.Texts())
+	}
+	// The cap plus the tab's padding, gap and close button, about 240 DIP.
+	if maxW := tabTextWidth + 60; r.W > maxW {
+		t.Fatalf("tab is %.0f DIP wide, want at most %.0f", r.W, maxW)
+	}
+	if !tt.HasText(name) {
+		t.Fatalf("tab lost the full name; texts %q", tt.Texts())
+	}
+}
+
 func TestTabListChoosesAHiddenTab(t *testing.T) {
 	a, tt := manyTabs(t, 14)
 	if err := tt.Click(locales.AllTabs()); err != nil {
