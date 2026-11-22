@@ -58,6 +58,8 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+      - name: Test on the platform the app ships
+        run: go test ./...
       - name: Build the app and the disk images
         run: go tool mygo build -platform darwin/arm64,darwin/amd64
       - name: Zip the app bundles
