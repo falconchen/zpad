@@ -113,6 +113,12 @@ func TestRemoveLastTabOfActivePaneSwitches(t *testing.T) {
 	if len(a.right.tabs) != 0 {
 		t.Fatal("right tab not removed")
 	}
+	if a.split {
+		t.Fatal("split stayed open with an empty pane")
+	}
+	if len(a.left.tabs) != 1 {
+		t.Fatalf("left tabs %d, want 1", len(a.left.tabs))
+	}
 	if a.activePane != 0 {
 		t.Fatalf("active pane %d, want 0", a.activePane)
 	}

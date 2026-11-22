@@ -299,6 +299,9 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 		}
 		ui.Text(c, filepath.Base(path)).FontSize(12).SingleLine()
 	})
+	if !isDir {
+		row.Drag(paneDrag{kind: dragFile, path: path})
+	}
 	if row.Clicked() {
 		if isDir {
 			a.toggleFolder(path)
@@ -352,7 +355,7 @@ func halfSplit(room float32) float32 {
 func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 	p := a.pane(index)
 	col := ui.Column(c).Fill().Background(t.Background)
-	drag, over := ui.DragOver[tabDrag](col)
+	drag, over := ui.DragOver[paneDrag](col)
 	col.Children(func() {
 		if len(p.tabs) == 0 {
 			if a.split {
@@ -400,13 +403,13 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 			a.updateTitle()
 		}
 	})
-	if over && drag.pane != index {
+	if over && drag.wantsPane(index) {
 		col.DrawOver(func(p *ui.Painter, r ui.Rect) {
 			p.Stroke(ui.Rect{X: r.X + 1, Y: r.Y + 1, W: r.W - 2, H: r.H - 2}, t.Accent, 0, 2)
 		})
 	}
-	if drag, ok := ui.Drop[tabDrag](col); ok {
-		a.moveTab(drag, index)
+	if drag, ok := ui.Drop[paneDrag](col); ok {
+		a.dropOnPane(drag, index)
 	}
 }
 
@@ -491,7 +494,7 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 	key := fmt.Sprintf("tab-%d-%s", paneIdx, tab.doc.ID)
 	b := ui.ButtonBase(c.Key(key)).Height(32).Padding(0, 10).Gap(6).
 		Radius(0).Background(bg).Label(tab.doc.Name()).Cursor(ui.CursorPointer).
-		Drag(tabDrag{pane: paneIdx, id: tab.doc.ID})
+		Drag(paneDrag{kind: dragTab, pane: paneIdx, id: tab.doc.ID})
 	if !active && b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}

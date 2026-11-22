@@ -27,10 +27,27 @@ type Pane struct {
 	active int
 }
 
-// tabDrag is a tab being dragged to another pane.
-type tabDrag struct {
+// dragKind tells what a paneDrag carries.
+type dragKind uint8
+
+const (
+	dragTab dragKind = iota
+	dragFile
+)
+
+// paneDrag is something dropped on a pane: a tab to move there, or a file
+// to open there.
+type paneDrag struct {
+	kind dragKind
 	pane int
 	id   string
+	path string
+}
+
+// wantsPane reports whether d can land on a pane: a file on any, a tab
+// only on one it does not come from.
+func (d paneDrag) wantsPane(pane int) bool {
+	return d.kind == dragFile || d.pane != pane
 }
 
 func (p *Pane) activeTab() *Tab {
@@ -302,16 +319,26 @@ func (a *App) activateDocument(doc *Document) {
 }
 
 func (a *App) addDocument(doc *Document) {
+	a.addDocumentAt(-1, doc)
+}
+
+// addDocumentAt adds doc to a pane, -1 for the active one, sharing the
+// document already open elsewhere.
+func (a *App) addDocumentAt(paneIdx int, doc *Document) {
 	a.errMsg = ""
 	if doc.Path != "" {
 		if existing := a.findDocument(doc.Path); existing != nil {
 			doc = existing
 		}
 	}
-	p := a.activePaneObj()
+	if (paneIdx != 0 && paneIdx != 1) || (paneIdx == 1 && !a.split) {
+		paneIdx = a.activePane
+	}
+	p := a.pane(paneIdx)
 	for i, tab := range p.tabs {
 		if tab.doc == doc {
 			p.active = i
+			a.activePane = paneIdx
 			a.focusEditor = true
 			a.updateTitle()
 			return
@@ -320,7 +347,8 @@ func (a *App) addDocument(doc *Document) {
 	st := &editor.State{Buffer: doc.Buffer, ReadOnly: doc.ReadOnly}
 	p.tabs = append(p.tabs, &Tab{doc: doc, state: st})
 	p.active = len(p.tabs) - 1
-	a.revealPane, a.revealDoc = a.activePane, doc.ID
+	a.activePane = paneIdx
+	a.revealPane, a.revealDoc = paneIdx, doc.ID
 	a.focusEditor = true
 	a.updateTitle()
 }
@@ -348,11 +376,7 @@ func (a *App) removeTab(paneIdx, i int) {
 	}
 
 	if len(p.tabs) == 0 && a.split {
-		other := 1 - paneIdx
-		if len(a.pane(other).tabs) > 0 {
-			a.activePane = other
-			a.focusEditor = true
-		}
+		a.collapseSplit(paneIdx)
 	}
 	if paneIdx == a.activePane {
 		a.focusEditor = true
@@ -360,10 +384,48 @@ func (a *App) removeTab(paneIdx, i int) {
 	a.updateTitle()
 }
 
+// collapseSplit closes the split when one of its panes has no tabs left,
+// keeping the other pane's tabs, states and choice.
+func (a *App) collapseSplit(emptyPane int) {
+	if !a.split {
+		return
+	}
+	if emptyPane == 0 {
+		a.left = a.right
+	}
+	a.right = Pane{active: -1}
+	a.split = false
+	a.activePane = 0
+	a.revealPane, a.revealDoc = 0, ""
+	if tab := a.left.activeTab(); tab != nil {
+		a.revealDoc = tab.doc.ID
+	}
+	a.focusEditor = true
+}
+
+// dropOnPane takes what was dropped on a pane: it moves a tab there, or
+// opens a file from the sidebar there.
+func (a *App) dropOnPane(d paneDrag, toPane int) {
+	if d.kind == dragFile {
+		a.openInPane(d.path, toPane)
+		return
+	}
+	a.moveTab(d, toPane)
+}
+
+// openInPane opens path as a tab in a pane, sharing the document already
+// open elsewhere.
+func (a *App) openInPane(path string, paneIdx int) {
+	a.openPaths([]string{path}, paneIdx)
+}
+
 // moveTab moves the tab dragged from one pane into the other, at the end,
 // or shows the copy the target pane already has. The source pane's split
 // closes when its last tab leaves.
-func (a *App) moveTab(from tabDrag, toPane int) {
+func (a *App) moveTab(from paneDrag, toPane int) {
+	if from.kind != dragTab {
+		return
+	}
 	if from.pane == toPane || from.pane < 0 || from.pane > 1 || toPane < 0 || toPane > 1 {
 		return
 	}
@@ -408,12 +470,7 @@ func (a *App) moveTab(from tabDrag, toPane int) {
 	a.activePane = toPane
 
 	if a.split && len(src.tabs) == 0 {
-		a.split = false
-		if from.pane == 0 {
-			a.left = a.right
-		}
-		a.right = Pane{active: -1}
-		a.activePane = 0
+		a.collapseSplit(from.pane)
 	}
 	a.focusEditor = true
 	a.revealPane, a.revealDoc = a.activePane, tab.doc.ID

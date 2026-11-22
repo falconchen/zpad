@@ -65,17 +65,42 @@ func (a *App) OpenFolderDialog() {
 
 // OpenPaths opens files and directories. It reads files off the UI thread.
 func (a *App) OpenPaths(paths []string) {
+	a.openPaths(paths, -1)
+}
+
+// openPaths opens files and directories in a pane, -1 for the active one.
+// Documents already open go at once; the others are read off the UI
+// thread.
+func (a *App) openPaths(paths []string, paneIdx int) {
 	if len(paths) == 0 {
 		return
 	}
+	a.onUI(func() {
+		pending := make([]string, 0, len(paths))
+		for _, path := range paths {
+			if doc := a.findDocument(path); doc != nil {
+				a.addDocumentAt(paneIdx, doc)
+			} else {
+				pending = append(pending, path)
+			}
+		}
+		if len(pending) > 0 {
+			a.loadPaths(pending, paneIdx)
+		}
+	})
+}
+
+// loadPaths reads files and opens them, in paneIdx when it is a pane. It
+// runs on the UI thread, as openPaths calls it.
+func (a *App) loadPaths(paths []string, paneIdx int) {
 	maxMB := a.Settings.LargeFileMB
-	a.onUI(func() { a.loading++ })
-	defer a.onUI(func() {
+	a.loading++
+	defer func() {
 		if a.loading > 0 {
 			a.loading--
 		}
 		a.update()
-	})
+	}()
 	go func() {
 		var dirs, files []string
 		for _, path := range paths {
@@ -114,7 +139,7 @@ func (a *App) OpenPaths(paths []string) {
 					continue
 				}
 			}
-			a.onUI(func() { a.addDocument(doc) })
+			a.onUI(func() { a.addDocumentAt(paneIdx, doc) })
 		}
 	}()
 }

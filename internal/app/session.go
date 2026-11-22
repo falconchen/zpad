@@ -88,6 +88,13 @@ func (a *App) restoreSession(st session.State) {
 	a.left = loadPane(st.Left)
 	a.right = loadPane(st.Right)
 
+	if a.split && (len(a.left.tabs) == 0 || len(a.right.tabs) == 0) {
+		if len(a.left.tabs) == 0 {
+			a.collapseSplit(0)
+		} else {
+			a.collapseSplit(1)
+		}
+	}
 	if !a.split {
 		a.activePane = 0
 	}
