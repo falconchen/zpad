@@ -86,12 +86,16 @@ type App struct {
 	treeGeneration uint64
 	sidebarTab     int
 
-	left        Pane
-	right       Pane
-	split       bool
-	splitWidth  float32
-	centerSplit bool
-	activePane  int // 0 left, 1 right
+	left       Pane
+	right      Pane
+	split      bool
+	splitWidth float32
+	// splitVertical divides the content top and bottom rather than left
+	// and right; splitHeight is the top pane's height then.
+	splitVertical bool
+	splitHeight   float32
+	centerSplit   bool
+	activePane    int // 0 left/top, 1 right/bottom
 
 	// tabOverflow says whether a pane's tab bar is wider than the pane,
 	// which shows the tab list button; revealPane and revealDoc ask the
@@ -149,6 +153,7 @@ func New(s settings.Settings, settingsDir string) *App {
 		left:         Pane{active: -1},
 		right:        Pane{active: -1},
 		splitWidth:   600,
+		splitHeight:  500,
 		fontSize:     float64(s.FontSize),
 		lineHeight:   float64(s.LineHeight),
 		loadingPaths: map[string]bool{},
@@ -552,10 +557,14 @@ func (a *App) copyTabIndex(srcPane, idx, dstPane int) {
 	a.update()
 }
 
-func (a *App) toggleSplit() {
+// openSplit opens the split in the given direction, duplicating the active
+// tab into the second pane. A split that is already open only changes
+// direction, keeping both panes' tabs, states and choice.
+func (a *App) openSplit(vertical bool) {
+	a.splitVertical = vertical
+	a.centerSplit = true
 	if !a.split {
 		a.split = true
-		a.centerSplit = true
 		if tab := a.activeTab(); tab != nil {
 			found := false
 			for i, rt := range a.right.tabs {
@@ -574,30 +583,49 @@ func (a *App) toggleSplit() {
 			}
 		}
 		a.activePane = 1
-	} else {
-		for _, rt := range a.right.tabs {
-			duplicate := false
-			for _, lt := range a.left.tabs {
-				if lt.doc == rt.doc {
-					duplicate = true
-					break
-				}
-			}
-			if !duplicate {
-				a.left.tabs = append(a.left.tabs, rt)
-			}
-		}
-		if a.left.active < 0 && len(a.left.tabs) > 0 {
-			a.left.active = 0
-		}
-		a.right = Pane{active: -1}
-		a.split = false
-		a.activePane = 0
 	}
 	a.focusEditor = true
 	a.saveSession()
 	a.updateTitle()
 	a.update()
+}
+
+// closeSplit merges the second pane into the first, keeping the tabs only
+// it had.
+func (a *App) closeSplit() {
+	if !a.split {
+		return
+	}
+	for _, rt := range a.right.tabs {
+		duplicate := false
+		for _, lt := range a.left.tabs {
+			if lt.doc == rt.doc {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			a.left.tabs = append(a.left.tabs, rt)
+		}
+	}
+	if a.left.active < 0 && len(a.left.tabs) > 0 {
+		a.left.active = 0
+	}
+	a.right = Pane{active: -1}
+	a.split = false
+	a.activePane = 0
+	a.focusEditor = true
+	a.saveSession()
+	a.updateTitle()
+	a.update()
+}
+
+func (a *App) toggleSplit() {
+	if a.split {
+		a.closeSplit()
+		return
+	}
+	a.openSplit(a.splitVertical)
 }
 
 func (a *App) updateTitle() {

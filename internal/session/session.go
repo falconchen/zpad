@@ -27,20 +27,23 @@ type PaneState struct {
 
 // State is the workspace of the last launch.
 type State struct {
-	Root         string    `json:"root"`
-	Split        bool      `json:"split"`
-	SplitWidth   float32   `json:"splitWidth"`
-	ActivePane   int       `json:"activePane"`
-	Left         PaneState `json:"left"`
-	Right        PaneState `json:"right"`
-	SidebarOpen  bool      `json:"sidebarOpen"`
-	SidebarWidth float32   `json:"sidebarWidth"`
+	Root          string    `json:"root"`
+	Split         bool      `json:"split"`
+	SplitVertical bool      `json:"splitVertical"`
+	SplitWidth    float32   `json:"splitWidth"`
+	SplitHeight   float32   `json:"splitHeight"`
+	ActivePane    int       `json:"activePane"`
+	Left          PaneState `json:"left"`
+	Right         PaneState `json:"right"`
+	SidebarOpen   bool      `json:"sidebarOpen"`
+	SidebarWidth  float32   `json:"sidebarWidth"`
 }
 
 // Default is the layout of a first launch.
 func Default() State {
 	return State{
 		SplitWidth:   600,
+		SplitHeight:  500,
 		SidebarWidth: 240,
 	}
 }
@@ -85,6 +88,9 @@ func Save(dir string, s State) error {
 func (s *State) normalize() {
 	if s.SplitWidth < 120 {
 		s.SplitWidth = 600
+	}
+	if s.SplitHeight < 120 {
+		s.SplitHeight = 500
 	}
 	if s.SidebarWidth < 120 {
 		s.SidebarWidth = 240

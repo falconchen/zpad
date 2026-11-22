@@ -414,6 +414,56 @@ func (msgs Messages) SplitToggle() string {
 	return Catalog.Format(msgs.locale, "splitToggle", nil)
 }
 
+// SplitMenu says "Split"
+// in the language the app shows.
+func SplitMenu() string { return In(i18n.Locale()).SplitMenu() }
+
+// SplitMenu says "Split"
+// in the language of msgs.
+func (msgs Messages) SplitMenu() string {
+	return Catalog.Format(msgs.locale, "splitMenu", nil)
+}
+
+// SplitDirection says "Split Direction"
+// in the language the app shows.
+func SplitDirection() string { return In(i18n.Locale()).SplitDirection() }
+
+// SplitDirection says "Split Direction"
+// in the language of msgs.
+func (msgs Messages) SplitDirection() string {
+	return Catalog.Format(msgs.locale, "splitDirection", nil)
+}
+
+// SplitLeftRight says "Split Left and Right"
+// in the language the app shows.
+func SplitLeftRight() string { return In(i18n.Locale()).SplitLeftRight() }
+
+// SplitLeftRight says "Split Left and Right"
+// in the language of msgs.
+func (msgs Messages) SplitLeftRight() string {
+	return Catalog.Format(msgs.locale, "splitLeftRight", nil)
+}
+
+// SplitTopBottom says "Split Top and Bottom"
+// in the language the app shows.
+func SplitTopBottom() string { return In(i18n.Locale()).SplitTopBottom() }
+
+// SplitTopBottom says "Split Top and Bottom"
+// in the language of msgs.
+func (msgs Messages) SplitTopBottom() string {
+	return Catalog.Format(msgs.locale, "splitTopBottom", nil)
+}
+
+// CloseSplit says "Close Split"
+// in the language the app shows.
+func CloseSplit() string { return In(i18n.Locale()).CloseSplit() }
+
+// CloseSplit says "Close Split"
+// in the language of msgs.
+func (msgs Messages) CloseSplit() string {
+	return Catalog.Format(msgs.locale, "closeSplit", nil)
+}
+
 // ToggleSidebar says "Toggle Sidebar"
 // in the language the app shows.
 func ToggleSidebar() string { return In(i18n.Locale()).ToggleSidebar() }
@@ -1222,6 +1272,26 @@ func RightPane() string { return In(i18n.Locale()).RightPane() }
 // in the language of msgs.
 func (msgs Messages) RightPane() string {
 	return Catalog.Format(msgs.locale, "rightPane", nil)
+}
+
+// TopPane says "Top"
+// in the language the app shows.
+func TopPane() string { return In(i18n.Locale()).TopPane() }
+
+// TopPane says "Top"
+// in the language of msgs.
+func (msgs Messages) TopPane() string {
+	return Catalog.Format(msgs.locale, "topPane", nil)
+}
+
+// BottomPane says "Bottom"
+// in the language the app shows.
+func BottomPane() string { return In(i18n.Locale()).BottomPane() }
+
+// BottomPane says "Bottom"
+// in the language of msgs.
+func (msgs Messages) BottomPane() string {
+	return Catalog.Format(msgs.locale, "bottomPane", nil)
 }
 
 // PlainText says "Plain Text"

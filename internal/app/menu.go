@@ -49,6 +49,10 @@ func (a *App) menuItems() []*mygo.MenuItem {
 	viewMenu := []*mygo.MenuItem{
 		{Label: locales.ToggleSidebar(), Accelerator: "CmdOrCtrl+B", Click: func(*mygo.MenuItem, *mygo.Window) { a.toggleSidebar() }},
 		{Label: locales.ToggleSplit(), Accelerator: "CmdOrCtrl+\\", Click: func(*mygo.MenuItem, *mygo.Window) { a.toggleSplit() }},
+		{Label: locales.SplitDirection(), Submenu: []*mygo.MenuItem{
+			{Label: locales.SplitLeftRight(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openSplit(false) }},
+			{Label: locales.SplitTopBottom(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openSplit(true) }},
+		}},
 		{Label: locales.Refresh(), Click: func(*mygo.MenuItem, *mygo.Window) { a.refreshTree() }},
 		{Label: locales.FindEllipsis(), Click: func(*mygo.MenuItem, *mygo.Window) {
 			if tab := a.activeTab(); tab != nil {

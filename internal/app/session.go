@@ -37,8 +37,12 @@ func (a *App) restoreSession(st session.State) {
 	}
 	a.Settings.SidebarOpen = st.SidebarOpen
 	a.split = st.Split
+	a.splitVertical = st.SplitVertical
 	if st.SplitWidth >= 120 {
 		a.splitWidth = st.SplitWidth
+	}
+	if st.SplitHeight >= 120 {
+		a.splitHeight = st.SplitHeight
 	}
 	a.activePane = st.ActivePane
 
@@ -122,14 +126,16 @@ func (a *App) saveSession() {
 		return
 	}
 	st := session.State{
-		Root:         a.root,
-		Split:        a.split,
-		SplitWidth:   a.splitWidth,
-		ActivePane:   a.activePane,
-		SidebarOpen:  a.Settings.SidebarOpen,
-		SidebarWidth: a.Settings.SidebarWidth,
-		Left:         a.paneState(a.left),
-		Right:        a.paneState(a.right),
+		Root:          a.root,
+		Split:         a.split,
+		SplitWidth:    a.splitWidth,
+		SplitVertical: a.splitVertical,
+		SplitHeight:   a.splitHeight,
+		ActivePane:    a.activePane,
+		SidebarOpen:   a.Settings.SidebarOpen,
+		SidebarWidth:  a.Settings.SidebarWidth,
+		Left:          a.paneState(a.left),
+		Right:         a.paneState(a.right),
 	}
 	if err := session.Save(a.SettingsDir, st); err != nil {
 		log.Printf("save session: %v", err)

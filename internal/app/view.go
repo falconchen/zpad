@@ -14,6 +14,13 @@ import (
 	"github.com/helloxz/zpad/locales"
 )
 
+// The heights of the toolbar above the content and the status bar below
+// it. A vertical split centers its panes in what is left between them.
+const (
+	toolbarHeight   = 45 // 28 DIP controls, 8 DIP padding either side, 1 DIP border
+	statusBarHeight = 26
+)
+
 // View builds the window: toolbar, sidebar and content, status bar.
 func (a *App) View(c *ui.Context) {
 	t := theme.For(a.Dark)
@@ -88,8 +95,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 			}
 		}, menuButtonCursorOptions()).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu()).Cursor(ui.CursorPointer)
 		ui.Spacer(c)
-		a.iconButton(c, t, iconSplit, locales.ToggleSplit(), a.split, a.toggleSplit).
-			KeyShortcuts(ui.Cmd, ui.KeyBackslash)
+		a.splitButton(c, t)
 		ui.PopoverMenuButton(c, locales.Theme(), func(m *ui.Menu) {
 			if m.Item(locales.ThemeLight()).Checked(a.ThemeIndex == 0).Chosen() {
 				a.setThemeIndex(0)
@@ -103,8 +109,38 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 		}, menuButtonCursorOptions()).Label(locales.Theme()).Tooltip(locales.Theme()).Cursor(ui.CursorPointer)
 		a.iconButton(c, t, iconSettings, locales.Settings(), a.showSettings, a.openSettings).
 			KeyShortcuts(ui.Cmd, ui.KeyComma)
-	}).Padding(8, 10).Background(t.Surface).
+	}).Padding(8, 10).Background(t.Surface).Height(toolbarHeight).
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border)
+}
+
+// splitButton shows the split's direction as its icon and opens the menu
+// that chooses the direction or closes the split.
+func (a *App) splitButton(c *ui.Context, t *ui.Theme) {
+	b := ui.ButtonBase(c).Size(28, 28).Center().Radius(6).
+		Label(locales.SplitMenu()).Tooltip(locales.SplitMenu()).Cursor(ui.CursorPointer).
+		KeyShortcuts(ui.Cmd, ui.KeyBackslash)
+	if a.split || b.Hovered() {
+		b.Background(t.SurfaceHover)
+	}
+	b.Children(func() {
+		icon := iconSplit
+		if a.splitVertical {
+			icon = iconSplitRows
+		}
+		ui.Icon(c, icon).FontSize(16).TextColor(t.Text)
+	})
+	b.PopoverMenuButton(func(m *ui.Menu) {
+		if m.Item(locales.SplitLeftRight()).Checked(a.split && !a.splitVertical).Chosen() {
+			a.openSplit(false)
+		}
+		if m.Item(locales.SplitTopBottom()).Checked(a.split && a.splitVertical).Chosen() {
+			a.openSplit(true)
+		}
+		m.Separator()
+		if m.Item(locales.CloseSplit()).Disabled(!a.split).Chosen() {
+			a.closeSplit()
+		}
+	}, menuButtonCursorOptions())
 }
 
 func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string, active bool, run func()) ui.Element {
@@ -458,15 +494,29 @@ func (a *App) toggleFolder(path string) {
 func (a *App) content(c *ui.Context, t *ui.Theme) {
 	if a.split {
 		if a.centerSplit {
-			w, _ := c.Size()
-			room := w
-			if a.Settings.SidebarOpen {
-				room -= a.Settings.SidebarWidth + 1
-			}
-			if room > 2 {
-				a.splitWidth = halfSplit(room)
+			w, h := c.Size()
+			if a.splitVertical {
+				if room := h - toolbarHeight - statusBarHeight; room > 2 {
+					a.splitHeight = halfSplit(room)
+				}
+			} else {
+				room := w
+				if a.Settings.SidebarOpen {
+					room -= a.Settings.SidebarWidth + 1
+				}
+				if room > 2 {
+					a.splitWidth = halfSplit(room)
+				}
 			}
 			a.centerSplit = false
+		}
+		if a.splitVertical {
+			sp := ui.SplitVertical(c, &a.splitHeight,
+				func() { a.paneContent(c, t, 0) },
+				func() { a.paneContent(c, t, 1) },
+			)
+			sp.Grow(1).FillWidth()
+			return
 		}
 		sp := ui.Split(c, &a.splitWidth,
 			func() { a.paneContent(c, t, 0) },
@@ -832,11 +882,11 @@ func (a *App) emptyState(c *ui.Context, t *ui.Theme) {
 }
 
 func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
-	ui.Row(c).Height(26).FillWidth().Padding(0, 10).AlignItems(ui.Center).Gap(10).
+	ui.Row(c).Height(statusBarHeight).FillWidth().Padding(0, 10).AlignItems(ui.Center).Gap(10).
 		Background(t.Surface).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).
 		Children(func() {
 			if a.split {
-				ui.Text(c, paneLabel(a.activePane)).FontSize(11).TextColor(t.Accent)
+				ui.Text(c, a.paneLabel(a.activePane)).FontSize(11).TextColor(t.Accent)
 			}
 			tab := a.activeTab()
 			if tab == nil {
@@ -909,7 +959,13 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 		})
 }
 
-func paneLabel(i int) string {
+func (a *App) paneLabel(i int) string {
+	if a.splitVertical {
+		if i == 1 {
+			return locales.BottomPane()
+		}
+		return locales.TopPane()
+	}
 	if i == 1 {
 		return locales.RightPane()
 	}

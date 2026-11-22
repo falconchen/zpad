@@ -20,14 +20,16 @@ func TestLoadMissingUsesDefaults(t *testing.T) {
 func TestRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	want := State{
-		Root:         "/Users/me/project",
-		Split:        true,
-		SplitWidth:   720,
-		ActivePane:   1,
-		Left:         PaneState{Tabs: []TabState{{Path: "/a.md", ScrollY: 12}, {Path: "/b.json"}}, Active: 1},
-		Right:        PaneState{Tabs: []TabState{{Path: "/c.css", ScrollY: 4}}, Active: 0},
-		SidebarOpen:  true,
-		SidebarWidth: 260,
+		Root:          "/Users/me/project",
+		Split:         true,
+		SplitVertical: true,
+		SplitWidth:    720,
+		SplitHeight:   420,
+		ActivePane:    1,
+		Left:          PaneState{Tabs: []TabState{{Path: "/a.md", ScrollY: 12}, {Path: "/b.json"}}, Active: 1},
+		Right:         PaneState{Tabs: []TabState{{Path: "/c.css", ScrollY: 4}}, Active: 0},
+		SidebarOpen:   true,
+		SidebarWidth:  260,
 	}
 	if err := Save(dir, want); err != nil {
 		t.Fatal(err)
@@ -38,6 +40,27 @@ func TestRoundTrip(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v, want %+v", got, want)
+	}
+}
+
+func TestLoadLegacySessionIsHorizontal(t *testing.T) {
+	dir := t.TempDir()
+	old := `{"root":"/Users/me/project","split":true,"splitWidth":720,"activePane":1,` +
+		`"left":{"tabs":[{"path":"/a.md","scrollY":12}],"active":0},` +
+		`"right":{"tabs":[{"path":"/b.json","scrollY":0}],"active":0},` +
+		`"sidebarOpen":true,"sidebarWidth":260}`
+	if err := os.WriteFile(filepath.Join(dir, fileName), []byte(old), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	got, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.SplitVertical {
+		t.Fatal("a session without a direction restored as vertical")
+	}
+	if got.SplitHeight != 500 {
+		t.Fatalf("split height %v, want the default 500", got.SplitHeight)
 	}
 }
 
