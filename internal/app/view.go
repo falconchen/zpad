@@ -61,6 +61,8 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 			KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyO)
 		a.iconButton(c, t, iconSave, locales.Save(), false, a.SaveActive).
 			KeyShortcuts(ui.Cmd, ui.KeyS)
+		a.iconButton(c, t, iconReveal, locales.RevealInFileManager(), false, a.ShowActiveInFileManager).
+			Disabled(!a.canRevealActive())
 		ui.Box(c).Width(1).Height(18).Background(t.Border).Margin(0, 4)
 		a.iconButton(c, t, iconUndo, locales.Undo(), false, a.Undo).
 			KeyShortcuts(ui.Cmd, ui.KeyZ)

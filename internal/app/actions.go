@@ -282,6 +282,28 @@ func (a *App) SaveAsActive() {
 	}
 }
 
+// showItemInFolder is mygo.Shell.ShowItemInFolder, a variable so tests can
+// record the path without opening the file manager.
+var showItemInFolder = mygo.Shell.ShowItemInFolder
+
+// canRevealActive reports whether the active tab has a file on disk to show
+// in the file manager: an untitled document has no directory.
+func (a *App) canRevealActive() bool {
+	tab := a.activeTab()
+	return tab != nil && tab.doc.Path != ""
+}
+
+// ShowActiveInFileManager reveals the active file in the system file
+// manager: Finder and Explorer select it, and other systems open its
+// folder.
+func (a *App) ShowActiveInFileManager() {
+	tab := a.activeTab()
+	if tab == nil || tab.doc.Path == "" {
+		return
+	}
+	showItemInFolder(tab.doc.Path)
+}
+
 // SaveWithEncoding saves the active tab in kind.
 func (a *App) SaveWithEncoding(kind encoding.Kind) {
 	tab := a.activeTab()

@@ -204,6 +204,16 @@ func (msgs Messages) SaveFileTitle() string {
 	return Catalog.Format(msgs.locale, "saveFileTitle", nil)
 }
 
+// RevealInFileManager says "Reveal in File Manager"
+// in the language the app shows.
+func RevealInFileManager() string { return In(i18n.Locale()).RevealInFileManager() }
+
+// RevealInFileManager says "Reveal in File Manager"
+// in the language of msgs.
+func (msgs Messages) RevealInFileManager() string {
+	return Catalog.Format(msgs.locale, "revealInFileManager", nil)
+}
+
 // CloseTab says "Close Tab"
 // in the language the app shows.
 func CloseTab() string { return In(i18n.Locale()).CloseTab() }
