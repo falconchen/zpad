@@ -21,6 +21,7 @@
 - 大文件只读打开（阈值 / 50 万行），二进制文件拒绝。
 - 外部修改检测与重载 / 保留 / 另存为。
 - 常见文本扩展名的 macOS 文件关联。
+- 文件关联扩展到 86 个扩展名：`Text Document`（文档 / 数据 / 标记）与 `Source Code`（Go、Python、Rust、C 系、Java、Kotlin、Swift、C#、Ruby、PHP、Lua、Shell、SQL、Vue、Svelte 等）；打开对话框的文本筛选器与关联列表由测试保证同步。
 - 单实例：Windows / Linux 上再次打开文件交给已运行实例，前置窗口并在活动栏打开；同一路径只读一次。
 
 ### 界面

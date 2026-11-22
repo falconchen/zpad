@@ -104,7 +104,7 @@ go tool mygo build   # 打包 macOS 应用
 - 查找栏、跳行栏、滚动条与焦点环统一风格。
 - 大文件只读打开（按设置阈值或 50 万行）；二进制文件拒绝。
 - 外部修改检测：窗口聚焦时比较 mtime / size，未修改自动重载，有修改时选择重载 / 保留 / 另存为。
-- 文件关联：常见文本扩展名；支持 Finder、拖拽、命令行打开。
+- 文件关联：文本 / 数据 / 源码共 86 个扩展名；支持 Finder、拖拽、命令行打开。
 - 文件保存失败、只读目录、文件被删除等错误处理。
 
 ## macOS 发布
@@ -118,7 +118,7 @@ go tool mygo build
 - `build/darwin-arm64/ZPad.app`
 - `build/darwin-arm64/zpad-0.1.0-arm64.dmg`
 
-`mygo.json` 已声明 `fileAssociations`（txt / md / html / css / json / js 等）。构建后 Finder 双击对应文件可用 ZPad 打开；如系统未立即刷新关联，可重新登录或清理 LaunchServices 缓存。
+`mygo.json` 已声明 `fileAssociations`：`Text Document`（txt / md / html / css / json / yaml / xml / diff 等）与 `Source Code`（go / py / rs / js / ts / c / cpp / java / rb / php / lua / sh / sql / vue / svelte 等），共 86 个扩展名。构建后 Finder 双击对应文件可用 ZPad 打开；如系统未立即刷新关联，可重新登录或清理 LaunchServices 缓存。macOS 的 `CFBundleDocumentTypes` 由 MyGo 写入 `LSHandlerRank: Default`，与系统已有默认程序冲突时以用户选择为准。
 
 当前构建未签名、未公证。首次打开可能被 Gatekeeper 拦截：右键应用选择“打开”，或在系统设置中允许。正式分发需要 Apple Developer 账号并完成签名 / 公证。
 

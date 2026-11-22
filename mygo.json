@@ -9,10 +9,28 @@
   },
   "fileAssociations": [
     {
-      "ext": ["txt", "md", "markdown", "html", "htm", "css", "json",
-              "js", "mjs", "cjs", "ts", "tsx", "jsx", "xml",
-              "yaml", "yml", "toml", "ini", "conf", "log", "csv"],
+      "ext": ["txt", "log", "csv",
+              "md", "markdown", "mdx", "mkd",
+              "html", "htm", "xhtml",
+              "css", "scss", "less", "sass", "pcss",
+              "xml", "json", "jsonc", "json5", "webmanifest",
+              "js", "mjs", "cjs", "jsx", "ts", "tsx", "mts", "cts",
+              "vue", "svelte",
+              "yaml", "yml", "toml", "ini", "conf", "properties", "editorconfig",
+              "diff", "patch", "rej"],
       "name": "Text Document",
+      "mimeType": "text/plain"
+    },
+    {
+      "ext": ["go", "py", "pyi", "pyw", "rs",
+              "c", "h", "cpp", "cc", "cxx", "hpp", "hh", "hxx",
+              "java", "kt", "kts", "scala", "swift", "dart", "cs",
+              "rb", "rake", "lua", "php", "zig",
+              "sh", "bash", "zsh", "fish", "ksh",
+              "sql", "r", "proto", "graphql", "gql", "graphqls",
+              "tf", "tfvars", "hcl", "nix",
+              "erb", "rhtml", "tt", "j2", "jinja", "jinja2"],
+      "name": "Source Code",
       "mimeType": "text/plain"
     }
   ]

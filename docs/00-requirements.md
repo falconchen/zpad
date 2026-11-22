@@ -248,9 +248,17 @@ BOM 作为独立选项处理：选择 UTF-8 时保存不带 BOM，选择 UTF-8 B
 建议关联扩展名：
 
 ```
-txt md markdown html htm css json js mjs cjs ts tsx jsx
-xml yaml yml toml ini conf log csv
+文档与数据：txt log csv md markdown mdx mkd html htm xhtml
+            css scss less sass pcss xml json jsonc json5 webmanifest
+            yaml yml toml ini conf properties editorconfig diff patch rej
+源码：      js mjs cjs jsx ts tsx mts cts vue svelte
+            go py pyi pyw rs c h cpp cc cxx hpp hh hxx
+            java kt kts scala swift dart cs rb rake lua php zig
+            sh bash zsh fish ksh sql r proto graphql gql graphqls
+            tf tfvars hcl nix erb rhtml tt j2 jinja jinja2
 ```
+
+无扩展名文件（Dockerfile、Makefile、README 等）无法关联，但打开时按文件名识别语法；`.command`、`.plist`、`.svg`、`.xib`、`.storyboard`、`.csproj` 等可执行或系统资产类型不纳入关联，避免抢系统默认处理程序。
 
 ## 4. 二期范围（P1）
 

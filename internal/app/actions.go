@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -15,10 +16,34 @@ import (
 	"github.com/helloxz/zpad/locales"
 )
 
+// textExtensions are the files the open dialog offers as text, which are
+// the extensions mygo.json associates with the app: release_test keeps the
+// two lists equal.
 var textExtensions = []string{
-	"txt", "md", "markdown", "html", "htm", "css", "json",
-	"js", "mjs", "cjs", "ts", "tsx", "jsx", "xml",
-	"yaml", "yml", "toml", "ini", "conf", "log", "csv",
+	// Documents and data.
+	"txt", "log", "csv",
+	"md", "markdown", "mdx", "mkd",
+	"html", "htm", "xhtml",
+	"css", "scss", "less", "sass", "pcss",
+	"xml", "json", "jsonc", "json5", "webmanifest",
+	"yaml", "yml", "toml", "ini", "conf", "properties", "editorconfig",
+	"diff", "patch", "rej",
+	// Source code.
+	"js", "mjs", "cjs", "jsx", "ts", "tsx", "mts", "cts",
+	"vue", "svelte",
+	"go", "py", "pyi", "pyw", "rs",
+	"c", "h", "cpp", "cc", "cxx", "hpp", "hh", "hxx",
+	"java", "kt", "kts", "scala", "swift", "dart", "cs",
+	"rb", "rake", "lua", "php", "zig",
+	"sh", "bash", "zsh", "fish", "ksh",
+	"sql", "r", "proto", "graphql", "gql", "graphqls",
+	"tf", "tfvars", "hcl", "nix",
+	"erb", "rhtml", "tt", "j2", "jinja", "jinja2",
+}
+
+// TextExtensions returns the extensions the open dialog offers as text.
+func TextExtensions() []string {
+	return slices.Clone(textExtensions)
 }
 
 func textFilters() []mygo.FileFilter {

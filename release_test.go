@@ -5,6 +5,8 @@ import (
 	"image/png"
 	"os"
 	"testing"
+
+	"github.com/helloxz/zpad/internal/app"
 )
 
 func TestFileAssociations(t *testing.T) {
@@ -27,13 +29,59 @@ func TestFileAssociations(t *testing.T) {
 	}
 	found := map[string]bool{}
 	for _, a := range cfg.FileAssociations {
+		if a.Name == "" || a.MIMEType == "" {
+			t.Fatalf("file association %v has no name or MIME type", a.Ext)
+		}
 		for _, ext := range a.Ext {
+			if found[ext] {
+				// Two entries would write one ProgID twice, the later
+				// name winning.
+				t.Fatalf("file association %q listed twice", ext)
+			}
 			found[ext] = true
 		}
 	}
-	for _, ext := range []string{"txt", "md", "html", "css", "json", "js"} {
+	for _, ext := range []string{
+		// Documents.
+		"txt", "md", "markdown", "html", "htm", "css", "json", "xml", "yaml", "toml", "log", "csv",
+		// Source code.
+		"js", "ts", "tsx", "go", "py", "rs", "c", "cpp", "h", "java", "kt", "swift", "cs",
+		"rb", "php", "lua", "sh", "sql", "vue", "svelte", "scss", "less", "diff",
+	} {
 		if !found[ext] {
 			t.Fatalf("file association %q missing", ext)
+		}
+	}
+}
+
+// The open dialog offers the text files the app is associated with: a file
+// opened from the file manager must be one the dialog can offer too.
+func TestTextExtensionsMatchAssociations(t *testing.T) {
+	data, err := os.ReadFile("mygo.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg struct {
+		FileAssociations []struct {
+			Ext []string `json:"ext"`
+		} `json:"fileAssociations"`
+	}
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	associated := map[string]bool{}
+	for _, a := range cfg.FileAssociations {
+		for _, ext := range a.Ext {
+			associated[ext] = true
+		}
+	}
+	offered := app.TextExtensions()
+	if len(offered) != len(associated) {
+		t.Fatalf("the open dialog offers %d extensions, mygo.json associates %d", len(offered), len(associated))
+	}
+	for _, ext := range offered {
+		if !associated[ext] {
+			t.Fatalf("the open dialog offers %q, which mygo.json does not associate", ext)
 		}
 	}
 }
