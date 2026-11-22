@@ -219,13 +219,8 @@ func (a *App) openFilesPanel(c *ui.Context, t, tree *ui.Theme) {
 }
 
 func (a *App) openFileRow(c *ui.Context, t, tree *ui.Theme, doc *Document, active bool) {
-	dir := a.documentDir(doc)
-	label := doc.Name()
-	if dir != "" {
-		label += ", " + dir
-	}
 	row := ui.Row(c).Height(26).Padding(0, 8).Gap(6).AlignItems(ui.Center).
-		Cursor(ui.CursorPointer).Label(label)
+		Cursor(ui.CursorPointer).Label(doc.Name())
 	switch {
 	case active:
 		row.Background(tree.Accent)
@@ -239,12 +234,9 @@ func (a *App) openFileRow(c *ui.Context, t, tree *ui.Theme, doc *Document, activ
 			ui.Box(c).Size(6, 6).Shrink(0)
 		}
 		ui.Icon(c, iconFile).FontSize(14).TextColor(t.TextMuted)
-		ui.Text(c, doc.Name()).FontSize(12).SingleLine().MaxWidthPercent(55)
-		ui.Spacer(c)
-		if dir != "" {
-			ui.Text(c, dir).FontSize(11).TextColor(t.TextMuted).SingleLine().
-				MaxWidthPercent(42).TruncateStart()
-		}
+		// The name has the row to itself; the path tip tells files of
+		// the same name apart.
+		ui.Text(c, doc.Name()).FontSize(12).SingleLine().TruncateMiddle()
 	})
 	pathTooltip(c, t, row, a.documentTooltip(doc))
 	if row.Clicked() {
@@ -264,23 +256,6 @@ func (a *App) openFileRow(c *ui.Context, t, tree *ui.Theme, doc *Document, activ
 			}
 		}, menuCursorOptions())
 	}
-}
-
-// documentDir is the directory shown beside an open file: its place under
-// the workspace, or the directory it is in when it is elsewhere.
-func (a *App) documentDir(doc *Document) string {
-	if doc.Path == "" {
-		return ""
-	}
-	if a.root != "" {
-		if rel, err := filepath.Rel(a.root, doc.Path); err == nil && filepath.IsLocal(rel) {
-			if dir := filepath.Dir(rel); dir != "." {
-				return dir
-			}
-			return ""
-		}
-	}
-	return filepath.Dir(doc.Path)
 }
 
 func (a *App) documentTooltip(doc *Document) string {

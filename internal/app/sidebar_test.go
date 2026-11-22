@@ -47,27 +47,6 @@ func TestActivateDocumentChoosesPane(t *testing.T) {
 	}
 }
 
-func TestDocumentDir(t *testing.T) {
-	dir := t.TempDir()
-	a := New(settings.Default(), t.TempDir())
-	a.root = dir
-	inside := docAt(filepath.Join(dir, "docs", "a.txt"), "a")
-	if got := a.documentDir(inside); got != "docs" {
-		t.Fatalf("dir of a file under the workspace %q, want docs", got)
-	}
-	atRoot := docAt(filepath.Join(dir, "b.txt"), "b")
-	if got := a.documentDir(atRoot); got != "" {
-		t.Fatalf("dir of a file at the workspace root %q, want none", got)
-	}
-	outside := docAt(filepath.Join(t.TempDir(), "c.txt"), "c")
-	if got := a.documentDir(outside); got != filepath.Dir(outside.Path) {
-		t.Fatalf("dir of a file outside the workspace %q, want its own", got)
-	}
-	if got := a.documentDir(docAt("", "untitled")); got != "" {
-		t.Fatalf("dir of an untitled document %q, want none", got)
-	}
-}
-
 func TestSidebarTabs(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
 	a.Settings.SidebarOpen = true
@@ -288,7 +267,7 @@ func TestSidebarTipSitsBesideTheRow(t *testing.T) {
 
 	tt := ui.NewTester(a.View, 900, 600)
 	tt.Frame()
-	row, ok := tt.Find("settings_ui.go, internal/app")
+	row, ok := tt.Find("settings_ui.go")
 	if !ok {
 		t.Fatalf("no open file row; texts %q", tt.Texts())
 	}
@@ -305,5 +284,45 @@ func TestSidebarTipSitsBesideTheRow(t *testing.T) {
 	}
 	if tip.Y > row.Y+row.H || tip.Y+tip.H < row.Y {
 		t.Fatalf("tip y=%v h=%v is off the row's line (row y=%v h=%v)", tip.Y, tip.H, row.Y, row.H)
+	}
+}
+
+// TestOpenFilesShowNamesOnly opens two files of the same name from
+// different folders: the list shows just the name for each, and the tip on
+// each row tells them apart by path.
+func TestOpenFilesShowNamesOnly(t *testing.T) {
+	dir := t.TempDir()
+	appPath := filepath.Join(dir, "internal", "app", "view.go")
+	themePath := filepath.Join(dir, "internal", "theme", "view.go")
+	a := New(settings.Default(), t.TempDir())
+	a.root = dir
+	a.Settings.SidebarOpen = true
+	a.addDocument(docAt(appPath, "x"))
+	a.addDocument(docAt(themePath, "x"))
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	for _, text := range tt.Texts() {
+		if text == "internal/app" || text == "internal/theme" {
+			t.Fatalf("the list still shows a directory column: %q", text)
+		}
+	}
+	row, ok := tt.Find("view.go")
+	if !ok {
+		t.Fatalf("no open file row; texts %q", tt.Texts())
+	}
+	hover := func(y float32) {
+		t.Helper()
+		tt.Move(row.X+row.W/2, y)
+		tt.Advance(700 * time.Millisecond)
+		tt.Frame()
+	}
+	hover(row.Y + row.H/2)
+	if _, ok := tt.Find(appPath); !ok {
+		t.Fatalf("the first row's tip does not name its path; texts %q", tt.Texts())
+	}
+	hover(row.Y + row.H*3/2)
+	if _, ok := tt.Find(themePath); !ok {
+		t.Fatalf("the second row's tip does not name its path; texts %q", tt.Texts())
 	}
 }

@@ -275,6 +275,7 @@ go tool mygo build
 - 标签栏隐藏横向滚动条；标签溢出时在末尾显示下拉按钮，列出该栏全部标签、当前项打勾，选择后切换并滚动到可见位置。
 - 标签宽度设上限：文件名文本最多 180 DIP（标签整体约 240 DIP），短名保持自然宽度；超长名中间省略，同时保留开头与扩展名，悬停显示完整路径；脏点与关闭按钮不收缩。新增 `TestLongTabNameIsCapped`。
 - 侧栏的路径提示改到行的右侧：`pathTooltip` 用 `ui.TooltipBase` + `AttachTo(ui.AnchorEnd, ui.AnchorStart)`，与行垂直居中对齐，不再压住列表和「打开的文件 / 工作区」栏头；「打开的文件」和工作区文件树共用，宽度上限 420 DIP，长路径按分隔符换行；配色沿用主题 tooltip 的反色（新增 `theme.Inverse`）。新增 `TestSidebarTipSitsBesideTheRow`、`TestInverseColors`。
+- 「打开的文件」去掉右侧目录列：行内只显示文件名，名字占满整行、真放不下才中间省略（原来被硬限在 55%，`03-m2-split-session.md` 这类长名会被截断）；同名文件靠悬停的完整路径区分。删除 `documentDir` 与其单测，新增 `TestOpenFilesShowNamesOnly`。
 - 设置面板改用 `ui.DialogBase` 直接绘制单层圆角面板，去掉 MyGo Modal 外层内边距与背景框；关闭按钮从标题栏移到「完成」左侧，Esc / 点击遮罩仍可关闭。
 
 Windows / Linux 单实例（同日追加）：
@@ -293,7 +294,7 @@ Windows / Linux 单实例（同日追加）：
 - 有意不关联：`.command`（双击会执行脚本）、`.plist` / `.svg` / `.xib` / `.storyboard` / `.csproj`（系统或 IDE 资产）、`.ino`、`.m` / `.mm`（歧义多）。无扩展名文件（Dockerfile / Makefile / README）只按文件名高亮，系统关联只认扩展名。
 - macOS 的 `CFBundleDocumentTypes` 由 MyGo 统一写 `LSHandlerRank: Default`；Windows 安装包写入 `HKCU\Software\Classes` 的 ProgID 与 `OpenWithProgids`，默认程序仍由用户选择。
 - 已验证：`go tool mygo build` 产出的 Info.plist 含两组 `CFBundleDocumentTypes`，共 86 个扩展名、无重复，角色为 Editor、`LSHandlerRank` 为 Default；Finder「打开方式」可列出 ZPad。
-- 侧栏改为「打开的文件 / 工作区」双 Tab：打开文件列表汇总两栏文档、去重并显示目录；打开文件夹或恢复工作区时自动切到工作区。
+- 侧栏改为「打开的文件 / 工作区」双 Tab：打开文件列表汇总两栏文档、去重，行内只显示文件名；打开文件夹或恢复工作区时自动切到工作区。
 - 文件树改为单击打开文件、单击展开/收起文件夹，去掉双击处理。
 - 标签可拖到另一栏，源栏最后一个标签移走后自动收起分屏；同一文件已在目标栏时直接激活。
 - 侧栏工作区里的文件可拖到任意一栏打开；某栏关闭最后一个标签后自动收起分屏，旧会话里的空栏也会收敛。
