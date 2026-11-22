@@ -244,7 +244,7 @@ go tool mygo build
 - `App.OnOpenFile` 支持窗口未就绪缓存、单/多文件打开；拖拽文件夹先于文件处理；支持命令行。
 - 单实例：`mygo.App.RequestSingleInstanceLock()` 在 `main` 开头拦住第二个进程；`OnSecondInstance` 把后续启动的文件 / 文件夹交给第一个实例并前置窗口（Windows / Linux；macOS 由系统派发）。参数由应用自行解析，因此不受 MyGo 只转发已登记扩展名的限制；正在读取的同一路径只读一次。
 - 正式应用图标（1024×1024，代码生成），JetBrains Mono OFL 许可随应用资源提供。
-- 关于对话框：窗口内主题绘制，显示版本、AGPL-3.0（链接到仓库 LICENSE）与 GitHub 仓库；替换 macOS 系统默认的 About 项，Windows / Linux 从「帮助 → 关于 ZPad」进入。版本号由 `app.Version` 统一，`release_test.go` 校验它与 `mygo.json` 一致。
+- 关于对话框：窗口内主题绘制，显示应用图标、版本、AGPL-3.0（链接到仓库 LICENSE）与 GitHub 仓库；替换 macOS 系统默认的 About 项，Windows / Linux 从「帮助 → 关于 ZPad」进入。图标在启动时从 `PathResources/icon.png` 解码一次，缺失时回退为字母标；版本号由 `app.Version` 统一，`release_test.go` 校验它与 `mygo.json` 一致。
 - macOS `.app` 与 `.dmg` 打包，README 截图 / 快捷键 / 发布说明、CHANGELOG。
 
 已验证：

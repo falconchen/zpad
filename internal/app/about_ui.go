@@ -1,6 +1,11 @@
 package app
 
 import (
+	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/locales"
 )
@@ -10,6 +15,31 @@ const (
 	aboutRepoURL    = "https://github.com/helloxz/zpad"
 	aboutLicenseURL = aboutRepoURL + "/blob/main/LICENSE"
 )
+
+// loadAboutIcon decodes the app icon once, for the About dialog. It reads
+// the icon `mygo build` ships in the app's resources; without one, as in
+// tests, the dialog keeps the letter mark.
+func (a *App) loadAboutIcon() {
+	dir, err := mygo.App.Path(mygo.PathResources)
+	if err != nil {
+		log.Printf("find app resources: %v", err)
+		return
+	}
+	a.readAboutIcon(filepath.Join(dir, "icon.png"))
+}
+
+func (a *App) readAboutIcon(path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	icon, err := ui.DecodeBitmap(data)
+	if err != nil {
+		log.Printf("decode app icon: %v", err)
+		return
+	}
+	a.aboutIcon = icon
+}
 
 func (a *App) openAbout() {
 	a.showSettings = false
@@ -33,9 +63,15 @@ func (a *App) aboutModal(c *ui.Context, t *ui.Theme) {
 			Shadow(0, 16, 48, 0, ui.RGBA(0, 0, 0, 0.28))
 		panel.Children(func() {
 			ui.Row(c).AlignItems(ui.Center).Gap(14).Children(func() {
-				ui.Box(c).Size(52, 52).Center().Radius(12).Background(t.Accent).Children(func() {
-					ui.Text(c, "Z").FontSize(26).Bold().TextColor(t.AccentText)
-				})
+				if a.aboutIcon != nil {
+					// The icon art keeps its own rounded corners and
+					// margin, so it takes no background or radius here.
+					ui.Image(c, a.aboutIcon).Size(64, 64)
+				} else {
+					ui.Box(c).Size(52, 52).Center().Radius(12).Background(t.Accent).Children(func() {
+						ui.Text(c, "Z").FontSize(26).Bold().TextColor(t.AccentText)
+					})
+				}
 				ui.Column(c).Gap(2).Children(func() {
 					ui.Text(c, "ZPad").FontSize(20).Bold()
 					ui.Text(c, locales.AboutVersion(Version)).FontSize(12).TextColor(t.TextMuted)
