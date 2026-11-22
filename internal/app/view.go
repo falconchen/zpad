@@ -114,50 +114,179 @@ func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string,
 func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
 	tt := theme.FileTree(t)
 	ui.Themed(c, tt).Fill().Background(theme.Sidebar(t)).Children(func() {
-		ui.Row(c).Height(36).Padding(0, 8).AlignItems(ui.Center).Gap(6).Children(func() {
-			name := locales.Explorer()
-			if a.tree != nil {
-				name = a.tree.Name()
-			}
-			ui.Text(c, name).FontSize(12).Bold().SingleLine().Grow(1)
-			menu := ui.ButtonBase(c).Size(26, 24).Center().Radius(6).
-				Background(theme.Sidebar(t)).Border(1, tt.Border).Label(locales.SidebarMenu()).
-				Cursor(ui.CursorPointer)
-			if menu.Hovered() {
-				menu.Background(tt.SurfaceHover)
-			}
-			menu.Children(func() {
-				ui.Text(c, "⋯").FontSize(14).TextColor(tt.TextMuted)
-			})
-			menu.Menu(func(m *ui.Menu) {
-				if m.Item(locales.Refresh()).Chosen() {
-					a.refreshTree()
+		ui.Row(c).Height(38).Padding(0, 8).AlignItems(ui.Center).Gap(2).Children(func() {
+			a.sidebarTabButton(c, t, locales.OpenFiles(), sidebarFiles)
+			a.sidebarTabButton(c, t, locales.Workspace(), sidebarWorkspace)
+			ui.Spacer(c)
+			a.sidebarMenuButton(c, t)
+		})
+		switch a.sidebarTab {
+		case sidebarWorkspace:
+			a.workspacePanel(c, tt)
+		default:
+			a.openFilesPanel(c, t, tt)
+		}
+	})
+}
+
+func (a *App) sidebarTabButton(c *ui.Context, t *ui.Theme, label string, tab int) {
+	active := a.sidebarTab == tab
+	b := ui.ButtonBase(c.Key(fmt.Sprintf("sidebar-tab-%d", tab))).Height(30).Padding(0, 8).
+		Center().Radius(0).Label(label).Cursor(ui.CursorPointer)
+	text := t.TextMuted
+	switch {
+	case active:
+		text = t.Text
+	case b.Hovered():
+		b.Background(t.SurfaceHover)
+	}
+	b.Children(func() {
+		ui.Text(c, label).FontSize(12).TextColor(text)
+	})
+	if active {
+		b.BorderWidth(0, 0, 2, 0).BorderColor(t.Accent)
+	}
+	if tab == sidebarWorkspace && a.root != "" {
+		b.Tooltip(a.root)
+	}
+	if b.Clicked() && !active {
+		a.sidebarTab = tab
+		a.update()
+	}
+}
+
+func (a *App) sidebarMenuButton(c *ui.Context, t *ui.Theme) {
+	menu := ui.ButtonBase(c).Size(26, 24).Center().Radius(6).
+		Background(theme.Sidebar(t)).Border(1, t.Border).Label(locales.SidebarMenu()).
+		Cursor(ui.CursorPointer)
+	if menu.Hovered() {
+		menu.Background(t.SurfaceHover)
+	}
+	menu.Children(func() {
+		ui.Text(c, "⋯").FontSize(14).TextColor(t.TextMuted)
+	})
+	menu.Menu(func(m *ui.Menu) {
+		if m.Item(locales.Refresh()).Disabled(a.tree == nil).Chosen() {
+			a.refreshTree()
+		}
+		if m.Item(locales.ShowHidden()).Checked(a.Settings.ShowHidden).Chosen() {
+			a.toggleHidden()
+		}
+		m.Separator()
+		if m.Item(locales.CloseSidebar()).Chosen() {
+			a.toggleSidebar()
+		}
+	})
+}
+
+// openFilesPanel lists the documents open in either pane, with the
+// directory each one is in: the tabs alone cannot tell files of the same
+// name in different folders apart.
+func (a *App) openFilesPanel(c *ui.Context, t, tree *ui.Theme) {
+	docs := a.openDocuments()
+	if len(docs) == 0 {
+		ui.Column(c).Fill().Center().Gap(10).Padding(16).Children(func() {
+			ui.Text(c, locales.NoOpenFiles()).FontSize(12).TextColor(t.TextMuted)
+			ui.Row(c).Gap(6).Children(func() {
+				if ui.Button(c, locales.NewFile()).Cursor(ui.CursorPointer).Clicked() {
+					a.NewFile()
 				}
-				if m.Item(locales.ShowHidden()).Checked(a.Settings.ShowHidden).Chosen() {
-					a.toggleHidden()
-				}
-				if m.Item(locales.CloseSidebar()).Chosen() {
-					a.toggleSidebar()
+				if ui.Button(c, locales.OpenFile()).Cursor(ui.CursorPointer).Clicked() {
+					a.OpenFileDialog()
 				}
 			})
 		})
-
-		if a.tree == nil {
-			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
-				ui.Text(c, locales.NoFolder()).FontSize(12).TextColor(tt.TextMuted)
-				if ui.Button(c, locales.OpenFolder()).Cursor(ui.CursorPointer).Clicked() {
-					a.OpenFolderDialog()
-				}
-			})
-			return
-		}
-
-		a.treeState.List.Selected = &a.treeSelected
-		a.treeState.Generation = a.treeGeneration
-		ui.Outline(c, &a.treeState, a.tree.Roots(), a.tree.Children, func(path string) {
-			a.treeRow(c, tt, path)
-		}).Grow(1)
+		return
+	}
+	var active *Document
+	if tab := a.activeTab(); tab != nil {
+		active = tab.doc
+	}
+	ui.Scroll(c).Grow(1).Children(func() {
+		ui.Column(c).Padding(4, 0).Children(func() {
+			for _, doc := range docs {
+				a.openFileRow(c, t, tree, doc, doc == active)
+			}
+		})
 	})
+}
+
+func (a *App) openFileRow(c *ui.Context, t, tree *ui.Theme, doc *Document, active bool) {
+	dir := a.documentDir(doc)
+	label := doc.Name()
+	if dir != "" {
+		label += ", " + dir
+	}
+	row := ui.Row(c).Height(26).Padding(0, 8).Gap(6).AlignItems(ui.Center).
+		Cursor(ui.CursorPointer).Label(label).Tooltip(a.documentTooltip(doc))
+	switch {
+	case active:
+		row.Background(tree.Accent)
+	case row.Hovered():
+		row.Background(tree.SurfaceHover)
+	}
+	row.Children(func() {
+		if doc.Buffer.Modified() {
+			ui.Box(c).Size(6, 6).Radius(3).Background(t.Accent).Shrink(0)
+		} else {
+			ui.Box(c).Size(6, 6).Shrink(0)
+		}
+		ui.Icon(c, iconFile).FontSize(14).TextColor(t.TextMuted)
+		ui.Text(c, doc.Name()).FontSize(12).SingleLine().MaxWidthPercent(55)
+		ui.Spacer(c)
+		if dir != "" {
+			ui.Text(c, dir).FontSize(11).TextColor(t.TextMuted).SingleLine().
+				MaxWidthPercent(42).TruncateStart()
+		}
+	})
+	if row.Clicked() {
+		a.activateDocument(doc)
+	}
+}
+
+// documentDir is the directory shown beside an open file: its place under
+// the workspace, or the directory it is in when it is elsewhere.
+func (a *App) documentDir(doc *Document) string {
+	if doc.Path == "" {
+		return ""
+	}
+	if a.root != "" {
+		if rel, err := filepath.Rel(a.root, doc.Path); err == nil && filepath.IsLocal(rel) {
+			if dir := filepath.Dir(rel); dir != "." {
+				return dir
+			}
+			return ""
+		}
+	}
+	return filepath.Dir(doc.Path)
+}
+
+func (a *App) documentTooltip(doc *Document) string {
+	if doc.Path == "" {
+		return doc.Name()
+	}
+	return doc.Path
+}
+
+func (a *App) workspacePanel(c *ui.Context, t *ui.Theme) {
+	if a.tree == nil {
+		ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
+			ui.Text(c, locales.NoFolder()).FontSize(12).TextColor(t.TextMuted)
+			if ui.Button(c, locales.OpenFolder()).Cursor(ui.CursorPointer).Clicked() {
+				a.OpenFolderDialog()
+			}
+		})
+		return
+	}
+	ui.Row(c).Height(26).Padding(0, 8).AlignItems(ui.Center).Gap(6).Children(func() {
+		ui.Icon(c, iconFolder).FontSize(13).TextColor(t.TextMuted)
+		ui.Text(c, a.tree.Name()).FontSize(12).Bold().SingleLine()
+	})
+	a.treeState.List.Selected = &a.treeSelected
+	a.treeState.Generation = a.treeGeneration
+	ui.Outline(c, &a.treeState, a.tree.Roots(), a.tree.Children, func(path string) {
+		a.treeRow(c, t, path)
+	}).Grow(1)
 }
 
 func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
@@ -170,7 +299,7 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 		}
 		ui.Text(c, filepath.Base(path)).FontSize(12).SingleLine()
 	})
-	if row.RowDoubleClicked() {
+	if row.Clicked() {
 		if isDir {
 			a.toggleFolder(path)
 		} else {
@@ -190,6 +319,17 @@ func (a *App) toggleFolder(path string) {
 
 func (a *App) content(c *ui.Context, t *ui.Theme) {
 	if a.split {
+		if a.centerSplit {
+			w, _ := c.Size()
+			room := w
+			if a.Settings.SidebarOpen {
+				room -= a.Settings.SidebarWidth + 1
+			}
+			if room > 2 {
+				a.splitWidth = halfSplit(room)
+			}
+			a.centerSplit = false
+		}
 		sp := ui.Split(c, &a.splitWidth,
 			func() { a.paneContent(c, t, 0) },
 			func() { a.paneContent(c, t, 1) },
@@ -200,9 +340,20 @@ func (a *App) content(c *ui.Context, t *ui.Theme) {
 	a.paneContent(c, t, 0)
 }
 
+// halfSplit returns the width of the first pane that leaves the two panes
+// equal in room DIPs, one of which is the divider between them.
+func halfSplit(room float32) float32 {
+	if room <= 2 {
+		return room / 2
+	}
+	return (room - 1) / 2
+}
+
 func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 	p := a.pane(index)
-	ui.Column(c).Fill().Background(t.Background).Children(func() {
+	col := ui.Column(c).Fill().Background(t.Background)
+	drag, over := ui.DragOver[tabDrag](col)
+	col.Children(func() {
 		if len(p.tabs) == 0 {
 			if a.split {
 				a.emptyPane(c, t, index)
@@ -249,6 +400,14 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 			a.updateTitle()
 		}
 	})
+	if over && drag.pane != index {
+		col.DrawOver(func(p *ui.Painter, r ui.Rect) {
+			p.Stroke(ui.Rect{X: r.X + 1, Y: r.Y + 1, W: r.W - 2, H: r.H - 2}, t.Accent, 0, 2)
+		})
+	}
+	if drag, ok := ui.Drop[tabDrag](col); ok {
+		a.moveTab(drag, index)
+	}
 }
 
 func (a *App) emptyPane(c *ui.Context, t *ui.Theme, index int) {
@@ -331,7 +490,8 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 	}
 	key := fmt.Sprintf("tab-%d-%s", paneIdx, tab.doc.ID)
 	b := ui.ButtonBase(c.Key(key)).Height(32).Padding(0, 10).Gap(6).
-		Radius(0).Background(bg).Label(tab.doc.Name()).Cursor(ui.CursorPointer)
+		Radius(0).Background(bg).Label(tab.doc.Name()).Cursor(ui.CursorPointer).
+		Drag(tabDrag{pane: paneIdx, id: tab.doc.ID})
 	if !active && b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}

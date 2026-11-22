@@ -97,6 +97,9 @@ func (a *App) restoreSession(st session.State) {
 	if a.activePane == 1 && len(a.right.tabs) == 0 && len(a.left.tabs) > 0 {
 		a.activePane = 0
 	}
+	if a.root != "" {
+		a.sidebarTab = sidebarWorkspace
+	}
 	a.focusEditor = len(a.left.tabs)+len(a.right.tabs) > 0
 	if tab := a.pane(a.activePane).activeTab(); tab != nil {
 		a.revealPane, a.revealDoc = a.activePane, tab.doc.ID

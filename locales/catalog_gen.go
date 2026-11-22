@@ -854,6 +854,36 @@ func (msgs Messages) Explorer() string {
 	return Catalog.Format(msgs.locale, "explorer", nil)
 }
 
+// OpenFiles says "Open Files"
+// in the language the app shows.
+func OpenFiles() string { return In(i18n.Locale()).OpenFiles() }
+
+// OpenFiles says "Open Files"
+// in the language of msgs.
+func (msgs Messages) OpenFiles() string {
+	return Catalog.Format(msgs.locale, "openFiles", nil)
+}
+
+// NoOpenFiles says "No open files"
+// in the language the app shows.
+func NoOpenFiles() string { return In(i18n.Locale()).NoOpenFiles() }
+
+// NoOpenFiles says "No open files"
+// in the language of msgs.
+func (msgs Messages) NoOpenFiles() string {
+	return Catalog.Format(msgs.locale, "noOpenFiles", nil)
+}
+
+// Workspace says "Workspace"
+// in the language the app shows.
+func Workspace() string { return In(i18n.Locale()).Workspace() }
+
+// Workspace says "Workspace"
+// in the language of msgs.
+func (msgs Messages) Workspace() string {
+	return Catalog.Format(msgs.locale, "workspace", nil)
+}
+
 // NoFolder says "No folder open"
 // in the language the app shows.
 func NoFolder() string { return In(i18n.Locale()).NoFolder() }

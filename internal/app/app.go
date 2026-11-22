@@ -27,12 +27,24 @@ type Pane struct {
 	active int
 }
 
+// tabDrag is a tab being dragged to another pane.
+type tabDrag struct {
+	pane int
+	id   string
+}
+
 func (p *Pane) activeTab() *Tab {
 	if p.active < 0 || p.active >= len(p.tabs) {
 		return nil
 	}
 	return p.tabs[p.active]
 }
+
+// The sidebar's tabs.
+const (
+	sidebarFiles = iota
+	sidebarWorkspace
+)
 
 // App is the state the window shows.
 type App struct {
@@ -50,12 +62,14 @@ type App struct {
 	treeState      ui.OutlineState[string]
 	treeSelected   int
 	treeGeneration uint64
+	sidebarTab     int
 
-	left       Pane
-	right      Pane
-	split      bool
-	splitWidth float32
-	activePane int // 0 left, 1 right
+	left        Pane
+	right       Pane
+	split       bool
+	splitWidth  float32
+	centerSplit bool
+	activePane  int // 0 left, 1 right
 
 	// tabOverflow says whether a pane's tab bar is wider than the pane,
 	// which shows the tab list button; revealPane and revealDoc ask the
@@ -253,6 +267,40 @@ func (a *App) findDocument(path string) *Document {
 	return nil
 }
 
+// openDocuments returns the documents open in either pane, once each, in
+// tab order: the left pane first, then the right.
+func (a *App) openDocuments() []*Document {
+	n := len(a.left.tabs) + len(a.right.tabs)
+	docs := make([]*Document, 0, n)
+	seen := make(map[*Document]bool, n)
+	for _, p := range []*Pane{&a.left, &a.right} {
+		for _, tab := range p.tabs {
+			if !seen[tab.doc] {
+				seen[tab.doc] = true
+				docs = append(docs, tab.doc)
+			}
+		}
+	}
+	return docs
+}
+
+// activateDocument shows doc, in the active pane when it is open there and
+// in the other pane otherwise.
+func (a *App) activateDocument(doc *Document) {
+	for _, paneIdx := range []int{a.activePane, 1 - a.activePane} {
+		if paneIdx == 1 && !a.split {
+			continue
+		}
+		p := a.pane(paneIdx)
+		for i, tab := range p.tabs {
+			if tab.doc == doc {
+				a.activateTab(paneIdx, i)
+				return
+			}
+		}
+	}
+}
+
 func (a *App) addDocument(doc *Document) {
 	a.errMsg = ""
 	if doc.Path != "" {
@@ -312,9 +360,72 @@ func (a *App) removeTab(paneIdx, i int) {
 	a.updateTitle()
 }
 
+// moveTab moves the tab dragged from one pane into the other, at the end,
+// or shows the copy the target pane already has. The source pane's split
+// closes when its last tab leaves.
+func (a *App) moveTab(from tabDrag, toPane int) {
+	if from.pane == toPane || from.pane < 0 || from.pane > 1 || toPane < 0 || toPane > 1 {
+		return
+	}
+	if toPane == 1 && !a.split {
+		return
+	}
+	src, dst := a.pane(from.pane), a.pane(toPane)
+	idx := -1
+	for i, tab := range src.tabs {
+		if tab.doc.ID == from.id {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		return
+	}
+	tab := src.tabs[idx]
+	target := -1
+	for i, other := range dst.tabs {
+		if other.doc == tab.doc {
+			target = i
+			break
+		}
+	}
+
+	src.tabs = append(src.tabs[:idx], src.tabs[idx+1:]...)
+	switch {
+	case len(src.tabs) == 0:
+		src.active = -1
+	case src.active > idx:
+		src.active--
+	case src.active == idx && src.active >= len(src.tabs):
+		src.active = len(src.tabs) - 1
+	}
+
+	if target < 0 {
+		dst.tabs = append(dst.tabs, tab)
+		target = len(dst.tabs) - 1
+	}
+	dst.active = target
+	a.activePane = toPane
+
+	if a.split && len(src.tabs) == 0 {
+		a.split = false
+		if from.pane == 0 {
+			a.left = a.right
+		}
+		a.right = Pane{active: -1}
+		a.activePane = 0
+	}
+	a.focusEditor = true
+	a.revealPane, a.revealDoc = a.activePane, tab.doc.ID
+	a.updateTitle()
+	a.saveSession()
+	a.update()
+}
+
 func (a *App) toggleSplit() {
 	if !a.split {
 		a.split = true
+		a.centerSplit = true
 		if tab := a.activeTab(); tab != nil {
 			found := false
 			for i, rt := range a.right.tabs {
@@ -391,6 +502,7 @@ func (a *App) setWorkspace(root string) {
 	a.treeSelected = -1
 	a.treeState = ui.OutlineState[string]{}
 	a.treeGeneration++
+	a.sidebarTab = sidebarWorkspace
 	a.Settings.SidebarOpen = true
 	a.saveSettings()
 	a.saveSession()
