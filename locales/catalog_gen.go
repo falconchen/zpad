@@ -54,6 +54,56 @@ func (msgs Messages) ShortcutsHint() string {
 	return Catalog.Format(msgs.locale, "shortcutsHint", nil)
 }
 
+// AboutApp says "About ZPad"
+// in the language the app shows.
+func AboutApp() string { return In(i18n.Locale()).AboutApp() }
+
+// AboutApp says "About ZPad"
+// in the language of msgs.
+func (msgs Messages) AboutApp() string {
+	return Catalog.Format(msgs.locale, "aboutApp", nil)
+}
+
+// AboutTagline says "A lightweight text editor that works out of the box"
+// in the language the app shows.
+func AboutTagline() string { return In(i18n.Locale()).AboutTagline() }
+
+// AboutTagline says "A lightweight text editor that works out of the box"
+// in the language of msgs.
+func (msgs Messages) AboutTagline() string {
+	return Catalog.Format(msgs.locale, "aboutTagline", nil)
+}
+
+// AboutVersion says "Version {version}"
+// in the language the app shows.
+func AboutVersion(version string) string { return In(i18n.Locale()).AboutVersion(version) }
+
+// AboutVersion says "Version {version}"
+// in the language of msgs.
+func (msgs Messages) AboutVersion(version string) string {
+	return Catalog.Format(msgs.locale, "aboutVersion", map[string]any{"version": version})
+}
+
+// AboutLicense says "License"
+// in the language the app shows.
+func AboutLicense() string { return In(i18n.Locale()).AboutLicense() }
+
+// AboutLicense says "License"
+// in the language of msgs.
+func (msgs Messages) AboutLicense() string {
+	return Catalog.Format(msgs.locale, "aboutLicense", nil)
+}
+
+// AboutRepository says "GitHub"
+// in the language the app shows.
+func AboutRepository() string { return In(i18n.Locale()).AboutRepository() }
+
+// AboutRepository says "GitHub"
+// in the language of msgs.
+func (msgs Messages) AboutRepository() string {
+	return Catalog.Format(msgs.locale, "aboutRepository", nil)
+}
+
 // NewFile says "New File"
 // in the language the app shows.
 func NewFile() string { return In(i18n.Locale()).NewFile() }
@@ -582,6 +632,16 @@ func MenuEncoding() string { return In(i18n.Locale()).MenuEncoding() }
 // in the language of msgs.
 func (msgs Messages) MenuEncoding() string {
 	return Catalog.Format(msgs.locale, "menuEncoding", nil)
+}
+
+// MenuHelp says "Help"
+// in the language the app shows.
+func MenuHelp() string { return In(i18n.Locale()).MenuHelp() }
+
+// MenuHelp says "Help"
+// in the language of msgs.
+func (msgs Messages) MenuHelp() string {
+	return Catalog.Format(msgs.locale, "menuHelp", nil)
 }
 
 // Appearance says "Appearance"

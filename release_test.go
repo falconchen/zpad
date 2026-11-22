@@ -86,6 +86,22 @@ func TestTextExtensionsMatchAssociations(t *testing.T) {
 	}
 }
 
+func TestVersionMatchesConfig(t *testing.T) {
+	data, err := os.ReadFile("mygo.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Version != app.Version {
+		t.Fatalf("mygo.json says version %q, the About dialog shows %q", cfg.Version, app.Version)
+	}
+}
+
 func TestAppIconSize(t *testing.T) {
 	f, err := os.Open("resources/icon.png")
 	if err != nil {

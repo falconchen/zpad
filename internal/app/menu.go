@@ -1,6 +1,8 @@
 package app
 
 import (
+	"runtime"
+
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/caseconv"
@@ -10,6 +12,12 @@ import (
 
 // InstallMenu builds the application menu.
 func (a *App) InstallMenu() {
+	mygo.App.SetMenu(mygo.NewMenu(a.menuItems()))
+}
+
+// menuItems is the application menu. It is rebuilt when the language
+// changes, so every label is made now.
+func (a *App) menuItems() []*mygo.MenuItem {
 	fileMenu := []*mygo.MenuItem{
 		{Label: locales.NewFile(), Accelerator: "CmdOrCtrl+N", Click: func(*mygo.MenuItem, *mygo.Window) { a.NewFile() }},
 		{Label: locales.OpenFileEllipsis(), Accelerator: "CmdOrCtrl+O", Click: func(*mygo.MenuItem, *mygo.Window) { a.OpenFileDialog() }},
@@ -81,14 +89,36 @@ func (a *App) InstallMenu() {
 		}},
 	}
 
-	menu := mygo.NewMenu([]*mygo.MenuItem{
-		{Role: mygo.RoleAppMenu},
+	// The app menu's About item is ours rather than RoleAbout: the system
+	// panel has no room for the license and the repository, and its links
+	// would not open. The rest of the menu keeps the platform roles.
+	appMenu := &mygo.MenuItem{Role: mygo.RoleAppMenu, Submenu: []*mygo.MenuItem{
+		{Label: locales.AboutApp(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openAbout() }},
+		mygo.Separator(),
+		{Role: mygo.RoleServices},
+		mygo.Separator(),
+		{Role: mygo.RoleHide},
+		{Role: mygo.RoleHideOthers},
+		{Role: mygo.RoleUnhide},
+		mygo.Separator(),
+		{Role: mygo.RoleQuit},
+	}}
+
+	items := []*mygo.MenuItem{
+		appMenu,
 		{Label: locales.MenuFile(), Submenu: fileMenu},
 		{Label: locales.MenuEdit(), Submenu: editMenu},
 		{Label: locales.MenuView(), Submenu: viewMenu},
 		{Label: locales.MenuEncoding(), Submenu: encMenu},
-	})
-	mygo.App.SetMenu(menu)
+	}
+	// RoleAppMenu is macOS only, so the other platforms get their About in
+	// a Help menu of their own.
+	if runtime.GOOS != "darwin" {
+		items = append(items, &mygo.MenuItem{Label: locales.MenuHelp(), Submenu: []*mygo.MenuItem{
+			{Label: locales.AboutApp(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openAbout() }},
+		}})
+	}
+	return items
 }
 
 func (a *App) setThemeIndex(i int) {

@@ -70,6 +70,7 @@ internal/app/
   fileops.go               文件树的重命名 / 删除 / 在副窗口打开
   fileops_ui.go            重命名对话框
   view.go                  工具栏、侧栏、双栏、标签、状态栏、查找栏样式
+  about_ui.go              关于对话框（版本、许可证、GitHub 仓库）
   settings_ui.go           设置面板、字体列表、语言切换
   menu.go                  应用菜单
   case.go                  多选区大小写转换

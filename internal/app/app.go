@@ -64,6 +64,10 @@ const (
 	sidebarWorkspace
 )
 
+// Version is the release version shown in the status bar and the About
+// dialog. Keep it equal to the version in mygo.json.
+const Version = "0.1.0"
+
 // App is the state the window shows.
 type App struct {
 	Settings    settings.Settings
@@ -109,6 +113,7 @@ type App struct {
 	pendingOpen      []string
 
 	showSettings bool
+	aboutOpen    bool
 	fontSize     float64
 	lineHeight   float64
 	fontFamilies []string

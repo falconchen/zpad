@@ -37,7 +37,10 @@ func (a *App) View(c *ui.Context) {
 		a.statusBar(c, t)
 		a.settingsModal(c, t)
 		if !a.showSettings {
-			a.renameModal(c, t)
+			a.aboutModal(c, t)
+			if !a.aboutOpen {
+				a.renameModal(c, t)
+			}
 		}
 		if a.pendingToast != "" {
 			c.Toast(a.pendingToast)
@@ -842,7 +845,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 				}
 				ui.Text(c, msg).FontSize(11).TextColor(col).SingleLine()
 				ui.Spacer(c)
-				ui.Text(c, "ZPad 0.1.0").FontSize(11).TextColor(t.TextMuted)
+				ui.Text(c, "ZPad "+Version).FontSize(11).TextColor(t.TextMuted)
 				return
 			}
 

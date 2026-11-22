@@ -2,6 +2,19 @@
   "@@locale": "en",
   "appTagline": "Open a file or folder to start editing",
   "shortcutsHint": "⌘O Open File · ⌘⇧O Open Folder · ⌘N New File",
+  "aboutApp": "About ZPad",
+  "aboutTagline": "A lightweight text editor that works out of the box",
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.1.0"
+      }
+    }
+  },
+  "aboutLicense": "License",
+  "aboutRepository": "GitHub",
   "newFile": "New File",
   "openFile": "Open File",
   "openFileEllipsis": "Open File…",
@@ -63,6 +76,7 @@
   "menuEdit": "Edit",
   "menuView": "View",
   "menuEncoding": "Encoding",
+  "menuHelp": "Help",
   "appearance": "Appearance",
   "language": "Language",
   "languageSystem": "Follow System",
