@@ -1,0 +1,109 @@
+name: Release
+
+# A tag you push builds the apps and puts them in a draft release, which you
+# review and publish. Nothing is signed and nothing updates itself: macOS apps
+# are signed ad hoc, which Gatekeeper blocks on other Macs, and the Windows
+# apps have no signature, which SmartScreen warns about.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - run: go vet ./...
+      - run: go test ./...
+
+  draft:
+    name: Draft release
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check the tag names the configured version
+        run: |
+          want="v$(jq -r .version mygo.json)"
+          if [ "$GITHUB_REF_NAME" != "$want" ]; then
+            echo "::error::the tag $GITHUB_REF_NAME does not match $want in mygo.json"
+            exit 1
+          fi
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A rerun of the tag keeps the draft, and its files are replaced.
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --generate-notes
+
+  macos:
+    name: macOS
+    needs: draft
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Build the app and the disk images
+        run: go tool mygo build -platform darwin/arm64,darwin/amd64
+      - name: Zip the app bundles
+        run: |
+          v=$(jq -r .version mygo.json)
+          for arch in arm64 amd64; do
+            test -d "build/darwin-$arch/ZPad.app"
+            ditto -c -k --keepParent "build/darwin-$arch/ZPad.app" \
+              "build/zpad-$v-macos-$arch.app.zip"
+          done
+      - name: Upload the disk images and the app bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            build/darwin-arm64/*.dmg build/darwin-amd64/*.dmg build/*.app.zip \
+            --clobber
+
+  windows:
+    name: Windows
+    needs: draft
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Install NSIS, for the Windows installer
+        run: sudo apt-get update && sudo apt-get install -y nsis
+      - name: Build the app and the installer
+        run: go tool mygo build -platform windows/amd64
+      - name: Zip the portable app and the installer
+        run: |
+          v=$(jq -r .version mygo.json)
+          test -f build/windows-amd64/ZPad.exe
+          test -f build/windows-amd64/zpad-setup-$v-amd64.exe
+          cd build
+          # The portable app, without the installer that sits beside it.
+          rm -rf ZPad
+          cp -a windows-amd64 ZPad
+          rm -f ZPad/zpad-setup-*.exe
+          zip -qr "zpad-$v-windows-amd64-portable.zip" ZPad
+          # The installer in a zip, which a browser and antivirus programs
+          # pass on more readily than a bare .exe.
+          zip -j "zpad-setup-$v-amd64.zip" "windows-amd64/zpad-setup-$v-amd64.exe"
+      - name: Upload the archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" build/*.zip --clobber
