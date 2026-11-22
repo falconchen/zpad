@@ -7,6 +7,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
+	"github.com/helloxz/zpad/locales"
 )
 
 func TestViewShowsSkeleton(t *testing.T) {
@@ -16,7 +17,7 @@ func TestViewShowsSkeleton(t *testing.T) {
 	if !tt.HasText("ZPad") {
 		t.Fatalf("view does not show the app name; texts %q", tt.Texts())
 	}
-	if !tt.HasText("打开文件或文件夹开始编辑") {
+	if !tt.HasText(locales.AppTagline()) {
 		t.Fatalf("view does not show the empty state; texts %q", tt.Texts())
 	}
 	if !tt.HasText("ZPad 0.1.0") {
@@ -31,7 +32,7 @@ func TestEditorView(t *testing.T) {
 	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	doc, err := loadDocument(path)
+	doc, err := loadDocument(path, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +40,7 @@ func TestEditorView(t *testing.T) {
 	a.addDocument(doc)
 
 	tt := ui.NewTester(a.View, 1200, 800)
-	for _, want := range []string{"main.go", "Go", "UTF-8", "行 1, 列 1"} {
+	for _, want := range []string{"main.go", "Go", "UTF-8", locales.LineColumn(1, 1)} {
 		if !tt.HasText(want) {
 			t.Errorf("view does not show %q; texts %q", want, tt.Texts())
 		}
@@ -57,7 +58,7 @@ func TestTabs(t *testing.T) {
 	if len(a.left.tabs) != 1 || a.left.active != 0 {
 		t.Fatalf("after remove: tabs %d, active %d", len(a.left.tabs), a.left.active)
 	}
-	if a.left.tabs[0].doc.Name() != "未命名" {
+	if a.left.tabs[0].doc.Name() != locales.Untitled() {
 		t.Fatalf("tab name %q", a.left.tabs[0].doc.Name())
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/app"
 	"github.com/helloxz/zpad/internal/settings"
+	"github.com/helloxz/zpad/locales"
 )
 
 func main() {
@@ -18,12 +19,16 @@ func main() {
 	s, err := settings.Load(dir)
 	a := app.New(s, dir)
 	if err != nil {
-		a.SetError("读取设置失败: " + err.Error())
+		a.SetError(locales.LoadSettingsFailed() + ": " + err.Error())
 		log.Printf("load settings: %v", err)
 	}
 	if err := settings.Ensure(dir, s); err != nil {
-		a.SetError("保存设置失败: " + err.Error())
+		a.SetError(locales.SaveSettingsFailed() + ": " + err.Error())
 		log.Printf("initialize settings: %v", err)
+	}
+	if err := registerFonts(); err != nil {
+		log.Printf("register fonts: %v", err)
+		a.SetError(locales.FontLoadFallback())
 	}
 
 	// Start in the saved appearance, before the window draws its first
@@ -36,6 +41,7 @@ func main() {
 
 	mygo.App.WhenReady(func() {
 		a.Prepare()
+		mygo.App.SetLocale(s.Language)
 		a.RestoreSession()
 		win := mygo.NewWindow(mygo.WindowOptions{
 			Title:     "ZPad",

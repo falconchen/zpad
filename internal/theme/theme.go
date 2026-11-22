@@ -20,6 +20,30 @@ func Light() *ui.Theme { return lightTheme() }
 // Dark returns the dark palette.
 func Dark() *ui.Theme { return darkTheme() }
 
+// Sidebar is the sidebar's background.
+func Sidebar(t *ui.Theme) ui.Color {
+	if t.Dark {
+		return ui.Hex("#12161F")
+	}
+	return ui.Hex("#F3F4F6")
+}
+
+// TabBar is the tab bar's background.
+func TabBar(t *ui.Theme) ui.Color {
+	if t.Dark {
+		return ui.Hex("#151922")
+	}
+	return ui.Hex("#F7F8FA")
+}
+
+// ActiveTab is the chosen tab's background.
+func ActiveTab(t *ui.Theme) ui.Color {
+	if t.Dark {
+		return ui.Hex("#1B202B")
+	}
+	return ui.Hex("#FFFFFF")
+}
+
 func lightTheme() *ui.Theme {
 	t := ui.LightTheme()
 	t.Background = ui.Hex("#FFFFFF")
@@ -42,6 +66,10 @@ func lightTheme() *ui.Theme {
 	t.FocusRingOffset = 1
 	t.Scrollbar = ui.RGBA(0, 0, 0, 0.28)
 	t.ScrollbarWidth = 10
+	t.ScrollbarStyle = ui.ScrollbarStyle{
+		TrackWidth: 10, ThumbWidth: 10, MinLength: 24,
+		Thumb: ui.RGBA(0, 0, 0, 0.22), Hover: ui.RGBA(0, 0, 0, 0.35), Active: ui.RGBA(0, 0, 0, 0.45),
+	}
 	t.Radius = 8
 	t.Spacing = 4
 	t.FontSize = 13
@@ -55,7 +83,11 @@ func EditorTheme(t *ui.Theme) *editor.Theme {
 	ct.Text = t.Text
 	ct.LineNumber = t.TextMuted
 	ct.ActiveLineNumber = t.Text
-	ct.ActiveLine = t.Surface
+	if t.Dark {
+		ct.ActiveLine = ui.Hex("#161B24")
+	} else {
+		ct.ActiveLine = ui.Hex("#F8FAFC")
+	}
 	ct.Selection = t.Selection
 	ct.InactiveSelection = t.Selection
 	ct.Cursor = t.Accent
@@ -147,6 +179,10 @@ func darkTheme() *ui.Theme {
 	t.FocusRingOffset = 1
 	t.Scrollbar = ui.RGBA(255, 255, 255, 0.30)
 	t.ScrollbarWidth = 10
+	t.ScrollbarStyle = ui.ScrollbarStyle{
+		TrackWidth: 10, ThumbWidth: 10, MinLength: 24,
+		Thumb: ui.RGBA(255, 255, 255, 0.22), Hover: ui.RGBA(255, 255, 255, 0.35), Active: ui.RGBA(255, 255, 255, 0.45),
+	}
 	t.Radius = 8
 	t.Spacing = 4
 	t.FontSize = 13

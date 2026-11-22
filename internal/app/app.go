@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/files"
 	"github.com/helloxz/zpad/internal/settings"
+	"github.com/helloxz/zpad/locales"
 )
 
 // Tab is one open document and the editor state showing it.
@@ -62,6 +63,12 @@ type App struct {
 	lastDirty   bool
 	pendingOpen []string
 
+	showSettings bool
+	fontSize     float64
+	lineHeight   float64
+	fontFamilies []string
+	pendingToast string
+
 	closePromptOpen bool
 	allowClose      bool
 	allowQuit       bool
@@ -86,6 +93,8 @@ func New(s settings.Settings, settingsDir string) *App {
 		left:         Pane{active: -1},
 		right:        Pane{active: -1},
 		splitWidth:   600,
+		fontSize:     float64(s.FontSize),
+		lineHeight:   float64(s.LineHeight),
 	}
 }
 
@@ -123,6 +132,11 @@ func (a *App) Attach(win *mygo.Window) {
 			a.update()
 		}
 	})
+	mygo.App.OnLocaleChanged(func(string) {
+		a.InstallMenu()
+		a.updateTitle()
+		a.update()
+	})
 	a.InstallMenu()
 	a.updateTitle()
 	if len(a.pendingOpen) > 0 {
@@ -145,6 +159,12 @@ func (a *App) HandleOpenFile(path string) {
 // SetError shows an error in the status bar.
 func (a *App) SetError(msg string) {
 	a.errMsg = msg
+}
+
+// SetToast shows a message near the bottom of the window once.
+func (a *App) SetToast(msg string) {
+	a.pendingToast = msg
+	a.update()
 }
 
 // onUI runs fn on the main thread, or at once before a window exists.
@@ -397,7 +417,7 @@ func (a *App) saveSettings() {
 		return
 	}
 	if err := settings.Save(a.SettingsDir, a.Settings); err != nil {
-		a.errMsg = "保存设置失败: " + err.Error()
+		a.errMsg = locales.SaveSettingsFailed() + ": " + err.Error()
 		log.Printf("save settings: %v", err)
 		return
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/caseconv"
 	"github.com/helloxz/zpad/internal/encoding"
+	"github.com/helloxz/zpad/locales"
 )
 
 var textExtensions = []string{
@@ -19,8 +20,8 @@ var textExtensions = []string{
 
 func textFilters() []mygo.FileFilter {
 	return []mygo.FileFilter{
-		{Name: "文本文件", Extensions: textExtensions},
-		{Name: "所有文件", Extensions: []string{"*"}},
+		{Name: locales.TextFiles(), Extensions: textExtensions},
+		{Name: locales.AllFiles(), Extensions: []string{"*"}},
 	}
 }
 
@@ -29,12 +30,12 @@ func (a *App) OpenFileDialog() {
 	go func() {
 		paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
 			Parent:   a.win,
-			Title:    "打开文件",
+			Title:    locales.OpenFileTitle(),
 			Filters:  textFilters(),
 			Multiple: true,
 		})
 		if err != nil {
-			a.fail("打开文件失败", err)
+			a.fail(locales.OpenDialogFailed(), err)
 			return
 		}
 		a.OpenPaths(paths)
@@ -46,11 +47,11 @@ func (a *App) OpenFolderDialog() {
 	go func() {
 		paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
 			Parent:    a.win,
-			Title:     "打开文件夹",
+			Title:     locales.OpenFolderTitle(),
 			Directory: true,
 		})
 		if err != nil {
-			a.fail("打开文件夹失败", err)
+			a.fail(locales.OpenDialogFailed(), err)
 			return
 		}
 		if len(paths) == 0 {
@@ -69,16 +70,16 @@ func (a *App) OpenPaths(paths []string) {
 		for _, path := range paths {
 			info, err := os.Stat(path)
 			if err != nil {
-				a.fail("打开失败: "+filepath.Base(path), err)
+				a.fail(locales.OpenFailed(filepath.Base(path)), err)
 				continue
 			}
 			if info.IsDir() {
 				a.onUI(func() { a.setWorkspace(path) })
 				continue
 			}
-			doc, err := loadDocument(path)
+			doc, err := loadDocument(path, a.Settings.LargeFileMB)
 			if err != nil {
-				a.fail("打开失败: "+filepath.Base(path), err)
+				a.fail(locales.OpenFailed(filepath.Base(path)), err)
 				continue
 			}
 			a.onUI(func() { a.addDocument(doc) })
@@ -147,9 +148,9 @@ func (a *App) ReopenWithEncoding(kind encoding.Kind) {
 		res, err := mygo.Dialog.Message(mygo.MessageOptions{
 			Parent:             a.win,
 			Type:               mygo.MessageWarning,
-			Message:            "放弃未保存的修改？",
+			Message:            locales.DiscardChangesQuestion(),
 			Detail:             tab.doc.Name(),
-			Buttons:            []string{"放弃修改并重新打开", "取消"},
+			Buttons:            []string{locales.DiscardAndReopen(), locales.Cancel()},
 			DefaultButton:      1,
 			CancelButton:       1,
 			DestructiveButtons: []int{0},
@@ -164,9 +165,9 @@ func (a *App) ReopenWithEncoding(kind encoding.Kind) {
 func (a *App) reloadAs(tab *Tab, kind encoding.Kind) {
 	path := tab.doc.Path
 	go func() {
-		doc, err := loadDocumentWith(path, kind)
+		doc, err := loadDocumentWith(path, kind, a.Settings.LargeFileMB)
 		if err != nil {
-			a.fail("重新打开失败", err)
+			a.fail(locales.ReopenFailed(), err)
 			return
 		}
 		a.onUI(func() {
@@ -227,16 +228,16 @@ func (a *App) CloseTab(paneIdx, i int) {
 		res, err := mygo.Dialog.Message(mygo.MessageOptions{
 			Parent:             a.win,
 			Type:               mygo.MessageWarning,
-			Message:            "是否保存更改？",
+			Message:            locales.SaveChangesQuestion(),
 			Detail:             tab.doc.DisplayPath(a.root),
-			Buttons:            []string{"保存", "不保存", "取消"},
+			Buttons:            []string{locales.Save(), locales.DontSave(), locales.Cancel()},
 			DefaultButton:      0,
 			CancelButton:       2,
 			DestructiveButtons: []int{1},
 		})
 		if err != nil {
 			a.onUI(func() { a.busy = false })
-			a.fail("关闭标签失败", err)
+			a.fail(locales.CloseTabFailed(), err)
 			return
 		}
 		switch res.Button {
@@ -282,12 +283,12 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 			}
 			p, err := mygo.Dialog.Save(mygo.SaveDialogOptions{
 				Parent:      a.win,
-				Title:       "保存文件",
+				Title:       locales.SaveFileTitle(),
 				DefaultPath: defaultPath,
 				Filters:     textFilters(),
 			})
 			if err != nil {
-				a.fail("保存失败", err)
+				a.fail(locales.SaveFailed(), err)
 				return
 			}
 			if p == "" {
@@ -298,8 +299,8 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 
 		data, err := writeDocument(tab.doc, path)
 		if err != nil {
-			a.fail("保存失败", err)
-			mygo.Dialog.Error("保存失败", err.Error())
+			a.fail(locales.SaveFailed(), err)
+			mygo.Dialog.Error(locales.SaveFailed(), err.Error())
 			return
 		}
 		a.onUI(func() {

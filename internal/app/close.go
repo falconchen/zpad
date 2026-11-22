@@ -1,12 +1,12 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui/editor"
+	"github.com/helloxz/zpad/locales"
 )
 
 // dirtyDocs returns every modified document once, however many panes show
@@ -36,7 +36,7 @@ func (a *App) onWindowClose(e *mygo.CloseEvent) {
 		e.PreventDefault()
 		return
 	}
-	if !a.hasDirty() {
+	if !a.Settings.ConfirmClose || !a.hasDirty() {
 		a.saveSession()
 		return
 	}
@@ -61,7 +61,7 @@ func (a *App) BeforeQuit(e *mygo.QuitEvent) {
 		e.PreventDefault()
 		return
 	}
-	if !a.hasDirty() {
+	if !a.Settings.ConfirmClose || !a.hasDirty() {
 		a.saveSession()
 		return
 	}
@@ -83,9 +83,9 @@ func (a *App) requestClose(reason string) {
 		res, err := mygo.Dialog.Message(mygo.MessageOptions{
 			Parent:             a.win,
 			Type:               mygo.MessageWarning,
-			Message:            fmt.Sprintf("有 %d 个文件未保存，是否保存？", len(docs)),
+			Message:            locales.UnsavedFilesQuestion(len(docs)),
 			Detail:             dirtyDetail(docs),
-			Buttons:            []string{"保存全部", "不保存", "取消"},
+			Buttons:            []string{locales.SaveAll(), locales.DontSave(), locales.Cancel()},
 			DefaultButton:      0,
 			CancelButton:       2,
 			DestructiveButtons: []int{1},
@@ -93,7 +93,7 @@ func (a *App) requestClose(reason string) {
 		if err != nil {
 			a.onUI(func() {
 				a.closePromptOpen = false
-				a.SetError("关闭失败: " + err.Error())
+				a.SetError(locales.CloseFailed() + ": " + err.Error())
 			})
 			return
 		}
@@ -117,13 +117,9 @@ func (a *App) requestClose(reason string) {
 func dirtyDetail(docs []*Document) string {
 	names := make([]string, 0, len(docs))
 	for _, doc := range docs {
-		if len(names) == 5 {
-			names = append(names, fmt.Sprintf("等 %d 个", len(docs)))
-			break
-		}
 		names = append(names, doc.Name())
 	}
-	return strings.Join(names, "、")
+	return strings.Join(names, ", ")
 }
 
 func (a *App) saveAllForClose(reason string) {
@@ -148,14 +144,14 @@ func (a *App) saveAllForClose(reason string) {
 			if path == "" {
 				p, err := mygo.Dialog.Save(mygo.SaveDialogOptions{
 					Parent:      a.win,
-					Title:       "保存文件",
+					Title:       locales.SaveFileTitle(),
 					DefaultPath: doc.Name(),
 					Filters:     textFilters(),
 				})
 				if err != nil {
 					a.onUI(func() {
 						a.busy = false
-						a.SetError("保存失败: " + err.Error())
+						a.SetError(locales.SaveFailed() + ": " + err.Error())
 					})
 					return
 				}
@@ -169,9 +165,9 @@ func (a *App) saveAllForClose(reason string) {
 			if err != nil {
 				a.onUI(func() {
 					a.busy = false
-					a.SetError("保存失败: " + err.Error())
+					a.SetError(locales.SaveFailed() + ": " + err.Error())
 				})
-				mygo.Dialog.Error("保存失败", err.Error())
+				mygo.Dialog.Error(locales.SaveFailed(), err.Error())
 				return
 			}
 			results = append(results, saved{doc: doc, path: path, data: data})

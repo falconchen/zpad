@@ -83,7 +83,7 @@ func Detect(data []byte) (Kind, error) {
 	if _, err := decodeGB18030(data); err == nil {
 		return GB18030, nil
 	}
-	return GB18030, errors.New("无法识别文件编码，请在状态栏选择编码重新打开")
+	return GB18030, errors.New("unknown encoding")
 }
 
 func detectUTF16(data []byte) (Kind, bool) {
@@ -127,7 +127,7 @@ func Decode(data []byte, kind Kind) (string, error) {
 			data = data[len(bomUTF8):]
 		}
 		if !utf8.Valid(data) {
-			return "", errors.New("文件不是有效的 UTF-8")
+			return "", errors.New("invalid UTF-8")
 		}
 		return string(data), nil
 	case UTF16LE:
@@ -137,7 +137,7 @@ func Decode(data []byte, kind Kind) (string, error) {
 	case GB18030:
 		return decodeGB18030(data)
 	default:
-		return "", fmt.Errorf("不支持的编码 %q", kind)
+		return "", fmt.Errorf("unsupported encoding %q", kind)
 	}
 }
 
@@ -148,7 +148,7 @@ func decodeUTF16(data []byte, order unicode.Endianness) (string, error) {
 		return "", err
 	}
 	if !utf8.Valid(out) {
-		return "", errors.New("文件不是有效的 UTF-16")
+		return "", errors.New("invalid UTF-16")
 	}
 	return string(out), nil
 }
@@ -160,7 +160,7 @@ func decodeGB18030(data []byte) (string, error) {
 		return "", err
 	}
 	if !utf8.Valid(out) {
-		return "", errors.New("文件不是有效的 GB18030")
+		return "", errors.New("invalid GB18030")
 	}
 	return string(out), nil
 }
@@ -184,7 +184,7 @@ func Encode(text string, kind Kind) ([]byte, error) {
 		}
 		return out, nil
 	default:
-		return nil, fmt.Errorf("不支持的编码 %q", kind)
+		return nil, fmt.Errorf("unsupported encoding %q", kind)
 	}
 }
 

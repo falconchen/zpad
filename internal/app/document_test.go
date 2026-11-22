@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/helloxz/zpad/internal/encoding"
+	"github.com/helloxz/zpad/locales"
 )
 
 func TestLoadAndSaveKeepsEncoding(t *testing.T) {
@@ -21,7 +22,7 @@ func TestLoadAndSaveKeepsEncoding(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		doc, err := loadDocument(path)
+		doc, err := loadDocument(path, 20)
 		if err != nil {
 			t.Fatalf("%s: %v", kind, err)
 		}
@@ -52,7 +53,7 @@ func TestLineEndingsPreservedAndConverted(t *testing.T) {
 	if err := os.WriteFile(path, []byte("a\r\nb\r\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	doc, err := loadDocument(path)
+	doc, err := loadDocument(path, 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +83,7 @@ func TestLoadBinaryRejected(t *testing.T) {
 	if err := os.WriteFile(path, []byte{0x89, 'P', 'N', 'G', 0, 0, 0}, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := loadDocument(path); err == nil {
+	if _, err := loadDocument(path, 20); err == nil {
 		t.Fatal("binary file loaded")
 	}
 }
@@ -101,7 +102,7 @@ func TestDisplayPath(t *testing.T) {
 
 func TestNewUntitled(t *testing.T) {
 	doc := newUntitled("untitled-1", "gb18030")
-	if doc.Name() != "未命名" || doc.Encoding != encoding.GB18030 {
+	if doc.Name() != locales.Untitled() || doc.Encoding != encoding.GB18030 {
 		t.Fatalf("untitled %+v", doc)
 	}
 	if doc.Buffer.Modified() {

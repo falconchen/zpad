@@ -1,13 +1,13 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"os"
 
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/files"
 	"github.com/helloxz/zpad/internal/session"
+	"github.com/helloxz/zpad/locales"
 )
 
 // RestoreSession loads the workspace of the last launch, when the user
@@ -49,7 +49,7 @@ func (a *App) restoreSession(st session.State) {
 		for _, ts := range ps.Tabs {
 			doc := docs[ts.Path]
 			if doc == nil {
-				d, err := loadDocument(ts.Path)
+				d, err := loadDocument(ts.Path, a.Settings.LargeFileMB)
 				if err != nil {
 					missing++
 					continue
@@ -99,7 +99,7 @@ func (a *App) restoreSession(st session.State) {
 	}
 	a.focusEditor = len(a.left.tabs)+len(a.right.tabs) > 0
 	if missing > 0 {
-		a.errMsg = fmt.Sprintf("有 %d 个文件未能恢复", missing)
+		a.errMsg = locales.MissingFiles(missing)
 	}
 }
 

@@ -10,6 +10,7 @@ import (
 	"github.com/helloxz/zpad/internal/caseconv"
 	"github.com/helloxz/zpad/internal/encoding"
 	"github.com/helloxz/zpad/internal/theme"
+	"github.com/helloxz/zpad/locales"
 )
 
 // View builds the window: toolbar, sidebar and content, status bar.
@@ -32,56 +33,71 @@ func (a *App) View(c *ui.Context) {
 			a.content(c, t)
 		}
 		a.statusBar(c, t)
+		a.settingsModal(c, t)
+		if a.pendingToast != "" {
+			c.Toast(a.pendingToast)
+			a.pendingToast = ""
+		}
 	})
 }
 
 func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 	ui.Toolbar(c, func() {
-		a.iconButton(c, t, iconSidebar, "切换侧栏", a.Settings.SidebarOpen, a.toggleSidebar)
-		a.iconButton(c, t, iconSplit, "切换分屏", a.split, a.toggleSplit)
-		a.iconButton(c, t, iconPlus, "新建文件", false, a.NewFile)
-		a.iconButton(c, t, iconOpen, "打开文件", false, a.OpenFileDialog)
-		a.iconButton(c, t, iconFolder, "打开文件夹", false, a.OpenFolderDialog)
-		a.iconButton(c, t, iconSave, "保存", false, a.SaveActive)
+		a.iconButton(c, t, iconSidebar, locales.ToggleSidebar(), a.Settings.SidebarOpen, a.toggleSidebar).
+			KeyShortcuts(ui.Cmd, ui.KeyB)
+		a.iconButton(c, t, iconPlus, locales.NewFile(), false, a.NewFile).
+			KeyShortcuts(ui.Cmd, ui.KeyN)
+		a.iconButton(c, t, iconOpen, locales.OpenFile(), false, a.OpenFileDialog).
+			KeyShortcuts(ui.Cmd, ui.KeyO)
+		a.iconButton(c, t, iconFolder, locales.OpenFolder(), false, a.OpenFolderDialog).
+			KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyO)
+		a.iconButton(c, t, iconSave, locales.Save(), false, a.SaveActive).
+			KeyShortcuts(ui.Cmd, ui.KeyS)
 		ui.Box(c).Width(1).Height(18).Background(t.Border).Margin(0, 4)
-		a.iconButton(c, t, iconUndo, "撤销", false, a.Undo)
-		a.iconButton(c, t, iconRedo, "重做", false, a.Redo)
-		a.iconButton(c, t, iconSearch, "查找", false, func() {
+		a.iconButton(c, t, iconUndo, locales.Undo(), false, a.Undo).
+			KeyShortcuts(ui.Cmd, ui.KeyZ)
+		a.iconButton(c, t, iconRedo, locales.Redo(), false, a.Redo).
+			KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyZ)
+		a.iconButton(c, t, iconSearch, locales.Find(), false, func() {
 			if tab := a.activeTab(); tab != nil {
 				tab.state.Run(editor.Find)
 			}
-		})
+		}).KeyShortcuts(ui.Cmd, ui.KeyF)
 		ui.MenuButton(c, "Aa", func(m *ui.Menu) {
-			if m.Item("转为大写").Chosen() {
+			if m.Item(locales.UpperCase()).Chosen() {
 				a.ConvertCase(caseconv.Upper)
 			}
-			if m.Item("转为小写").Chosen() {
+			if m.Item(locales.LowerCase()).Chosen() {
 				a.ConvertCase(caseconv.Lower)
 			}
-			if m.Item("首字母大写").Chosen() {
+			if m.Item(locales.TitleCase()).Chosen() {
 				a.ConvertCase(caseconv.Title)
 			}
-			if m.Item("反转大小写").Chosen() {
+			if m.Item(locales.InvertCase()).Chosen() {
 				a.ConvertCase(caseconv.Invert)
 			}
-		}).Label("大小写转换").Tooltip("大小写转换")
+		}).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu())
 		ui.Spacer(c)
-		ui.MenuButton(c, "主题", func(m *ui.Menu) {
-			if m.Item("亮色").Checked(a.ThemeIndex == 0).Chosen() {
+		a.iconButton(c, t, iconSplit, locales.ToggleSplit(), a.split, a.toggleSplit).
+			KeyShortcuts(ui.Cmd, ui.KeyBackslash)
+		ui.MenuButton(c, locales.Theme(), func(m *ui.Menu) {
+			if m.Item(locales.ThemeLight()).Checked(a.ThemeIndex == 0).Chosen() {
 				a.setThemeIndex(0)
 			}
-			if m.Item("暗色").Checked(a.ThemeIndex == 1).Chosen() {
+			if m.Item(locales.ThemeDark()).Checked(a.ThemeIndex == 1).Chosen() {
 				a.setThemeIndex(1)
 			}
-			if m.Item("跟随系统").Checked(a.ThemeIndex == 2).Chosen() {
+			if m.Item(locales.ThemeSystem()).Checked(a.ThemeIndex == 2).Chosen() {
 				a.setThemeIndex(2)
 			}
-		}).Label("主题").Tooltip("主题")
-	}).Padding(6, 10).Background(t.Surface).
+		}).Label(locales.Theme()).Tooltip(locales.Theme())
+		a.iconButton(c, t, iconSettings, locales.Settings(), a.showSettings, a.openSettings).
+			KeyShortcuts(ui.Cmd, ui.KeyComma)
+	}).Padding(8, 10).Background(t.Surface).
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border)
 }
 
-func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string, active bool, run func()) {
+func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string, active bool, run func()) ui.Element {
 	b := ui.ButtonBase(c).Size(28, 28).Center().Radius(6).Label(label).Tooltip(label)
 	if active || b.Hovered() {
 		b.Background(t.SurfaceHover)
@@ -92,18 +108,19 @@ func (a *App) iconButton(c *ui.Context, t *ui.Theme, icon *ui.SVG, label string,
 	if b.Clicked() {
 		run()
 	}
+	return b
 }
 
 func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
-	ui.Themed(c, t).Fill().Background(t.Surface).Children(func() {
+	ui.Themed(c, t).Fill().Background(theme.Sidebar(t)).Children(func() {
 		ui.Row(c).Height(36).Padding(0, 8).AlignItems(ui.Center).Gap(6).Children(func() {
-			name := "资源管理器"
+			name := locales.Explorer()
 			if a.tree != nil {
 				name = a.tree.Name()
 			}
 			ui.Text(c, name).FontSize(12).Bold().SingleLine().Grow(1)
 			menu := ui.ButtonBase(c).Size(26, 24).Center().Radius(6).
-				Background(t.Surface).Border(1, t.Border).Label("侧栏菜单")
+				Background(theme.Sidebar(t)).Border(1, t.Border).Label(locales.SidebarMenu())
 			if menu.Hovered() {
 				menu.Background(t.SurfaceHover)
 			}
@@ -111,13 +128,13 @@ func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
 				ui.Text(c, "⋯").FontSize(14).TextColor(t.TextMuted)
 			})
 			menu.Menu(func(m *ui.Menu) {
-				if m.Item("刷新").Chosen() {
+				if m.Item(locales.Refresh()).Chosen() {
 					a.refreshTree()
 				}
-				if m.Item("显示隐藏文件").Checked(a.Settings.ShowHidden).Chosen() {
+				if m.Item(locales.ShowHidden()).Checked(a.Settings.ShowHidden).Chosen() {
 					a.toggleHidden()
 				}
-				if m.Item("关闭侧栏").Chosen() {
+				if m.Item(locales.CloseSidebar()).Chosen() {
 					a.toggleSidebar()
 				}
 			})
@@ -125,8 +142,8 @@ func (a *App) sidebar(c *ui.Context, t *ui.Theme) {
 
 		if a.tree == nil {
 			ui.Column(c).Fill().Center().Gap(8).Padding(16).Children(func() {
-				ui.Text(c, "未打开文件夹").FontSize(12).TextColor(t.TextMuted)
-				if ui.Button(c, "打开文件夹").Clicked() {
+				ui.Text(c, locales.NoFolder()).FontSize(12).TextColor(t.TextMuted)
+				if ui.Button(c, locales.OpenFolder()).Clicked() {
 					a.OpenFolderDialog()
 				}
 			})
@@ -234,13 +251,13 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 
 func (a *App) emptyPane(c *ui.Context, t *ui.Theme, index int) {
 	ui.Column(c).Fill().Center().Gap(10).Children(func() {
-		ui.Text(c, "此栏没有打开的文件").FontSize(13).TextColor(t.TextMuted)
+		ui.Text(c, locales.PaneEmpty()).FontSize(13).TextColor(t.TextMuted)
 		ui.Row(c).Gap(8).Children(func() {
-			if ui.Button(c, "打开文件").Clicked() {
+			if ui.Button(c, locales.OpenFile()).Clicked() {
 				a.setActivePane(index)
 				a.OpenFileDialog()
 			}
-			if ui.Button(c, "新建文件").Clicked() {
+			if ui.Button(c, locales.NewFile()).Clicked() {
 				a.setActivePane(index)
 				a.NewFile()
 			}
@@ -249,14 +266,14 @@ func (a *App) emptyPane(c *ui.Context, t *ui.Theme, index int) {
 }
 
 func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
-	bg := t.Surface
+	bg := theme.TabBar(t)
 	if a.split && index == a.activePane {
-		bg = t.Background
+		bg = theme.ActiveTab(t)
 	}
-	ui.ScrollHorizontal(c).Height(38).FillWidth().Background(bg).
+	ui.ScrollHorizontal(c).Height(34).FillWidth().Background(bg).
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
 		Children(func() {
-			ui.Row(c).Height(38).Children(func() {
+			ui.Row(c).Height(34).Children(func() {
 				for i, tab := range p.tabs {
 					a.tabItem(c, t, index, p, i, tab)
 				}
@@ -267,14 +284,14 @@ func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
 
 func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, tab *Tab) {
 	active := i == p.active
-	bg := t.Surface
+	bg := theme.TabBar(t)
 	text := t.TextMuted
 	if active {
-		bg = t.Background
+		bg = theme.ActiveTab(t)
 		text = t.Text
 	}
 	key := fmt.Sprintf("tab-%d-%s", paneIdx, tab.doc.ID)
-	b := ui.ButtonBase(c.Key(key)).Height(36).Padding(0, 10).Gap(6).
+	b := ui.ButtonBase(c.Key(key)).Height(32).Padding(0, 10).Gap(6).
 		Radius(0).Background(bg).Label(tab.doc.Name())
 	if !active && b.Hovered() {
 		b.Background(t.SurfaceHover)
@@ -286,7 +303,7 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		}
 		ui.Text(c, tab.doc.Name()).FontSize(12).TextColor(text).SingleLine()
 		close := ui.ButtonBase(c.Key(key+"-close")).Size(16, 16).Center().
-			Radius(4).Label("关闭").Tooltip("关闭")
+			Radius(4).Label(locales.Close()).Tooltip(locales.Close())
 		close.Children(func() {
 			ui.Icon(c, iconClose).FontSize(11).TextColor(t.TextMuted)
 		})
@@ -308,8 +325,8 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 }
 
 func (a *App) newTabButton(c *ui.Context, t *ui.Theme, paneIdx int) {
-	b := ui.ButtonBase(c.Key(fmt.Sprintf("new-tab-%d", paneIdx))).Size(28, 36).Center().Radius(0).
-		Label("新建文件").Tooltip("新建文件")
+	b := ui.ButtonBase(c.Key(fmt.Sprintf("new-tab-%d", paneIdx))).Size(28, 32).Center().Radius(0).
+		Label(locales.NewFile()).Tooltip(locales.NewFile())
 	if b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}
@@ -345,7 +362,17 @@ func (a *App) configureEditor(tab *Tab, t *ui.Theme) {
 	st.LineHeight = a.Settings.LineHeight
 	st.Theme = theme.EditorTheme(t)
 	st.Label = tab.doc.Name()
-	st.Placeholder = "开始输入…"
+	st.Placeholder = locales.EditorPlaceholder()
+	st.RenderFindBar = func(c *ui.Context, bar ui.Element, f *editor.FindBar) {
+		editor.DefaultFindBar(c, bar, f)
+		bar.Background(t.Surface).Border(1, t.Border).Radius(10).
+			Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Padding(6)
+	}
+	st.RenderGoToLine = func(c *ui.Context, bar ui.Element, g *editor.GoToLineBar) {
+		editor.DefaultGoToLine(c, bar, g)
+		bar.Background(t.Surface).Border(1, t.Border).Radius(10).
+			Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Padding(6)
+	}
 	st.ContextMenu = func(m *ui.Menu) {
 		a.editorContextMenu(m)
 	}
@@ -353,21 +380,21 @@ func (a *App) configureEditor(tab *Tab, t *ui.Theme) {
 
 func (a *App) editorContextMenu(m *ui.Menu) {
 	m.Separator()
-	m.Submenu("大小写转换", func(mm *ui.Menu) {
-		if mm.Item("转为大写").Chosen() {
+	m.Submenu(locales.CaseMenu(), func(mm *ui.Menu) {
+		if mm.Item(locales.UpperCase()).Chosen() {
 			a.ConvertCase(caseconv.Upper)
 		}
-		if mm.Item("转为小写").Chosen() {
+		if mm.Item(locales.LowerCase()).Chosen() {
 			a.ConvertCase(caseconv.Lower)
 		}
-		if mm.Item("首字母大写").Chosen() {
+		if mm.Item(locales.TitleCase()).Chosen() {
 			a.ConvertCase(caseconv.Title)
 		}
-		if mm.Item("反转大小写").Chosen() {
+		if mm.Item(locales.InvertCase()).Chosen() {
 			a.ConvertCase(caseconv.Invert)
 		}
 	})
-	m.Submenu("换行符", func(mm *ui.Menu) {
+	m.Submenu(locales.LineEnding(), func(mm *ui.Menu) {
 		if mm.Item("LF").Chosen() {
 			a.SetLineEnding("\n")
 		}
@@ -378,8 +405,8 @@ func (a *App) editorContextMenu(m *ui.Menu) {
 			a.SetLineEnding("\r")
 		}
 	})
-	m.Submenu("编码", func(mm *ui.Menu) {
-		mm.Submenu("重新以…编码打开", func(m2 *ui.Menu) {
+	m.Submenu(locales.MenuEncoding(), func(mm *ui.Menu) {
+		mm.Submenu(locales.ReopenWithEncoding(), func(m2 *ui.Menu) {
 			for _, kind := range encoding.All {
 				k := kind
 				if m2.Item(encoding.Label(k)).Chosen() {
@@ -387,7 +414,7 @@ func (a *App) editorContextMenu(m *ui.Menu) {
 				}
 			}
 		})
-		mm.Submenu("以…编码保存", func(m2 *ui.Menu) {
+		mm.Submenu(locales.SaveWithEncoding(), func(m2 *ui.Menu) {
 			for _, kind := range encoding.All {
 				k := kind
 				if m2.Item(encoding.Label(k)).Chosen() {
@@ -396,7 +423,7 @@ func (a *App) editorContextMenu(m *ui.Menu) {
 			}
 		})
 	})
-	if m.Item("关闭标签").Chosen() {
+	if m.Item(locales.CloseTab()).Chosen() {
 		a.CloseActiveTab()
 	}
 }
@@ -404,23 +431,24 @@ func (a *App) editorContextMenu(m *ui.Menu) {
 func (a *App) emptyState(c *ui.Context, t *ui.Theme) {
 	ui.Column(c).Fill().Center().Gap(14).Children(func() {
 		ui.Text(c, "ZPad").FontSize(30).Bold()
-		ui.Text(c, "打开文件或文件夹开始编辑").FontSize(13).TextColor(t.TextMuted)
+		ui.Text(c, locales.AppTagline()).FontSize(13).TextColor(t.TextMuted)
 		ui.Row(c).Gap(8).Children(func() {
-			if ui.PrimaryButton(c, "打开文件").Clicked() {
+			if ui.PrimaryButton(c, locales.OpenFile()).Clicked() {
 				a.OpenFileDialog()
 			}
-			if ui.Button(c, "打开文件夹").Clicked() {
+			if ui.Button(c, locales.OpenFolder()).Clicked() {
 				a.OpenFolderDialog()
 			}
-			if ui.Button(c, "新建文件").Clicked() {
+			if ui.Button(c, locales.NewFile()).Clicked() {
 				a.NewFile()
 			}
 		})
+		ui.Text(c, locales.ShortcutsHint()).FontSize(11).TextColor(t.TextMuted)
 	})
 }
 
 func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
-	ui.Row(c).Height(28).FillWidth().Padding(0, 10).AlignItems(ui.Center).Gap(10).
+	ui.Row(c).Height(26).FillWidth().Padding(0, 10).AlignItems(ui.Center).Gap(10).
 		Background(t.Surface).BorderWidth(1, 0, 0, 0).BorderColor(t.Border).
 		Children(func() {
 			if a.split {
@@ -428,7 +456,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 			}
 			tab := a.activeTab()
 			if tab == nil {
-				msg, col := "就绪", t.TextMuted
+				msg, col := locales.Ready(), t.TextMuted
 				if a.errMsg != "" {
 					msg, col = a.errMsg, t.Danger
 				}
@@ -448,7 +476,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 			ui.Text(c, languageName(doc)).FontSize(11).TextColor(t.TextMuted)
 
 			ui.MenuButton(c, encoding.Label(doc.Encoding), func(m *ui.Menu) {
-				m.Submenu("重新以…编码打开", func(mm *ui.Menu) {
+				m.Submenu(locales.ReopenWithEncoding(), func(mm *ui.Menu) {
 					for _, kind := range encoding.All {
 						k := kind
 						if mm.Item(encoding.Label(k)).Chosen() {
@@ -456,7 +484,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 						}
 					}
 				})
-				m.Submenu("以…编码保存", func(mm *ui.Menu) {
+				m.Submenu(locales.SaveWithEncoding(), func(mm *ui.Menu) {
 					for _, kind := range encoding.All {
 						k := kind
 						if mm.Item(encoding.Label(k)).Chosen() {
@@ -491,16 +519,16 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 
 func paneLabel(i int) string {
 	if i == 1 {
-		return "右栏"
+		return locales.RightPane()
 	}
-	return "左栏"
+	return locales.LeftPane()
 }
 
 func languageName(doc *Document) string {
 	if lang := doc.Buffer.Language(); lang != nil {
 		return lang.Name
 	}
-	return "纯文本"
+	return locales.PlainText()
 }
 
 func eolLabel(eol string) string {
@@ -525,7 +553,7 @@ func cursorLabel(tab *Tab) string {
 	if col > len(text) {
 		col = len(text)
 	}
-	return fmt.Sprintf("行 %d, 列 %d", line+1, utf8.RuneCountInString(text[:col])+1)
+	return locales.LineColumn(line+1, utf8.RuneCountInString(text[:col])+1)
 }
 
 func selectionLabel(tab *Tab) string {
@@ -538,7 +566,7 @@ func selectionLabel(tab *Tab) string {
 	if n == 0 {
 		return ""
 	}
-	return fmt.Sprintf("已选 %d", n)
+	return locales.SelectedCount(n)
 }
 
 func formatSize(n int64) string {

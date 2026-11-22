@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,9 +10,8 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/atomicfile"
 	"github.com/helloxz/zpad/internal/encoding"
+	"github.com/helloxz/zpad/locales"
 )
-
-const maxFileSize = 20 << 20
 
 // Document is an open file and the text the editor edits.
 type Document struct {
@@ -26,7 +24,11 @@ type Document struct {
 }
 
 // loadDocument reads a file and detects its encoding.
-func loadDocument(path string) (*Document, error) {
+func loadDocument(path string, maxMB int) (*Document, error) {
+	if maxMB <= 0 {
+		maxMB = 20
+	}
+	maxBytes := int64(maxMB) << 20
 	if abs, err := filepath.Abs(path); err == nil {
 		path = abs
 	}
@@ -35,10 +37,10 @@ func loadDocument(path string) (*Document, error) {
 		return nil, err
 	}
 	if info.IsDir() {
-		return nil, errors.New("这是一个文件夹")
+		return nil, errors.New(locales.IsFolder())
 	}
-	if info.Size() > maxFileSize {
-		return nil, fmt.Errorf("文件超过 %d MB，M1 暂不支持", maxFileSize>>20)
+	if info.Size() > maxBytes {
+		return nil, errors.New(locales.FileTooLarge(maxMB))
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -46,16 +48,20 @@ func loadDocument(path string) (*Document, error) {
 	}
 	kind, err := encoding.Detect(data)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(locales.UnknownEncoding())
 	}
 	if kind != encoding.UTF16LE && kind != encoding.UTF16BE && isBinary(data) {
-		return nil, errors.New("这是二进制文件，无法作为文本编辑")
+		return nil, errors.New(locales.BinaryFile())
 	}
 	return newDocument(path, data, kind, info.Size())
 }
 
 // loadDocumentWith reads a file again, interpreting its bytes as kind.
-func loadDocumentWith(path string, kind encoding.Kind) (*Document, error) {
+func loadDocumentWith(path string, kind encoding.Kind, maxMB int) (*Document, error) {
+	if maxMB <= 0 {
+		maxMB = 20
+	}
+	maxBytes := int64(maxMB) << 20
 	if abs, err := filepath.Abs(path); err == nil {
 		path = abs
 	}
@@ -64,17 +70,17 @@ func loadDocumentWith(path string, kind encoding.Kind) (*Document, error) {
 		return nil, err
 	}
 	if info.IsDir() {
-		return nil, errors.New("这是一个文件夹")
+		return nil, errors.New(locales.IsFolder())
 	}
-	if info.Size() > maxFileSize {
-		return nil, fmt.Errorf("文件超过 %d MB，M1 暂不支持", maxFileSize>>20)
+	if info.Size() > maxBytes {
+		return nil, errors.New(locales.FileTooLarge(maxMB))
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 	if kind != encoding.UTF16LE && kind != encoding.UTF16BE && isBinary(data) {
-		return nil, errors.New("这是二进制文件，无法作为文本编辑")
+		return nil, errors.New(locales.BinaryFile())
 	}
 	return newDocument(path, data, kind, info.Size())
 }
@@ -82,7 +88,7 @@ func loadDocumentWith(path string, kind encoding.Kind) (*Document, error) {
 func newDocument(path string, data []byte, kind encoding.Kind, size int64) (*Document, error) {
 	text, err := encoding.Decode(data, kind)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(locales.DecodeFailed())
 	}
 	buf := editor.NewBuffer(text)
 	buf.SetLanguage(editor.LanguageFor(path))
@@ -107,7 +113,7 @@ func newUntitled(id string, defaultEncoding string) *Document {
 
 func (d *Document) Name() string {
 	if d.Path == "" {
-		return "未命名"
+		return locales.Untitled()
 	}
 	return filepath.Base(d.Path)
 }
@@ -115,7 +121,7 @@ func (d *Document) Name() string {
 // DisplayPath is the path relative to root when it is inside it.
 func (d *Document) DisplayPath(root string) string {
 	if d.Path == "" {
-		return "未命名"
+		return locales.Untitled()
 	}
 	if root != "" {
 		if rel, err := filepath.Rel(root, d.Path); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
@@ -135,11 +141,11 @@ func (d *Document) encoded() ([]byte, error) {
 	text := utf8.String()
 	data, err := encoding.Encode(text, d.Encoding)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(locales.InvalidEncoding())
 	}
 	back, err := encoding.Decode(data, d.Encoding)
 	if err != nil || back != text {
-		return nil, errors.New("目标编码无法完整表示当前文本，请改用 UTF-8 保存")
+		return nil, errors.New(locales.InvalidEncoding())
 	}
 	return data, nil
 }

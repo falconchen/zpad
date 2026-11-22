@@ -1,0 +1,171 @@
+{
+  "@@locale": "en",
+  "appTagline": "Open a file or folder to start editing",
+  "shortcutsHint": "⌘O Open File · ⌘⇧O Open Folder · ⌘N New File",
+  "newFile": "New File",
+  "openFile": "Open File",
+  "openFileEllipsis": "Open File…",
+  "openFileTitle": "Open File",
+  "openFolder": "Open Folder",
+  "openFolderEllipsis": "Open Folder…",
+  "openFolderTitle": "Open Folder",
+  "save": "Save",
+  "saveAs": "Save As…",
+  "saveFileTitle": "Save File",
+  "closeTab": "Close Tab",
+  "close": "Close",
+  "cancel": "Cancel",
+  "saveAll": "Save All",
+  "dontSave": "Don't Save",
+  "restore": "Restore",
+  "done": "Done",
+  "saveChangesQuestion": "Save changes?",
+  "discardChangesQuestion": "Discard unsaved changes?",
+  "discardAndReopen": "Discard and Reopen",
+  "unsavedFilesQuestion": "{count, plural, one {# file has unsaved changes. Save it?} other {# files have unsaved changes. Save them?}}",
+  "@unsavedFilesQuestion": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "sidebarToggle": "Toggle Sidebar",
+  "splitToggle": "Toggle Split",
+  "toggleSidebar": "Toggle Sidebar",
+  "toggleSplit": "Toggle Split",
+  "undo": "Undo",
+  "redo": "Redo",
+  "find": "Find",
+  "findEllipsis": "Find…",
+  "replaceEllipsis": "Replace…",
+  "caseMenu": "Convert Case",
+  "upperCase": "Uppercase",
+  "lowerCase": "Lowercase",
+  "titleCase": "Title Case",
+  "invertCase": "Invert Case",
+  "theme": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "Follow System",
+  "settings": "Settings",
+  "settingsEllipsis": "Settings…",
+  "settingsTitle": "Settings",
+  "menuFile": "File",
+  "menuEdit": "Edit",
+  "menuView": "View",
+  "menuEncoding": "Encoding",
+  "appearance": "Appearance",
+  "language": "Language",
+  "languageSystem": "Follow System",
+  "languageChinese": "简体中文",
+  "languageEnglish": "English",
+  "editorSection": "Editor",
+  "fontFamily": "Font",
+  "systemMonospace": "System Monospace",
+  "fontSize": "Font Size",
+  "lineHeight": "Line Height",
+  "softWrap": "Soft Wrap",
+  "lineNumbers": "Line Numbers",
+  "lineNumbersAbsolute": "Absolute",
+  "lineNumbersRelative": "Relative",
+  "lineNumbersOff": "Off",
+  "tabSize": "Tab Size",
+  "indent": "Indent",
+  "indentSpaces": "Spaces",
+  "indentTabs": "Tabs",
+  "indentGuides": "Indent Guides",
+  "autoClose": "Auto-close Brackets",
+  "filesSection": "Files",
+  "defaultEncoding": "Default Encoding",
+  "defaultLineEnding": "Default Line Ending",
+  "largeFileThreshold": "Large File Threshold",
+  "workspaceSection": "Workspace",
+  "sidebarDefault": "Show Sidebar by Default",
+  "restoreSession": "Restore Session on Launch",
+  "confirmClose": "Confirm Unsaved Files on Close",
+  "restoreDefaults": "Restore Defaults",
+  "restoreDefaultsQuestion": "Restore all settings to their defaults?",
+  "settingsReset": "Settings restored to defaults",
+  "explorer": "Explorer",
+  "noFolder": "No folder open",
+  "paneEmpty": "No file in this pane",
+  "editorPlaceholder": "Start typing…",
+  "ready": "Ready",
+  "leftPane": "Left",
+  "rightPane": "Right",
+  "plainText": "Plain Text",
+  "untitled": "Untitled",
+  "lineColumn": "Ln {line}, Col {col}",
+  "@lineColumn": {
+    "placeholders": {
+      "line": {
+        "type": "int",
+        "example": "12"
+      },
+      "col": {
+        "type": "int",
+        "example": "34"
+      }
+    }
+  },
+  "selectedCount": "{count} selected",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "8"
+      }
+    }
+  },
+  "textFiles": "Text Files",
+  "allFiles": "All Files",
+  "openDialogFailed": "Could not open the dialog",
+  "openFailed": "Could not open {name}",
+  "@openFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.md"
+      }
+    }
+  },
+  "saveFailed": "Could not save",
+  "closeTabFailed": "Could not close the tab",
+  "reopenFailed": "Could not reopen the file",
+  "closeFailed": "Could not close",
+  "saveSettingsFailed": "Could not save settings",
+  "loadSettingsFailed": "Could not load settings",
+  "missingFiles": "{count, plural, one {# file could not be restored} other {# files could not be restored}}",
+  "@missingFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "fileTooLarge": "Files larger than {mb} MB are not supported yet",
+  "@fileTooLarge": {
+    "placeholders": {
+      "mb": {
+        "type": "int",
+        "example": "20"
+      }
+    }
+  },
+  "isFolder": "This is a folder",
+  "binaryFile": "This is a binary file and cannot be edited as text",
+  "unknownEncoding": "Could not detect the encoding. Choose one from the status bar.",
+  "invalidEncoding": "The selected encoding cannot represent this text. Save as UTF-8 instead.",
+  "fontLoadFallback": "Could not load the bundled font; using the system monospace font.",
+  "refresh": "Refresh",
+  "showHidden": "Show Hidden Files",
+  "closeSidebar": "Close Sidebar",
+  "sidebarMenu": "Sidebar Menu",
+  "reopenWithEncoding": "Reopen with Encoding",
+  "saveWithEncoding": "Save with Encoding",
+  "lineEnding": "Line Ending",
+  "decodeFailed": "Could not decode the file with the selected encoding."
+}
