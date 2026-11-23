@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
 	"github.com/helloxz/zpad/locales"
@@ -20,6 +21,10 @@ func TestAboutDialogShowsLicenseAndRepository(t *testing.T) {
 		locales.AboutLicense(),
 		"AGPL-3.0",
 		"github.com/helloxz/zpad",
+		locales.AboutContactAuthor(),
+		"blog.xiaoz.org",
+		"x.com/xiaozblog",
+		"xphub.dev",
 	} {
 		if !tt.HasText(want) {
 			t.Errorf("about dialog does not show %q; texts %q", want, tt.Texts())
@@ -27,6 +32,8 @@ func TestAboutDialogShowsLicenseAndRepository(t *testing.T) {
 	}
 }
 
+// The license states the terms, so it is plain text: only the project and
+// the author's pages are links.
 func TestAboutLinksOpenInBrowser(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
 	a.aboutOpen = true
@@ -34,14 +41,54 @@ func TestAboutLinksOpenInBrowser(t *testing.T) {
 	if err := tt.Click("AGPL-3.0"); err != nil {
 		t.Fatal(err)
 	}
-	if got := tt.OpenedURLs(); len(got) != 1 || got[0] != aboutLicenseURL {
-		t.Fatalf("the license link opened %q, want %q", got, aboutLicenseURL)
+	if got := tt.OpenedURLs(); len(got) != 0 {
+		t.Fatalf("the license opened %q, want no link", got)
 	}
-	if err := tt.Click("github.com/helloxz/zpad"); err != nil {
-		t.Fatal(err)
+
+	for i, link := range []struct{ text, url string }{
+		{"github.com/helloxz/zpad", aboutRepoURL},
+		{"blog.xiaoz.org", aboutBlogURL},
+		{"x.com/xiaozblog", aboutXURL},
+		{"xphub.dev", aboutProductsURL},
+	} {
+		if err := tt.Click(link.text); err != nil {
+			t.Fatalf("click %q: %v", link.text, err)
+		}
+		got := tt.OpenedURLs()
+		if len(got) != i+1 || got[i] != link.url {
+			t.Fatalf("the %q link opened %q, want %q", link.text, got, link.url)
+		}
 	}
-	if got := tt.OpenedURLs(); len(got) != 2 || got[1] != aboutRepoURL {
-		t.Fatalf("the repository link opened %q, want %q after the license link", got, aboutRepoURL)
+}
+
+// The products page follows the interface language.
+func TestAboutProductsLinkFollowsLanguage(t *testing.T) {
+	cases := []struct{ locale, want string }{
+		{"zh-Hans", aboutProductsZhURL},
+		{"en", aboutProductsURL},
+	}
+	for _, c := range cases {
+		locale := c.locale
+		i18n.SetLocaleFunc(func() string { return locale })
+		if got := aboutProductsLink(); got != c.want {
+			t.Errorf("aboutProductsLink() in %s = %q, want %q", locale, got, c.want)
+		}
+	}
+	i18n.SetLocaleFunc(func() string { return "en" })
+}
+
+// The author section is translated like the rest of the dialog.
+func TestAboutDialogFollowsLanguage(t *testing.T) {
+	i18n.SetLocaleFunc(func() string { return "zh-Hans" })
+	defer i18n.SetLocaleFunc(func() string { return "en" })
+
+	a := New(settings.Default(), t.TempDir())
+	a.aboutOpen = true
+	tt := ui.NewTester(a.View, 900, 700)
+	for _, want := range []string{locales.AboutContactAuthor(), "联系作者", "博客", "更多产品"} {
+		if !tt.HasText(want) {
+			t.Errorf("the Chinese about dialog does not show %q; texts %q", want, tt.Texts())
+		}
 	}
 }
 

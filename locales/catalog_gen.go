@@ -116,6 +116,46 @@ func (msgs Messages) AboutRepository() string {
 	return Catalog.Format(msgs.locale, "aboutRepository", nil)
 }
 
+// AboutContactAuthor says "Contact the Author"
+// in the language the app shows.
+func AboutContactAuthor() string { return In(i18n.Locale()).AboutContactAuthor() }
+
+// AboutContactAuthor says "Contact the Author"
+// in the language of msgs.
+func (msgs Messages) AboutContactAuthor() string {
+	return Catalog.Format(msgs.locale, "aboutContactAuthor", nil)
+}
+
+// AboutBlog says "Blog"
+// in the language the app shows.
+func AboutBlog() string { return In(i18n.Locale()).AboutBlog() }
+
+// AboutBlog says "Blog"
+// in the language of msgs.
+func (msgs Messages) AboutBlog() string {
+	return Catalog.Format(msgs.locale, "aboutBlog", nil)
+}
+
+// AboutX says "X"
+// in the language the app shows.
+func AboutX() string { return In(i18n.Locale()).AboutX() }
+
+// AboutX says "X"
+// in the language of msgs.
+func (msgs Messages) AboutX() string {
+	return Catalog.Format(msgs.locale, "aboutX", nil)
+}
+
+// AboutProducts says "More Products"
+// in the language the app shows.
+func AboutProducts() string { return In(i18n.Locale()).AboutProducts() }
+
+// AboutProducts says "More Products"
+// in the language of msgs.
+func (msgs Messages) AboutProducts() string {
+	return Catalog.Format(msgs.locale, "aboutProducts", nil)
+}
+
 // NewFile says "New File"
 // in the language the app shows.
 func NewFile() string { return In(i18n.Locale()).NewFile() }

@@ -3,16 +3,32 @@ package app
 import (
 	"log"
 	"os"
+	"strings"
 
+	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/locales"
 )
 
-// Where the About dialog points: the project and its license.
+// Where the About dialog points: the project, the author's pages, and the
+// site that lists the author's other apps. The license stays plain text on
+// purpose: it names the terms, it does not need to open anything.
 const (
-	aboutRepoURL    = "https://github.com/helloxz/zpad"
-	aboutLicenseURL = aboutRepoURL + "/blob/main/LICENSE"
+	aboutRepoURL       = "https://github.com/helloxz/zpad"
+	aboutBlogURL       = "https://blog.xiaoz.org/"
+	aboutXURL          = "https://x.com/xiaozblog"
+	aboutProductsURL   = "https://xphub.dev/"
+	aboutProductsZhURL = "https://xphub.dev/zh"
 )
+
+// aboutProductsLink is the author's product page in the interface language,
+// so a Chinese reader lands on the Chinese list.
+func aboutProductsLink() string {
+	if strings.HasPrefix(i18n.Locale(), "zh") {
+		return aboutProductsZhURL
+	}
+	return aboutProductsURL
+}
 
 // loadAboutIcon decodes the icon the binary embeds once, for the About
 // dialog. Without one, as in tests, the dialog keeps the letter mark.
@@ -54,9 +70,9 @@ func (a *App) openAbout() {
 	a.update()
 }
 
-// aboutModal shows the app's name, version, license, and repository. The
-// links open in the browser, and the license and repository are the same
-// ones the README and the packaged app carry.
+// aboutModal shows the app's name, version, license, repository, and the
+// author's pages. Links open in the browser; the license is plain text
+// because it names the terms rather than pointing anywhere.
 func (a *App) aboutModal(c *ui.Context, t *ui.Theme) {
 	if !a.aboutOpen {
 		return
@@ -85,8 +101,13 @@ func (a *App) aboutModal(c *ui.Context, t *ui.Theme) {
 			})
 			ui.Text(c, locales.AboutTagline()).FontSize(12).TextColor(t.TextMuted)
 			ui.Divider(c)
-			a.aboutFact(c, t, locales.AboutLicense(), "AGPL-3.0", aboutLicenseURL)
-			a.aboutFact(c, t, locales.AboutRepository(), "github.com/helloxz/zpad", aboutRepoURL)
+			a.aboutValue(c, t, locales.AboutLicense(), "AGPL-3.0")
+			a.aboutLink(c, t, locales.AboutRepository(), "github.com/helloxz/zpad", aboutRepoURL)
+			ui.Divider(c)
+			ui.Text(c, locales.AboutContactAuthor()).FontSize(12).Bold()
+			a.aboutLink(c, t, locales.AboutBlog(), "blog.xiaoz.org", aboutBlogURL)
+			a.aboutLink(c, t, locales.AboutX(), "x.com/xiaozblog", aboutXURL)
+			a.aboutLink(c, t, locales.AboutProducts(), "xphub.dev", aboutProductsLink())
 			ui.Row(c).AlignItems(ui.Center).Children(func() {
 				ui.Spacer(c)
 				if ui.PrimaryButton(c, locales.Close()).Cursor(ui.CursorPointer).Clicked() {
@@ -97,10 +118,18 @@ func (a *App) aboutModal(c *ui.Context, t *ui.Theme) {
 	})
 }
 
-// aboutFact is one label and the link beside it.
-func (a *App) aboutFact(c *ui.Context, t *ui.Theme, label, value, url string) {
+// aboutLink is one label and the link beside it.
+func (a *App) aboutLink(c *ui.Context, t *ui.Theme, label, value, url string) {
 	ui.Row(c).AlignItems(ui.Center).Gap(10).Children(func() {
 		ui.Text(c, label).FontSize(12).TextColor(t.TextMuted).Width(92)
 		ui.Link(c, value, url).FontSize(12)
+	})
+}
+
+// aboutValue is one label and its plain, unlinked value.
+func (a *App) aboutValue(c *ui.Context, t *ui.Theme, label, value string) {
+	ui.Row(c).AlignItems(ui.Center).Gap(10).Children(func() {
+		ui.Text(c, label).FontSize(12).TextColor(t.TextMuted).Width(92)
+		ui.Text(c, value).FontSize(12)
 	})
 }
