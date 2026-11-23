@@ -1,14 +1,14 @@
-# 06 · 自动更新（0.3.0）
+# 06 · 自动更新（0.3.0 起）
 
-> 前置：0.1.0 已发布，0.2.0 已完成
-> 目标版本：0.3.0
+> 前置：0.3.0 已发布
+> 目标版本：0.3.0 / 0.3.1
 
 ## 1. 目标
 
 - 用户安装 ZPad 后，应用自己发现新版本、显示发布说明、下载并安装，不需要重新下载 DMG。
 - 更新包必须可验证：只接受用本项目私钥签名的新版本，走 HTTPS 也不额外信任服务器。
 - 不引入 WebView：更新窗口与主界面一样由 MyGo 原生 UI 绘制。
-- 不改变现有的发布命名：用户下载到的仍是 `ZPad-<版本>-<平台>-<架构>.<后缀>`。
+- 发布产物沿用 MyGo 默认命名，不再额外改名。
 
 ## 2. 方案
 
@@ -49,24 +49,26 @@ GitHub Releases：`updates.github = "helloxz/zpad"`，默认 `tagPrefix` 为 `v`
 
 ## 3. 文件名约定
 
-| 文件 | 是否可变 |
+| 文件 | 说明 |
 | --- | --- |
-| `ZPad-0.3.0-macos-arm64.dmg` / `.zip` | 可变：下载给用户，manifest 不引用 |
-| `ZPad-0.3.0-windows-amd64-setup.exe` / `portable.zip` | 可变 |
-| `zpad-0.3.0-darwin-arm64.tar.gz` | 不可变：清单里写死了 URL |
-| `zpad-0.2.x-to-0.3.0-darwin-arm64.delta` | 不可变 |
-| `update-darwin-arm64.json` | 不可变：应用从 `releases/latest/download/` 固定读取 |
+| `zpad-0.3.1-arm64.dmg`、`zpad-0.3.1-amd64.dmg` | `mygo build` 默认命名，CI 不改名 |
+| `zpad-setup-0.3.1-amd64.exe` | `mygo build` 默认命名 |
+| `zpad-0.3.1-windows-amd64-portable.zip` | CI 额外打的 Windows 绿色版，唯一非 MyGo 产物 |
+| `zpad-0.3.1-darwin-arm64.tar.gz` | 不可改名：manifest 里写死了 URL |
+| `zpad-<旧版本>-to-0.3.1-<target>.delta` | 不可改名 |
+| `update-<target>.json` | 不可改名：应用从 `releases/latest/download/` 固定读取 |
 
-`zpad` 前缀来自 `mygo.json` 的 `slug`（默认应用名小写），平台目标为 `darwin-arm64`、`darwin-amd64`、`windows-amd64` 等。
+`zpad` 前缀来自 `mygo.json` 的 `slug`（默认应用名小写），平台目标为 `darwin-arm64`、`darwin-amd64`、`windows-amd64` 等。0.3.1 起不再把 dmg / exe 改成 `ZPad-...`，所有 MyGo 产物原样上传；macOS 也不再额外提供 `.zip`。
 
 ## 4. 发布流程
 
 1. 修改 `mygo.json` 的 `version`，并在 `CHANGELOG.md` 写 `## <版本>` 一节（更新窗口显示这一节，缺失会导致构建失败）。
 2. 提交、打 tag `v<版本>`、推送，CI 创建 draft release。
-3. macOS 与 Windows 作业带 `MYGO_UPDATER_PRIVATE_KEY` 构建：
-   - macOS：生成两个架构的 dmg / zip、`.tar.gz`、`.delta`、`update-darwin-*.json`。
-   - Windows：生成安装包、绿色版、`.tar.gz`、`.delta`、`update-windows-amd64.json`。
-4. 每个作业先上传安装包，再上传 `.tar.gz` / `.delta`，**最后上传 manifest**。
+3. macOS 与 Windows 作业带 `MYGO_UPDATER_PRIVATE_KEY` 运行 `go tool mygo build -upload`：
+   - macOS：生成并上传 dmg、`.tar.gz`、`.delta`、`update-darwin-*.json` 与 `install.sh`。
+   - Windows：生成并上传安装包、`.tar.gz`、`.delta`、`update-windows-amd64.json` 与 `install.ps1`。
+   - `-upload` 自己按“安装包 / 更新包 → manifest”的顺序上传，并合并两个作业的 `SHA256SUMS`。
+4. Windows 作业额外打 `zpad-<版本>-windows-amd64-portable.zip` 并上传。
 5. 在 GitHub 上检查 draft，发布为 **latest**（不要勾选 pre-release）。
 
 本地构建需要签名时：
@@ -83,7 +85,7 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 - **ad-hoc 签名**每次构建指纹不同，macOS 可能把更新后的应用当成新的应用，TCC 权限（文件与文件夹等）可能需要重新授权；ZPad 主要使用系统打开 / 保存面板，影响较小，需要实测。
 - 应用必须能写安装目录：`/Applications` 对管理员用户可写；标准用户需要装到 `~/Applications`。从只读 DMG 直接运行、或由包管理器安装时 `Updater.Enabled()` 为 false。
 - 开发版（`mygo dev` / `go test` / `go run`）不能更新，`Check` 返回 `mygo.ErrUpdatesDisabled`；更新窗口会说明原因。
-- 第一个带更新器的版本（0.3.0）自己收不到更新；从它之后发布的版本开始生效。
+- 第一个带更新器的版本（0.3.0）自己收不到更新；0.3.1 是第一个可自更新的版本。
 - 更新时 `Relaunch` 走正常退出流程，会触发 ZPad 的未保存汇总提示；用户取消退出则更新在下次启动时生效。
 - 绿色版 Windows 应用放在可写目录才能自更新；装进 `Program Files` 的机器级安装不能。
 - 更新窗口是独立的原生窗口，不参与主窗口的会话保存（打开 / 位置不持久化）。
@@ -93,11 +95,11 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 - `main.go`：注册原生更新插件，图标取二进制内嵌的 `resources/icon.png`。
 - `internal/app/menu.go`：About 之后新增「检查更新…」；macOS 在应用菜单，其他平台在帮助菜单。
 - `locales/en.json`、`locales/zh-Hans.json`、`locales/catalog_gen.go`：`checkForUpdates`。
-- `mygo.json`：版本 0.3.0，新增 `updates`（公钥 + `helloxz/zpad`）。
-- `.github/workflows/release.yml`：构建带私钥；安装包照旧改名；新增 `.tar.gz` / `.delta` / manifest 上传，manifest 最后；Windows 绿色版排除更新文件。
+- `mygo.json`：新增 `updates`（公钥 + `helloxz/zpad`）；0.3.1 起版本号随之更新。
+- `.github/workflows/release.yml`：构建带私钥并直接用 `-upload` 上传，不再重命名安装包；Windows 额外打绿色版并排除安装包与更新文件。
 - `release_test.go`：公钥合法性、更新源与 CHANGELOG 版本小节。
 - `internal/app/menu_test.go`：菜单存在「检查更新…」且有回调（不点击，避免测试中未注册插件）。
-- `CHANGELOG.md`：0.3.0 小节。
+- `CHANGELOG.md`：0.3.0 与 0.3.1 小节。
 - 文档：本文件、`docs/README.md`、`README.md`、`AGENTS.md`。
 
 密钥（2026-11-23 生成，`mygo keygen`）：
@@ -107,12 +109,13 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 
 ## 7. 验收清单
 
-- [ ] 0.3.0 发布后，「检查更新…」在中文 / 英文下都显示正确文案。
+- [ ] 0.3.1 发布后，「检查更新…」在中文 / 英文下都显示正确文案。
 - [ ] 开发版点击「检查更新…」提示不能更新，并说明原因。
-- [ ] 发布 0.3.1 后，安装的 0.3.0 在启动后或手动检查时发现新版本。
+- [ ] 安装的 0.3.0 在启动后或手动检查时发现 0.3.1。
 - [ ] 更新窗口显示 0.3.1 的 `CHANGELOG.md` 小节，可安装、稍后提醒、跳过。
 - [ ] 安装后重启，版本号变为 0.3.1，会话恢复、未保存提示行为正常。
-- [ ] 增量包在第二次发布后生成，下载失败时回退完整包。
+- [ ] 0.3.1 自身检查时显示「已是最新」，不再出现 404。
+- [ ] 0.3.2 发布时生成 `0.3.1-to-0.3.2` 增量包，下载失败时回退完整包。
 - [ ] 已安装目录不可写时，更新窗口说明不能更新。
 - [ ] 未保存文档存在时点「安装并重启」，先出现 ZPad 的保存提示；取消后更新在下次启动生效。
 

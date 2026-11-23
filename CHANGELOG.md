@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.1
+
+### 打包
+
+- 发布产物改用 MyGo 默认命名，不再重命名：`zpad-0.3.1-arm64.dmg`、`zpad-0.3.1-amd64.dmg`、`zpad-setup-0.3.1-amd64.exe`；Windows 绿色版为 `zpad-0.3.1-windows-amd64-portable.zip`。macOS 不再额外提供 `.zip`。
+- CI 改用 `go tool mygo build -upload` 直接上传安装包、更新包与清单，不再手工改名和分批上传。
+
+### 自动更新
+
+- 0.3.0 的 GitHub Release 改为正式版并标记为 latest；本版本是第一个能通过内置更新器升级到的版本。
+- 发布流程注明：release 必须发布为 latest，不能勾选 pre-release，否则应用读取 `releases/latest/download/update-<target>.json` 会得到 404。
+
 ## 0.3.0
 
 ### 新增

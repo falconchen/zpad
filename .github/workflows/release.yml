@@ -4,9 +4,10 @@ name: Release
 # review and publish. macOS apps are signed ad hoc, which Gatekeeper blocks on
 # other Macs, and the Windows apps have no signature, which SmartScreen warns
 # about. Installed apps update themselves from the release's signed update
-# files, so publish it as the latest release: the manifests are fetched from
-# releases/latest/download/. The manifests are uploaded last, once their
-# archives and deltas are there.
+# files, so publish it as the latest release, not a pre-release: the manifests
+# are fetched from releases/latest/download/. `mygo build -upload` uploads the
+# archives and deltas first and the manifests last. Artifacts keep the names
+# `mygo build` gives them; the portable Windows copy is the one addition.
 on:
   push:
     tags: ["v*"]
@@ -63,41 +64,11 @@ jobs:
           go-version-file: go.mod
       - name: Test on the platform the app ships
         run: go test ./...
-      - name: Build the app, the disk images and the update
+      - name: Build and upload the app and its update
         env:
+          GH_TOKEN: ${{ github.token }}
           MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
-        run: go tool mygo build -platform darwin/arm64,darwin/amd64
-      - name: Name the artifacts
-        run: |
-          v=$(jq -r .version mygo.json)
-          mkdir -p build/release
-          for arch in arm64 amd64; do
-            test -f "build/darwin-$arch/zpad-$v-$arch.dmg"
-            mv "build/darwin-$arch/zpad-$v-$arch.dmg" \
-              "build/release/ZPad-$v-macos-$arch.dmg"
-            ditto -c -k --keepParent "build/darwin-$arch/ZPad.app" \
-              "build/release/ZPad-$v-macos-$arch.zip"
-          done
-      - name: Upload the disk images and the app bundles
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" build/release/* --clobber
-      - name: Upload the signed updates
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          v=$(jq -r .version mygo.json)
-          shopt -s nullglob
-          # Archives and deltas first: the manifests name them, and an app
-          # that reads a manifest before its files are there gets a 404.
-          files=(build/darwin-*/zpad-$v-*.tar.gz build/darwin-*/zpad-*-to-$v-*.delta)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "::error::no update files were built: is MYGO_UPDATER_PRIVATE_KEY set?"
-            exit 1
-          fi
-          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
-          gh release upload "$GITHUB_REF_NAME" \
-            build/darwin-*/update-darwin-*.json --clobber
+        run: go tool mygo build -platform darwin/arm64,darwin/amd64 -upload
 
   windows:
     name: Windows
@@ -110,44 +81,27 @@ jobs:
           go-version-file: go.mod
       - name: Install NSIS, for the Windows installer
         run: sudo apt-get update && sudo apt-get install -y nsis
-      - name: Build the app, the installer and the update
+      - name: Build and upload the app, the installer and the update
         env:
+          GH_TOKEN: ${{ github.token }}
           MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
-        run: go tool mygo build -platform windows/amd64
-      - name: Name the artifacts
+        run: go tool mygo build -platform windows/amd64 -upload
+      - name: Make the portable copy
         run: |
           v=$(jq -r .version mygo.json)
-          test -f build/windows-amd64/ZPad.exe
-          test -f "build/windows-amd64/zpad-setup-$v-amd64.exe"
-          mkdir -p build/release
-          # The installer ships as it is: a zip of it would only hide it.
-          mv "build/windows-amd64/zpad-setup-$v-amd64.exe" \
-            "build/release/ZPad-$v-windows-amd64-setup.exe"
           cd build
-          # The portable app, without the updater's file list, which a
-          # portable app has none of, nor the update's files. The installer
-          # was moved out above.
+          # A portable copy runs from any writable folder, without the
+          # installer and without the updater's file list, which only an
+          # installed app has.
           rm -rf ZPad
           cp -a windows-amd64 ZPad
-          rm -f ZPad/.mygo-files ZPad/install.ps1
+          rm -f ZPad/.mygo-files ZPad/install.ps1 ZPad/zpad-setup-*.exe
           rm -f ZPad/zpad-*.tar.gz ZPad/*.delta ZPad/update-*.json
-          zip -qr "release/ZPad-$v-windows-amd64-portable.zip" ZPad
-      - name: Upload the archives
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" build/release/* --clobber
-      - name: Upload the signed update
+          zip -qr "zpad-$v-windows-amd64-portable.zip" ZPad
+      - name: Upload the portable copy
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           v=$(jq -r .version mygo.json)
-          shopt -s nullglob
-          files=(build/windows-amd64/zpad-$v-windows-amd64.tar.gz \
-                 build/windows-amd64/zpad-*-to-$v-windows-amd64.delta)
-          if [ ${#files[@]} -eq 0 ]; then
-            echo "::error::no update files were built: is MYGO_UPDATER_PRIVATE_KEY set?"
-            exit 1
-          fi
-          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
           gh release upload "$GITHUB_REF_NAME" \
-            build/windows-amd64/update-windows-amd64.json --clobber
+            "build/zpad-$v-windows-amd64-portable.zip" --clobber

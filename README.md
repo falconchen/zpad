@@ -3,7 +3,7 @@
 基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器。
 单窗口、左右或上下双栏、每栏多标签，不启动 WebView，界面全部由 Go 绘制。
 
-当前进度：**0.3.0 自动更新**。功能、设置、双语、分屏、会话、打包与自动更新均已完成；0.2.0 已发布，0.3.0 待发布。
+当前进度：**0.3.1 自动更新**。功能、设置、双语、分屏、会话、打包与自动更新均已完成；0.3.0 已发布，0.3.1 待发布。
 
 ## 截图
 
@@ -118,19 +118,19 @@ go tool mygo build   # 打包 macOS 应用
 go tool mygo build
 ```
 
-产物（`go tool mygo build` 后统一改名到 `build/release/`，见 `.github/workflows/release.yml`）：
+产物沿用 `mygo build` 的默认命名，不再重命名（CI 用 `-upload` 直接上传）：
 
-- `ZPad-0.3.0-macos-arm64.dmg`、`ZPad-0.3.0-macos-arm64.zip`
-- `ZPad-0.3.0-macos-amd64.dmg`、`ZPad-0.3.0-macos-amd64.zip`
-- `ZPad-0.3.0-windows-amd64-setup.exe`、`ZPad-0.3.0-windows-amd64-portable.zip`
+- `zpad-0.3.1-arm64.dmg`、`zpad-0.3.1-amd64.dmg`
+- `zpad-setup-0.3.1-amd64.exe`
+- `zpad-0.3.1-windows-amd64-portable.zip`（CI 额外打的 Windows 绿色版）
 
 自动更新的文件由 `mygo build` 生成，**不能改名**（manifest 里写死了 URL）：
 
-- `zpad-0.3.0-darwin-arm64.tar.gz`、`zpad-0.3.0-darwin-amd64.tar.gz`、`zpad-0.3.0-windows-amd64.tar.gz`
-- 增量包 `zpad-<旧版本>-to-0.3.0-<平台>.delta`
+- `zpad-0.3.1-darwin-arm64.tar.gz`、`zpad-0.3.1-darwin-amd64.tar.gz`、`zpad-0.3.1-windows-amd64.tar.gz`
+- 增量包 `zpad-<旧版本>-to-0.3.1-<平台>.delta`
 - 清单 `update-darwin-arm64.json`、`update-darwin-amd64.json`、`update-windows-amd64.json`
 
-发布构建需要 `MYGO_UPDATER_PRIVATE_KEY`（`mygo keygen` 生成的 `mygo-update.key`，同时作为仓库 secret）。CI 先上传安装包，再上传 `.tar.gz` / `.delta`，最后上传 manifest；在 GitHub 上把 draft 发布为 **latest**。详细流程见 [docs/06-auto-update.md](./docs/06-auto-update.md)。
+发布构建需要 `MYGO_UPDATER_PRIVATE_KEY`（`mygo keygen` 生成的 `mygo-update.key`，同时作为仓库 secret）。`mygo build -upload` 会先上传安装包与 `.tar.gz` / `.delta`，最后上传 manifest；在 GitHub 上把 draft 发布为 **latest**（不要勾 pre-release）。详细流程见 [docs/06-auto-update.md](./docs/06-auto-update.md)。
 
 `mygo.json` 已声明 `fileAssociations`：`Text Document`（txt / md / html / css / json / yaml / xml / diff 等）与 `Source Code`（go / py / rs / js / ts / c / cpp / java / rb / php / lua / sh / sql / vue / svelte 等），共 86 个扩展名。构建后 Finder 双击对应文件可用 ZPad 打开；如系统未立即刷新关联，可重新登录或清理 LaunchServices 缓存。macOS 的 `CFBundleDocumentTypes` 由 MyGo 写入 `LSHandlerRank: Default`，与系统已有默认程序冲突时以用户选择为准。
 
@@ -140,7 +140,7 @@ go tool mygo build
 
 - 全局搜索在二期；外部修改只做窗口聚焦时的 mtime 检查，不含完整监听与三方合并。
 - Markdown 预览上限约 1 MB / 1 万行；预览内查找、滚动同步、目录 / TOC、MDX、远程图片、frontmatter 和数学 / Mermaid 渲染未做；预览模式不写入会话，重启后按源码恢复；宽表格在窄栏内横向滚动（单列上限约 600px）。
-- 自动更新：0.3.0 是第一个带更新器的版本，它自己收不到更新；开发版（`mygo dev` / `go run`）不能更新。标准用户需把应用装在 `~/Applications`（`/Applications` 需要管理员权限），从只读 DMG 直接运行也无法自更新。
+- 自动更新：0.3.0 是第一个带更新器的版本，它自己收不到更新，0.3.1 起可自更新；开发版（`mygo dev` / `go run`）不能更新。标准用户需把应用装在 `~/Applications`（`/Applications` 需要管理员权限），从只读 DMG 直接运行也无法自更新。
 - 标签中键关闭、拖拽排序未实现。
 - 设置修改立即写盘，未做防抖。
 - 超过 50 万行的文件只读；大文件不参与会话恢复的完整滚动精度。
