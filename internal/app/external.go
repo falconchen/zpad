@@ -100,7 +100,6 @@ func (a *App) reloadExternal(doc *Document) {
 		doc.Buffer.Reset(loaded.Buffer.String())
 		doc.Buffer.SetLanguage(editor.LanguageFor(doc.Path))
 		doc.Encoding = loaded.Encoding
-		doc.Raw = loaded.Raw
 		doc.Size = loaded.Size
 		doc.ModTime = loaded.ModTime
 		a.setDocReadOnly(doc, loaded.ReadOnly)

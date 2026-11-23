@@ -22,7 +22,6 @@ type Document struct {
 	Path     string
 	Buffer   *editor.Buffer
 	Encoding encoding.Kind
-	Raw      []byte
 	Size     int64
 	ModTime  time.Time
 	ReadOnly bool
@@ -108,7 +107,6 @@ func newDocument(path string, data []byte, kind encoding.Kind, size int64) (*Doc
 		Path:     path,
 		Buffer:   buf,
 		Encoding: kind,
-		Raw:      data,
 		Size:     size,
 	}, nil
 }

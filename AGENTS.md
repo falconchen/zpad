@@ -91,6 +91,7 @@ docs/                      需求、里程碑、实现记录与签收
 关键实现约定：
 
 - `editor.Buffer` **只接受 UTF-8**；所有文件编码转换必须走 `internal/encoding`。
+- `Document` 不保存文件原始字节：打开期间内存里只有 rope 一份文本（约 1.1 倍文件大小）；外部修改检测比 `Size` + `ModTime`，保存从 `Buffer` 重新编码，别为了「保险」再存一份原文。
 - 同一文件在左右栏时复用同一个 `*Document`；每个标签各自持有 `editor.State`。
 - 所有 UI / App 状态修改在主线程；文件读写与原生对话框在 goroutine，完成后用 `win.Update` 回到主线程。
 - 脏文档按 `*Document` 去重；关闭协调器用 `closePromptOpen` / `allowClose` / `allowQuit` 防止重复弹窗。

@@ -354,7 +354,6 @@ func (a *App) reloadAs(tab *Tab, kind encoding.Kind) {
 			tab.doc.Buffer.Reset(doc.Buffer.String())
 			tab.doc.Buffer.SetLanguage(editor.LanguageFor(path))
 			tab.doc.Encoding = kind
-			tab.doc.Raw = doc.Raw
 			tab.doc.Size = doc.Size
 			tab.doc.ModTime = doc.ModTime
 			a.setDocReadOnly(tab.doc, doc.ReadOnly)
