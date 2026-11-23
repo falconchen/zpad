@@ -165,6 +165,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 修改后至少运行 `go test ./...`、`go vet ./...`、`go build ./...`；涉及打包时运行 `go tool mygo build`。
 - UI 变更优先用 `ui.Tester` 做视图测试，必要时生成截图人工检查。
 - 用户可见文案必须加到 `locales/en.json` 和 `locales/zh-Hans.json`，然后运行 `go tool mygo generate`，通过 `locales.X()` 使用；不要硬编码。
+- `CHANGELOG.md` 只写简短的发布说明：一个版本一节，每条一句话说清用户可感知的变化，不写实现细节、测试过程或逐项罗列；细节留在 `docs/`，更新窗口直接展示这节，越短越好读。
 - 新增字体必须确认 OFL / 商业许可，并把许可文件放进 `fonts/`；许可文本不随应用打包（`resources/` 只放构建期素材，用 `resourcesExclude` 排除，或直接不放进去）。
 - 主题颜色优先走 `internal/theme`，不要在 view 里散落硬编码色值。
 - 文件关联写在 `mygo.json` 的 `fileAssociations`；构建后检查 Info.plist 的 `CFBundleDocumentTypes`。`internal/app/textExtensions`（打开对话框筛选器）必须与关联列表一致，`release_test.go` 会校验。
