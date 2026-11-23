@@ -83,8 +83,15 @@ func main() {
 		fmt.Fprintf(os.Stderr, "skip %s: draft=%v prerelease=%v\n", gh.TagName, gh.Draft, gh.Prerelease)
 		return
 	}
-	if gh.TagName == "" || len(gh.Assets) == 0 {
-		fail(fmt.Sprintf("%s: no tag or no assets", os.Args[1]))
+	if gh.TagName == "" {
+		fail(fmt.Sprintf("%s: no tag_name: gh api wrote no release here", os.Args[1]))
+	}
+	if len(gh.Assets) == 0 {
+		// The release exists but has no files. That is either a failed build or
+		// a release published before the Release workflow uploaded anything:
+		// .github/workflows/website.yml fires on published, which can be
+		// seconds after the click, while the apps take minutes to build.
+		fail(fmt.Sprintf("release %s has no files: its build may have failed, or it was published before the upload finished; rerun this workflow once the Release workflow is green", gh.TagName))
 	}
 
 	out := release{

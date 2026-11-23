@@ -69,7 +69,9 @@ GitHub Releases：`updates.github = "helloxz/zpad"`，默认 `tagPrefix` 为 `v`
    - Windows：生成并上传安装包、`.tar.gz`、`.delta`、`update-windows-amd64.json` 与 `install.ps1`。
    - `-upload` 自己按“安装包 / 更新包 → manifest”的顺序上传，并合并两个作业的 `SHA256SUMS`。
 4. Windows 作业额外打 `zpad-<版本>-windows-amd64-portable.zip` 并上传。
-5. 在 GitHub 上检查 draft，发布为 **latest**（不要勾选 pre-release）。
+5. 在 GitHub 上检查 draft，**等 macOS 与 Windows 作业都变绿、资产齐全**再发布为 **latest**（不要勾选 pre-release）。
+
+   发布时机不能提前：release 一发布就是 `releases/latest`，应用会立刻检查到新版本；此时更新清单还没上传，`releases/latest/download/update-<target>.json` 会返回 404。同时 `.github/workflows/website.yml` 由 `release: published` 触发，读到没有资产的 release 会直接失败（`release vX.Y.Z has no files`）。先发布、后上传的顺序在 0.3.3 与 0.4.0 上各失败过一次，补救方式是等 Release workflow 变绿后在 Actions 里跑一次 `Website`。
 
 本地构建需要签名时：
 

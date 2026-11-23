@@ -116,10 +116,12 @@ README 里的截图用同一套：`docs/screenshots/editor-light.png`、`editor-
 
 `.github/workflows/website.yml` 在 `release: published` 时调用 GitHub API 拿到 release，跑 `website/scripts/release/main.go` 重写 `data/release.json` 和 `static/_redirects`，然后提交。CF Pages 的 Git 集成看到这次提交就重新构建，所以：
 
-- 发版流程不变：打 tag → 审阅 draft → 发布为 latest
+- 发版流程不变：打 tag → 等 CI 把 draft 的产物传完 → 发布为 latest
 - 官网 1 分钟内自动跟上新版本
 - 构建期不访问 GitHub API，不需要在 CF 里放 token
 - 手动补数据：Actions 里跑一次 `Website`（`workflow_dispatch`，默认取 latest）
+
+**发布时机很重要**：作业由 `release: published` 触发，读到的 release 必须已经有文件。draft 在 macOS / Windows 构建期间陆续填充，几分钟才齐；先点 Publish、构建还在跑，作业会读到 `assets: []` 并以 `release vX.Y.Z has no files` 失败（0.3.3、0.4.0 都这样失败过一次）。补救办法是等 Release workflow 变绿后在 Actions 里跑一次 `Website`。
 
 固定短链（生成到 `_redirects`，可写进 README 或别人的博客）：
 

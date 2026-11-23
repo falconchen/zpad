@@ -170,3 +170,4 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 主题颜色优先走 `internal/theme`，不要在 view 里散落硬编码色值。
 - 文件关联写在 `mygo.json` 的 `fileAssociations`；构建后检查 Info.plist 的 `CFBundleDocumentTypes`。`internal/app/textExtensions`（打开对话框筛选器）必须与关联列表一致，`release_test.go` 会校验。
 - 发布构建用 `go tool mygo build`，产物在 `build/darwin-arm64/`；当前未签名，正式分发另行处理公证。
+- 发布顺序不可颠倒：打 tag 推送后等 CI 把 draft 的 macOS / Windows 产物传完，再点 Publish。draft 先发布、资产后到会让 `releases/latest/download/update-<target>.json` 短暂 404（自动更新报错），并让 `website.yml` 读到空 release 失败；漏了就等 CI 变绿后在 Actions 里跑一次 `Website`。
