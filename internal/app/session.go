@@ -116,7 +116,7 @@ func (a *App) restoreSession(st session.State) {
 		a.revealPane, a.revealDoc = a.activePane, tab.doc.ID
 	}
 	if missing > 0 {
-		a.errMsg = locales.MissingFiles(missing)
+		a.SetToast(locales.MissingFiles(missing))
 	}
 }
 

@@ -101,6 +101,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 会话只保存有路径的文件；未命名文件不持久化。
 - 单实例用 `mygo.App.RequestSingleInstanceLock()`（`main` 开头）+ `mygo.App.OnSecondInstance(a.HandleSecondInstance)`：第二进程立即退出，第一个实例前置窗口后打开传来的文件 / 文件夹。参数由应用自己解析（MyGo 只转发 `fileAssociations` 里登记的扩展名），`openPaths` 用 `beginLoading` / `endLoading` 的「正在读取」集合保证同一路径只读一次。
 - 强制外观用 `mygo.Theme.SetSource`，UI 主题用 `c.SetTheme` / `ui.Themed`。
+- 失败提示分两类：用户动作的一次性结果（打开 / 重新打开 / 对话框失败）用 `SetErrorToast(title, detail)`，走 toast 队列，6 秒自动消失、悬停暂停、Esc 关闭；`SetError` 只用于文档还开着、需要用户处理的保存 / 关闭失败（状态栏红字，下一次成功打开时清零）。不要把一次性结果写进 `errMsg`，否则它会一直留在状态栏。
 - 弹窗菜单统一 `c.SetMenuPresentation(ui.PopoverMenus)` 在窗口内绘制；顶部系统菜单栏保持原生。侧栏树菜单用 `PopoverMenu` + `sidebarMenuOptions`，避免继承文件树的选中样式。
 - 菜单项手型光标在 `PopoverMenuOptions` / `PopoverMenuButtonOptions` 的 `Item` 中设置；MyGo 内部的编辑器右键与输入框编辑菜单无法从应用层设置，仍是箭头。
 - 内存：`main` 开头 `debug.SetGCPercent(50)`，把 Go 堆高水位从 24–28 MB 压到 14 MB；About 图标按需解码。不要再加 `FreeOSMemory` 定时器或 `SetMemoryLimit`：实测前者在 macOS 上只多释放约 3 MB 且 Activity Monitor 不变，后者在 20 MB 大文件下可能触发连续 GC。新增内存相关改动时同时量一遍 Activity Monitor 的物理占用。

@@ -132,7 +132,7 @@ func TestFinishDeleteClosesTabsAndFolders(t *testing.T) {
 	if a.treeState.Open.Has(sub) {
 		t.Fatal("the deleted folder is still open in the tree")
 	}
-	if a.pendingToast == "" {
+	if len(a.pendingToasts) == 0 {
 		t.Fatal("no toast after the delete")
 	}
 }

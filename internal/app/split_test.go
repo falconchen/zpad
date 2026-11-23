@@ -219,7 +219,7 @@ func TestMissingSessionFileIsSkipped(t *testing.T) {
 	if len(a.left.tabs) != 0 {
 		t.Fatalf("restored %d missing tabs", len(a.left.tabs))
 	}
-	if a.errMsg == "" {
+	if len(a.pendingToasts) == 0 {
 		t.Fatal("missing file was not reported")
 	}
 }

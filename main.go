@@ -41,19 +41,19 @@ func main() {
 	a := app.New(s, dir)
 	a.LogPath = logPath
 	if err != nil {
-		a.SetError(locales.LoadSettingsFailed() + ": " + err.Error())
+		a.SetErrorToast(locales.LoadSettingsFailed(), err.Error())
 		log.Printf("load settings: %v", err)
 	}
 	if logPath != "" {
 		log.Printf("zpad %s %s/%s", app.Version, runtime.GOOS, runtime.GOARCH)
 	}
 	if err := settings.Ensure(dir, s); err != nil {
-		a.SetError(locales.SaveSettingsFailed() + ": " + err.Error())
+		a.SetErrorToast(locales.SaveSettingsFailed(), err.Error())
 		log.Printf("initialize settings: %v", err)
 	}
 	if err := registerFonts(); err != nil {
 		log.Printf("register fonts: %v", err)
-		a.SetError(locales.FontLoadFallback())
+		a.SetToast(locales.FontLoadFallback())
 	}
 
 	// Start in the saved appearance, before the window draws its first

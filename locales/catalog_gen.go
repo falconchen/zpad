@@ -1396,6 +1396,30 @@ func (msgs Messages) OpenFailed(name string) string {
 	return Catalog.Format(msgs.locale, "openFailed", map[string]any{"name": name})
 }
 
+// FilesFailedToOpen says "{count, plural, one {# file could not be opened} other {# files could not be opened}}"
+// in the language the app shows.
+func FilesFailedToOpen(count int) string { return In(i18n.Locale()).FilesFailedToOpen(count) }
+
+// FilesFailedToOpen says "{count, plural, one {# file could not be opened} other {# files could not be opened}}"
+// in the language of msgs.
+func (msgs Messages) FilesFailedToOpen(count int) string {
+	return Catalog.Format(msgs.locale, "filesFailedToOpen", map[string]any{"count": count})
+}
+
+// ReasonSeparator says "; "
+// in the language the app shows.
+//
+// Between the reasons a batch of files could not be opened.
+func ReasonSeparator() string { return In(i18n.Locale()).ReasonSeparator() }
+
+// ReasonSeparator says "; "
+// in the language of msgs.
+//
+// Between the reasons a batch of files could not be opened.
+func (msgs Messages) ReasonSeparator() string {
+	return Catalog.Format(msgs.locale, "reasonSeparator", nil)
+}
+
 // SaveFailed says "Could not save"
 // in the language the app shows.
 func SaveFailed() string { return In(i18n.Locale()).SaveFailed() }
@@ -1496,11 +1520,11 @@ func (msgs Messages) BinaryFile() string {
 	return Catalog.Format(msgs.locale, "binaryFile", nil)
 }
 
-// UnknownEncoding says "Could not detect the encoding. Choose one from the status bar."
+// UnknownEncoding says "Could not detect the encoding, so the file cannot open as text."
 // in the language the app shows.
 func UnknownEncoding() string { return In(i18n.Locale()).UnknownEncoding() }
 
-// UnknownEncoding says "Could not detect the encoding. Choose one from the status bar."
+// UnknownEncoding says "Could not detect the encoding, so the file cannot open as text."
 // in the language of msgs.
 func (msgs Messages) UnknownEncoding() string {
 	return Catalog.Format(msgs.locale, "unknownEncoding", nil)

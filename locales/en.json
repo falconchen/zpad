@@ -236,6 +236,19 @@
       }
     }
   },
+  "filesFailedToOpen": "{count, plural, one {# file could not be opened} other {# files could not be opened}}",
+  "@filesFailedToOpen": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "reasonSeparator": "; ",
+  "@reasonSeparator": {
+    "description": "Between the reasons a batch of files could not be opened."
+  },
   "saveFailed": "Could not save",
   "closeTabFailed": "Could not close the tab",
   "reopenFailed": "Could not reopen the file",
@@ -262,7 +275,7 @@
   },
   "isFolder": "This is a folder",
   "binaryFile": "This is a binary file and cannot be edited as text",
-  "unknownEncoding": "Could not detect the encoding. Choose one from the status bar.",
+  "unknownEncoding": "Could not detect the encoding, so the file cannot open as text.",
   "invalidEncoding": "The selected encoding cannot represent this text. Save as UTF-8 instead.",
   "fontLoadFallback": "Could not load the bundled font; using the system monospace font.",
   "refresh": "Refresh",

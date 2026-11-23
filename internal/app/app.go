@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -124,7 +125,8 @@ type App struct {
 	fontSize     float64
 	lineHeight   float64
 	fontFamilies []string
-	pendingToast string
+	// pendingToasts are the toasts the next frame shows, in order.
+	pendingToasts []ui.Toast
 
 	renameOpen  bool
 	renamePath  string
@@ -225,14 +227,37 @@ func (a *App) HandleOpenFile(path string) {
 	a.OpenPaths([]string{path})
 }
 
-// SetError shows an error in the status bar.
+// SetError shows an error in the status bar, for a failure that has no
+// better home: one the user must act on while its document is open.
+//
+// Actions that end, as opening a file does, tell with SetErrorToast
+// instead, so that a message the user cannot act on does not stay.
 func (a *App) SetError(msg string) {
 	a.errMsg = msg
 }
 
+// errorToastTime is how long an error toast shows: enough to read a reason
+// under its title. The pointer resting on it holds it, and Escape closes
+// it.
+const errorToastTime = 6 * time.Second
+
+// SetErrorToast tells near the bottom of the window that something the
+// user asked for did not happen: title says what, detail why, and it goes
+// away on its own.
+func (a *App) SetErrorToast(title, detail string) {
+	a.pendingToasts = append(a.pendingToasts, ui.Toast{
+		ID:          title,
+		Title:       title,
+		Description: detail,
+		Type:        "error",
+		Timeout:     errorToastTime,
+	})
+	a.update()
+}
+
 // SetToast shows a message near the bottom of the window once.
 func (a *App) SetToast(msg string) {
-	a.pendingToast = msg
+	a.pendingToasts = append(a.pendingToasts, ui.Toast{ID: msg, Title: msg})
 	a.update()
 }
 

@@ -2,7 +2,6 @@ package app
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -182,6 +181,40 @@ func (a *App) openPaths(paths []string, paneIdx int) {
 	})
 }
 
+// openFailure is a file a batch could not open, and why.
+type openFailure struct {
+	name   string
+	reason string
+}
+
+// reportOpenFailures tells in one toast what a batch of files could not
+// open: the file and the reason for one, the count and the reasons for
+// several, which a drop of a folder of images would otherwise stack.
+func (a *App) reportOpenFailures(failures []openFailure) {
+	if len(failures) == 0 {
+		return
+	}
+	a.onUI(func() {
+		if len(failures) == 1 {
+			f := failures[0]
+			a.SetErrorToast(locales.OpenFailed(f.name), f.reason)
+			return
+		}
+		// Three reasons at most: a batch usually shares one.
+		reasons := make([]string, 0, 3)
+		for _, f := range failures {
+			if len(reasons) == 3 {
+				break
+			}
+			if !slices.Contains(reasons, f.reason) {
+				reasons = append(reasons, f.reason)
+			}
+		}
+		a.SetErrorToast(locales.FilesFailedToOpen(len(failures)),
+			strings.Join(reasons, locales.ReasonSeparator()))
+	})
+}
+
 // loadPaths reads files and opens them, in paneIdx when it is a pane. It
 // runs on the UI thread, as openPaths calls it.
 func (a *App) loadPaths(paths []string, paneIdx int) {
@@ -195,11 +228,12 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 	}()
 	go func() {
 		var dirs, files []string
+		var failures []openFailure
 		for _, path := range paths {
 			info, err := os.Stat(path)
 			if err != nil {
 				a.endLoading(path)
-				a.fail(locales.OpenFailed(filepath.Base(path)), err)
+				failures = append(failures, openFailure{filepath.Base(path), err.Error()})
 				continue
 			}
 			if info.IsDir() {
@@ -220,7 +254,7 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 			doc, err := loadDocument(path, maxMB)
 			if err != nil {
 				a.endLoading(path)
-				a.fail(locales.OpenFailed(filepath.Base(path)), err)
+				failures = append(failures, openFailure{filepath.Base(path), err.Error()})
 				continue
 			}
 			log.Printf("open %s %s %d lines ro=%t %s", filepath.Base(path),
@@ -246,6 +280,7 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 				a.addDocumentAt(paneIdx, doc)
 			})
 		}
+		a.reportOpenFailures(failures)
 	}()
 }
 
@@ -518,7 +553,8 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 		started := time.Now()
 		data, err := writeDocument(tab.doc, path)
 		if err != nil {
-			a.fail(locales.SaveFailed(), err)
+			// The dialog is the one to act on; a toast under it would say
+			// the same twice.
 			mygo.Dialog.Error(locales.SaveFailed(), path+": "+err.Error())
 			return
 		}
@@ -550,5 +586,5 @@ func (a *App) fail(title string, err error) {
 	if err == nil {
 		return
 	}
-	a.onUI(func() { a.SetError(fmt.Sprintf("%s: %v", title, err)) })
+	a.onUI(func() { a.SetErrorToast(title, err.Error()) })
 }

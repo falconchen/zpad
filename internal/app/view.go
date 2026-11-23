@@ -55,10 +55,10 @@ func (a *App) View(c *ui.Context) {
 				a.renameModal(c, t)
 			}
 		}
-		if a.pendingToast != "" {
-			c.Toast(a.pendingToast)
-			a.pendingToast = ""
+		for _, t := range a.pendingToasts {
+			c.AddToast(t)
 		}
+		a.pendingToasts = nil
 	})
 }
 
