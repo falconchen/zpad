@@ -33,6 +33,9 @@ func (a *App) View(c *ui.Context) {
 	c.SetTheme(t)
 	c.SetMenuPresentation(ui.PopoverMenus)
 	if !a.showSettings && !a.aboutOpen && !a.renameOpen {
+		if c.Shortcut(ui.Cmd|ui.Shift, ui.KeyF) && !c.ShortcutRepeated() {
+			a.openSearchPanel()
+		}
 		if c.Shortcut(ui.Cmd|ui.Shift, ui.KeyV) && !c.ShortcutRepeated() {
 			a.ToggleMarkdownPreview()
 		}
@@ -61,6 +64,7 @@ func (a *App) View(c *ui.Context) {
 			a.aboutModal(c, t)
 			if !a.aboutOpen {
 				a.renameModal(c, t)
+				a.searchModal(c, t)
 			}
 		}
 		for _, t := range a.pendingToasts {
@@ -336,6 +340,28 @@ func pathTooltip(c *ui.Context, t *ui.Theme, anchor ui.Element, text string) {
 	})
 	// TooltipBase leaves the description to the caller, and assistive
 	// technology does not read the tip itself.
+	anchor.Description(text)
+}
+
+// tooltipBelow shows text under anchor, centered, as the controls at the
+// top of the search panel need: above them is the window's edge and the
+// dialog's own field. Element.Tooltip goes above, centered, unless there
+// is no room there, so this places the tip itself.
+func tooltipBelow(c *ui.Context, t *ui.Theme, anchor ui.Element, text string) {
+	if text == "" {
+		return
+	}
+	fill, ink := theme.Inverse(t)
+	ui.TooltipBase(c, anchor, func(tip ui.Element) {
+		tip.AttachTo(anchor, ui.AnchorBottom, ui.AnchorTop).Margin(4, 0, 0, 0).
+			MaxWidth(320).Padding(t.Space(1.25), t.Space(2)).
+			Radius(t.Space(1.25)).Background(fill).TextColor(ink).
+			FontSize(t.FontSize-1).
+			Shadow(0, 2, 8, 0, ui.RGBA(0, 0, 0, 0.2))
+		tip.Children(func() {
+			ui.Text(c, text)
+		})
+	})
 	anchor.Description(text)
 }
 

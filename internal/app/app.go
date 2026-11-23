@@ -150,6 +150,31 @@ type App struct {
 	renameErr   string
 	renameFocus bool
 
+	// The search across open documents: the panel, its query and toggles,
+	// the rows it shows, and the scan on its way. searchGen says which scan
+	// is current, so an older one's results are ignored; searchCancel stops
+	// one early.
+	searchOpen      bool
+	searchFocus     bool
+	searchQuery     string
+	searchCase      bool
+	searchWord      bool
+	searchRegex     bool
+	searchRows      []searchRow
+	searchFiles     int
+	searchSel       int
+	searchList      ui.ListState
+	searchBusy      bool
+	searchErr       string
+	searchTruncated bool
+	searchGen       uint64
+	searchCancel    chan struct{}
+	// searchRanFor and searchRanOptions are what the rows stand for: a
+	// query and toggles edited since then need Enter (or the search
+	// button) before the panel can jump to a result.
+	searchRanFor     string
+	searchRanOptions searchOptions
+
 	closePromptOpen bool
 	allowClose      bool
 	allowQuit       bool
@@ -442,6 +467,7 @@ func (a *App) removeTab(paneIdx, i int) {
 	if i < 0 || i >= len(p.tabs) {
 		return
 	}
+	doc := p.tabs[i].doc
 	p.tabs = append(p.tabs[:i], p.tabs[i+1:]...)
 	switch {
 	case len(p.tabs) == 0:
@@ -458,6 +484,7 @@ func (a *App) removeTab(paneIdx, i int) {
 	if paneIdx == a.activePane {
 		a.focusEditor = true
 	}
+	a.pruneSearchDocument(doc)
 	a.updateTitle()
 }
 

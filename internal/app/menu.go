@@ -65,6 +65,7 @@ func (a *App) menuItems() []*mygo.MenuItem {
 				tab.state.Run(editor.FindReplace)
 			}
 		}},
+		{Label: locales.SearchInOpenFilesEllipsis(), Accelerator: "CmdOrCtrl+Shift+F", Click: func(*mygo.MenuItem, *mygo.Window) { a.openSearchPanel() }},
 		{Label: locales.ShowHidden(), Type: mygo.MenuItemCheckbox, Checked: a.Settings.ShowHidden, Click: func(it *mygo.MenuItem, _ *mygo.Window) {
 			a.toggleHidden()
 			it.SetChecked(a.Settings.ShowHidden)

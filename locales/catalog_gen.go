@@ -656,6 +656,186 @@ func (msgs Messages) ReplaceEllipsis() string {
 	return Catalog.Format(msgs.locale, "replaceEllipsis", nil)
 }
 
+// SearchInOpenFiles says "Search in Open Files"
+// in the language the app shows.
+func SearchInOpenFiles() string { return In(i18n.Locale()).SearchInOpenFiles() }
+
+// SearchInOpenFiles says "Search in Open Files"
+// in the language of msgs.
+func (msgs Messages) SearchInOpenFiles() string {
+	return Catalog.Format(msgs.locale, "searchInOpenFiles", nil)
+}
+
+// SearchInOpenFilesEllipsis says "Search in Open Files…"
+// in the language the app shows.
+func SearchInOpenFilesEllipsis() string { return In(i18n.Locale()).SearchInOpenFilesEllipsis() }
+
+// SearchInOpenFilesEllipsis says "Search in Open Files…"
+// in the language of msgs.
+func (msgs Messages) SearchInOpenFilesEllipsis() string {
+	return Catalog.Format(msgs.locale, "searchInOpenFilesEllipsis", nil)
+}
+
+// SearchOpenFilesLabel says "Search open files"
+// in the language the app shows.
+func SearchOpenFilesLabel() string { return In(i18n.Locale()).SearchOpenFilesLabel() }
+
+// SearchOpenFilesLabel says "Search open files"
+// in the language of msgs.
+func (msgs Messages) SearchOpenFilesLabel() string {
+	return Catalog.Format(msgs.locale, "searchOpenFilesLabel", nil)
+}
+
+// SearchCaseSensitive says "Match Case"
+// in the language the app shows.
+func SearchCaseSensitive() string { return In(i18n.Locale()).SearchCaseSensitive() }
+
+// SearchCaseSensitive says "Match Case"
+// in the language of msgs.
+func (msgs Messages) SearchCaseSensitive() string {
+	return Catalog.Format(msgs.locale, "searchCaseSensitive", nil)
+}
+
+// SearchWholeWord says "Whole Word"
+// in the language the app shows.
+func SearchWholeWord() string { return In(i18n.Locale()).SearchWholeWord() }
+
+// SearchWholeWord says "Whole Word"
+// in the language of msgs.
+func (msgs Messages) SearchWholeWord() string {
+	return Catalog.Format(msgs.locale, "searchWholeWord", nil)
+}
+
+// SearchRegex says "Regular Expression"
+// in the language the app shows.
+func SearchRegex() string { return In(i18n.Locale()).SearchRegex() }
+
+// SearchRegex says "Regular Expression"
+// in the language of msgs.
+func (msgs Messages) SearchRegex() string {
+	return Catalog.Format(msgs.locale, "searchRegex", nil)
+}
+
+// SearchHint says "Search the text of every open tab"
+// in the language the app shows.
+func SearchHint() string { return In(i18n.Locale()).SearchHint() }
+
+// SearchHint says "Search the text of every open tab"
+// in the language of msgs.
+func (msgs Messages) SearchHint() string {
+	return Catalog.Format(msgs.locale, "searchHint", nil)
+}
+
+// SearchNavigateHint says "↑/↓ to choose · Enter to search or open"
+// in the language the app shows.
+func SearchNavigateHint() string { return In(i18n.Locale()).SearchNavigateHint() }
+
+// SearchNavigateHint says "↑/↓ to choose · Enter to search or open"
+// in the language of msgs.
+func (msgs Messages) SearchNavigateHint() string {
+	return Catalog.Format(msgs.locale, "searchNavigateHint", nil)
+}
+
+// SearchRun says "Search"
+// in the language the app shows.
+func SearchRun() string { return In(i18n.Locale()).SearchRun() }
+
+// SearchRun says "Search"
+// in the language of msgs.
+func (msgs Messages) SearchRun() string {
+	return Catalog.Format(msgs.locale, "searchRun", nil)
+}
+
+// SearchClear says "Clear"
+// in the language the app shows.
+func SearchClear() string { return In(i18n.Locale()).SearchClear() }
+
+// SearchClear says "Clear"
+// in the language of msgs.
+func (msgs Messages) SearchClear() string {
+	return Catalog.Format(msgs.locale, "searchClear", nil)
+}
+
+// SearchPressEnter says "Press Enter or click Search"
+// in the language the app shows.
+func SearchPressEnter() string { return In(i18n.Locale()).SearchPressEnter() }
+
+// SearchPressEnter says "Press Enter or click Search"
+// in the language of msgs.
+func (msgs Messages) SearchPressEnter() string {
+	return Catalog.Format(msgs.locale, "searchPressEnter", nil)
+}
+
+// SearchNoResults says "No results"
+// in the language the app shows.
+func SearchNoResults() string { return In(i18n.Locale()).SearchNoResults() }
+
+// SearchNoResults says "No results"
+// in the language of msgs.
+func (msgs Messages) SearchNoResults() string {
+	return Catalog.Format(msgs.locale, "searchNoResults", nil)
+}
+
+// SearchNoOpenFiles says "No open files to search"
+// in the language the app shows.
+func SearchNoOpenFiles() string { return In(i18n.Locale()).SearchNoOpenFiles() }
+
+// SearchNoOpenFiles says "No open files to search"
+// in the language of msgs.
+func (msgs Messages) SearchNoOpenFiles() string {
+	return Catalog.Format(msgs.locale, "searchNoOpenFiles", nil)
+}
+
+// Searching says "Searching…"
+// in the language the app shows.
+func Searching() string { return In(i18n.Locale()).Searching() }
+
+// Searching says "Searching…"
+// in the language of msgs.
+func (msgs Messages) Searching() string {
+	return Catalog.Format(msgs.locale, "searching", nil)
+}
+
+// SearchInvalidRegex says "Invalid regular expression"
+// in the language the app shows.
+func SearchInvalidRegex() string { return In(i18n.Locale()).SearchInvalidRegex() }
+
+// SearchInvalidRegex says "Invalid regular expression"
+// in the language of msgs.
+func (msgs Messages) SearchInvalidRegex() string {
+	return Catalog.Format(msgs.locale, "searchInvalidRegex", nil)
+}
+
+// SearchTruncated says "Showing the first matches only"
+// in the language the app shows.
+func SearchTruncated() string { return In(i18n.Locale()).SearchTruncated() }
+
+// SearchTruncated says "Showing the first matches only"
+// in the language of msgs.
+func (msgs Messages) SearchTruncated() string {
+	return Catalog.Format(msgs.locale, "searchTruncated", nil)
+}
+
+// SearchResults says "{count, plural, one {# result} other {# results}}"
+// in the language the app shows.
+func SearchResults(count int) string { return In(i18n.Locale()).SearchResults(count) }
+
+// SearchResults says "{count, plural, one {# result} other {# results}}"
+// in the language of msgs.
+func (msgs Messages) SearchResults(count int) string {
+	return Catalog.Format(msgs.locale, "searchResults", map[string]any{"count": count})
+}
+
+// SearchFiles says "{count, plural, one {# file} other {# files}}"
+// in the language the app shows.
+func SearchFiles(count int) string { return In(i18n.Locale()).SearchFiles(count) }
+
+// SearchFiles says "{count, plural, one {# file} other {# files}}"
+// in the language of msgs.
+func (msgs Messages) SearchFiles(count int) string {
+	return Catalog.Format(msgs.locale, "searchFiles", map[string]any{"count": count})
+}
+
 // CaseMenu says "Convert Case"
 // in the language the app shows.
 func CaseMenu() string { return In(i18n.Locale()).CaseMenu() }

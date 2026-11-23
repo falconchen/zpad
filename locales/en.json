@@ -94,6 +94,40 @@
   "find": "Find",
   "findEllipsis": "Find…",
   "replaceEllipsis": "Replace…",
+  "searchInOpenFiles": "Search in Open Files",
+  "searchInOpenFilesEllipsis": "Search in Open Files…",
+  "searchOpenFilesLabel": "Search open files",
+  "searchCaseSensitive": "Match Case",
+  "searchWholeWord": "Whole Word",
+  "searchRegex": "Regular Expression",
+  "searchHint": "Search the text of every open tab",
+  "searchNavigateHint": "↑/↓ to choose · Enter to search or open",
+  "searchRun": "Search",
+  "searchClear": "Clear",
+  "searchPressEnter": "Press Enter or click Search",
+  "searchNoResults": "No results",
+  "searchNoOpenFiles": "No open files to search",
+  "searching": "Searching…",
+  "searchInvalidRegex": "Invalid regular expression",
+  "searchTruncated": "Showing the first matches only",
+  "searchResults": "{count, plural, one {# result} other {# results}}",
+  "@searchResults": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "searchFiles": "{count, plural, one {# file} other {# files}}",
+  "@searchFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
   "caseMenu": "Convert Case",
   "upperCase": "Uppercase",
   "lowerCase": "Lowercase",

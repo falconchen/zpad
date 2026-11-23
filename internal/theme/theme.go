@@ -75,6 +75,19 @@ func FileTree(t *ui.Theme) *ui.Theme {
 	return &tree
 }
 
+// ResultList returns the palette of the search results: the chosen row is
+// a faint wash too, so the highlight of the match inside it stays visible.
+func ResultList(t *ui.Theme) *ui.Theme {
+	list := FileTree(t)
+	if t.Dark {
+		list.Accent = ui.RGBA(255, 255, 255, 0.1)
+	} else {
+		list.Accent = ui.RGBA(0, 0, 0, 0.07)
+	}
+	list.InactiveAccent = list.Accent
+	return list
+}
+
 func lightTheme() *ui.Theme {
 	t := ui.LightTheme()
 	t.Background = ui.Hex("#FFFFFF")
