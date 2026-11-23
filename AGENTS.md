@@ -8,10 +8,10 @@ ZPad 是一个基于 **MyGo 原生 UI** 的轻量级文本 / 代码编辑器。�
 - Module：`github.com/helloxz/zpad`
 - 应用名：**ZPad**
 - Bundle ID：**`com.xiaoz.zpad`**
-- 版本：`0.3.2`
+- 版本：`0.4.0`
 - 许可证：**AGPL-3.0**（对外分发前确认源码义务）
-- 平台顺序：**macOS 先跑通 → Windows（后续）→ Linux（最后）**
-- 当前状态：**0.3.2 已发布**；官网 <https://zpad.xphub.dev> 已上线
+- 平台：**macOS 与 Windows 已发布；Linux 已接入打包**（deb / rpm / tar.gz + `install.sh`）
+- 当前状态：**0.4.0 已发布**；官网 <https://zpad.xphub.dev> 已上线
 
 ## 技术栈
 
@@ -36,7 +36,7 @@ cd website && hugo server   # 官网，http://localhost:1313/
 ZPAD_SHOTS=/tmp/shots go test ./internal/app -run TestSiteScreenshots   # 重截官网截图
 ```
 
-产物沿用 `mygo build` 的默认命名：`build/darwin-arm64/ZPad.app`、`zpad-0.3.2-arm64.dmg`、`zpad-0.3.2-darwin-arm64.tar.gz`、`update-darwin-arm64.json`；Windows 为 `zpad-setup-0.3.2-amd64.exe`、`zpad-0.3.2-windows-amd64.tar.gz`、`update-windows-amd64.json`。CI 额外打一个 `zpad-0.3.2-windows-amd64-portable.zip`。不要重命名这些文件（见下）。
+产物沿用 `mygo build` 的默认命名：`build/darwin-arm64/ZPad.app`、`zpad-0.4.0-arm64.dmg`、`zpad-0.4.0-darwin-arm64.tar.gz`、`update-darwin-arm64.json`；Windows 为 `zpad-setup-0.4.0-amd64.exe`、`zpad-0.4.0-windows-amd64.tar.gz`、`update-windows-amd64.json`，CI 额外打一个 `zpad-0.4.0-windows-amd64-portable.zip`；Linux 为 `zpad_0.4.0_amd64.deb`、`zpad-0.4.0-1.x86_64.rpm`、`zpad-0.4.0-linux-amd64.tar.gz`、`update-linux-amd64.json`、`install.sh`（`linux.formats` 里没有 `pkgbuild`，所以不生成 PKGBUILD）。不要重命名这些文件（见下）。
 
 ## 产品需求（一期）
 
@@ -136,6 +136,8 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - **0.3.2**：首页空状态的快捷键提示按平台显示（macOS 为 `⌘`，Windows / Linux 为 `Ctrl+`），Markdown 预览与浏览器按钮的 tooltip 共用 `shortcutText`。已发布。
 - **跨文件搜索（后续增补）**：已实现。`⌘⇧F` 居中浮层搜索所有已打开标签，按文件分组，支持区分大小写、全词、正则。输入和切换选项后不自动搜索，按 `↵` 或点击右侧搜索按钮才扫描；结果是最新时 `↵` 打开选中项，`↑`/`↓` 选择。关闭面板保留关键词和结果，便于点开另一个结果；输入框末尾的 X 才清空；`Esc` 只关闭。关闭标签时同步剔除该文档的结果，避免结果引用住它的 `Buffer`。后台读 `Buffer` 快照扫描，结果上限每文件 200、全局 2000；预览标签跳转前切回源码；只覆盖打开标签，不读工作区磁盘文件。未发布。
 - **标签拖拽排序（后续增补）**：已实现。栏内拖动改变顺序，标签栏显示插入竖线；拖到另一栏的标签栏按落点位置插入，拖到编辑区仍追加到末尾；活动标签不因拖拽切换；文件拖到标签栏沿用追加并提示。未发布。
+- **Linux 打包（后续增补）**：已接入 `mygo build -platform linux/amd64`，产出 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`、`update-linux-amd64.json` 与 `install.sh`。`mygo.json` 的 `linux` 段：`webview: false`（不声明 WebKitGTK，只依赖 GTK3）、`formats` 只留 `deb` 与 `rpm`、命令名 `zpad`、维护者与分类。CI 新增 `Linux` 作业，`site` 作业改为等三个平台都上传完再补官网数据。官网下载页仍显示「即将上线」，没有对应的数据键。未发布。
+- **macOS 窗口最小化（后续增补）**：已实现。应用自带菜单栏原先没有 Window 菜单，`⌘M` 按下去没有反应；现在 macOS 的菜单栏多出「窗口 → 最小化」（`⌘M`），`⌘W` 仍只关闭标签，关窗行为不变。未发布。
 - **官网**：`website/` 的 Hugo 站点（首页、下载页、更新日志），中英双语、亮暗主题、下载链接随 release 自动更新；线上 <https://zpad.xphub.dev>。
 
 测试覆盖：编码、行尾、大小写、跨文件搜索的匹配规则与跳转、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、字体过滤、中英文案、编辑器 token 颜色、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸、标签拖拽重排与跨栏按位置插入。
@@ -154,7 +156,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 编码底层的错误详情可能仍为英文技术信息；主提示已本地化。
 - macOS 构建未签名、未公证；正式分发需 Apple Developer 账号。自更新不依赖 Apple 签名，但 ad-hoc 每次构建指纹不同，更新后 TCC 权限可能要重授。
 - 自动更新：0.3.0 是首个带更新器的版本，自身收不到更新，0.3.1 起可自更新；标准用户需装在 `~/Applications`，只读 DMG 或包管理器安装的实例 `Updater.Enabled()` 为 false；Windows 装在 `Program Files` 的机器级安装不能自更新；更新窗口不参与主窗口会话。
-- Windows 安装包只把 ZPad 登记到「打开方式」，默认应用需用户手动选择；Windows / Linux 打包尚未验证。
+- Windows 安装包只把 ZPad 登记到「打开方式」，默认应用需用户手动选择；Windows 打包尚未验证。Linux 的 deb / rpm 只在 macOS 上交叉构建过，还没在真实发行版上安装验证；用 `install.sh` 装到 `~/.local` 才能自更新，deb / rpm 装的由包管理器更新。
 - UTF-16 无 BOM 检测失败时通过状态栏手动切换编码，没有独立预览选择框。
 
 ## 工作流程

@@ -3,11 +3,13 @@ name: Release
 # A tag you push builds the apps and puts them in a draft release, which you
 # review and publish. macOS apps are signed ad hoc, which Gatekeeper blocks on
 # other Macs, and the Windows apps have no signature, which SmartScreen warns
-# about. Installed apps update themselves from the release's signed update
-# files, so publish it as the latest release, not a pre-release: the manifests
-# are fetched from releases/latest/download/. `mygo build -upload` uploads the
-# archives and deltas first and the manifests last. Artifacts keep the names
-# `mygo build` gives them; the portable Windows copy is the one addition.
+# about; the Linux apps ship as a .deb, a .rpm and a tarball with install.sh,
+# and only the tarball's install can update itself. Installed apps update
+# themselves from the release's signed update files, so publish it as the
+# latest release, not a pre-release: the manifests are fetched from
+# releases/latest/download/. `mygo build -upload` uploads the archives and
+# deltas first and the manifests last. Artifacts keep the names `mygo build`
+# gives them; the portable Windows copy is the one addition.
 on:
   push:
     tags: ["v*"]
@@ -106,13 +108,31 @@ jobs:
           gh release upload "$GITHUB_REF_NAME" \
             "build/zpad-$v-windows-amd64-portable.zip" --clobber
 
+  linux:
+    name: Linux
+    needs: draft
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      # MyGo draws the window itself and opens GTK through purego, so no GTK
+      # development packages are needed to build; the .deb and .rpm depend on
+      # the runtime libraries the package metadata names.
+      - name: Build and upload the app, its packages and update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
+        run: go tool mygo build -platform linux/amd64 -upload
+
   site:
     name: Update the site data
     # Publishing a release fires website.yml at once, before these apps have
     # uploaded anything, and that run skips an empty release. This job is the
     # one that actually points the site at the new version: it runs once the
     # files are there, whatever order you published in.
-    needs: [macos, windows]
+    needs: [macos, windows, linux]
     runs-on: ubuntu-latest
     permissions:
       actions: write

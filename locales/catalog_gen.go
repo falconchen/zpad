@@ -996,6 +996,16 @@ func (msgs Messages) MenuEncoding() string {
 	return Catalog.Format(msgs.locale, "menuEncoding", nil)
 }
 
+// MenuWindow says "Window"
+// in the language the app shows.
+func MenuWindow() string { return In(i18n.Locale()).MenuWindow() }
+
+// MenuWindow says "Window"
+// in the language of msgs.
+func (msgs Messages) MenuWindow() string {
+	return Catalog.Format(msgs.locale, "menuWindow", nil)
+}
+
 // MenuHelp says "Help"
 // in the language the app shows.
 func MenuHelp() string { return In(i18n.Locale()).MenuHelp() }
@@ -1004,6 +1014,16 @@ func MenuHelp() string { return In(i18n.Locale()).MenuHelp() }
 // in the language of msgs.
 func (msgs Messages) MenuHelp() string {
 	return Catalog.Format(msgs.locale, "menuHelp", nil)
+}
+
+// Minimize says "Minimize"
+// in the language the app shows.
+func Minimize() string { return In(i18n.Locale()).Minimize() }
+
+// Minimize says "Minimize"
+// in the language of msgs.
+func (msgs Messages) Minimize() string {
+	return Catalog.Format(msgs.locale, "minimize", nil)
 }
 
 // ViewLog says "View Log"

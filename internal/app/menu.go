@@ -119,6 +119,13 @@ func (a *App) menuItems() []*mygo.MenuItem {
 		{Label: locales.MenuView(), Submenu: viewMenu},
 		{Label: locales.MenuEncoding(), Submenu: encMenu},
 	}
+	// The app sets its own menu bar, so macOS has no Window menu unless one
+	// is added: without RoleMinimize, Cmd+M does nothing.
+	if runtime.GOOS == "darwin" {
+		items = append(items, &mygo.MenuItem{Label: locales.MenuWindow(), Submenu: []*mygo.MenuItem{
+			{Role: mygo.RoleMinimize, Label: locales.Minimize()},
+		}})
+	}
 	// RoleAppMenu is macOS only, so the other platforms get their About in
 	// a Help menu of their own.
 	if runtime.GOOS != "darwin" {

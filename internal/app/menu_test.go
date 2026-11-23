@@ -1,6 +1,7 @@
 package app
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/egoist/mygo"
@@ -70,6 +71,37 @@ func TestNewFileMenuAsksForAFrame(t *testing.T) {
 	}
 	if frames != 1 {
 		t.Fatalf("the menu asked for %d frames, want 1", frames)
+	}
+}
+
+// The app sets its own menu bar, so macOS would have no Window menu at all
+// and Cmd+M did nothing. RoleMinimize brings the shortcut back.
+func TestWindowMenuMinimizes(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	menu := mygo.NewMenu(a.menuItems())
+
+	var window *mygo.MenuItem
+	for _, it := range menu.Items() {
+		if it.Label == locales.MenuWindow() {
+			window = it
+			break
+		}
+	}
+	if runtime.GOOS != "darwin" {
+		if window != nil {
+			t.Fatalf("the menu bar has a %q menu on %s", locales.MenuWindow(), runtime.GOOS)
+		}
+		return
+	}
+	if window == nil || len(window.Submenu) == 0 {
+		t.Fatalf("the menu bar has no %q menu", locales.MenuWindow())
+	}
+	item := window.Submenu[0]
+	if item.Role != mygo.RoleMinimize {
+		t.Fatalf("%q starts with role %q, want %q", locales.MenuWindow(), item.Role, mygo.RoleMinimize)
+	}
+	if item.Accelerator != "CmdOrCtrl+M" {
+		t.Fatalf("minimize is %q, want CmdOrCtrl+M", item.Accelerator)
 	}
 }
 
