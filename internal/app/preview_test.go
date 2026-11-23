@@ -354,6 +354,66 @@ func TestMarkdownPreviewTableWidthFollowsFontSize(t *testing.T) {
 	}
 }
 
+func TestLongPreviewKeepsTheStatusBarOnScreen(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/README.md", strings.Repeat("## Section\n\nSome text.\n\n", 120)))
+	tt := ui.NewTester(a.View, 800, 600)
+	tt.Frame()
+	a.ToggleMarkdownPreview()
+	tt.Frame()
+
+	rect, ok := tt.Find(locales.PreviewMode())
+	if !ok {
+		t.Fatalf("the status bar does not show the preview mode; texts %q", tt.Texts())
+	}
+	if rect.Y < 0 || rect.Y+rect.H > 600 {
+		t.Fatalf("the status bar is outside the 800x600 window: %+v", rect)
+	}
+	if tab := a.activeTab(); tab.previewScroll.MaxY <= 0 {
+		t.Fatal("the preview does not scroll")
+	}
+
+	info, ok := tt.Access(locales.BackToSource())
+	if !ok {
+		t.Fatal("the status bar has no back-to-source button")
+	}
+	if info.Bounds.Y < 0 || info.Bounds.Y+info.Bounds.H > 600 {
+		t.Fatalf("the back-to-source button is outside the window: %+v", info.Bounds)
+	}
+}
+
+func TestPreviewTabEyeTogglesPreview(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/README.md", "# Hi"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	tab := a.activeTab()
+	if info, ok := tt.Access(locales.PreviewMarkdown() + ": README.md"); ok {
+		t.Fatalf("a source tab shows the preview eye: %+v", info)
+	}
+
+	a.ToggleMarkdownPreview()
+	tt.Frame()
+	if !tab.preview {
+		t.Fatal("the preview did not start")
+	}
+	if err := tt.Click(locales.BackToSource() + ": README.md"); err != nil {
+		t.Fatal(err)
+	}
+	if tab.preview {
+		t.Fatal("the tab eye did not return to the source")
+	}
+	if len(a.left.tabs) != 1 || a.left.tabs[0] != tab {
+		t.Fatalf("tabs %d after the eye click, want the same one", len(a.left.tabs))
+	}
+
+	tt.Frame()
+	if info, ok := tt.Access(locales.PreviewMarkdown() + ": README.md"); ok {
+		t.Fatalf("the source tab kept its preview eye: %+v", info)
+	}
+}
+
 func TestMarkdownPreviewLinkHandling(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
 	doc := docAt("/tmp/README.md", "# One")

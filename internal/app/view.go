@@ -537,7 +537,12 @@ func (a *App) content(c *ui.Context, t *ui.Theme) {
 		sp.Grow(1).FillWidth()
 		return
 	}
-	a.paneContent(c, t, 0)
+	// Grow(1) bounds the pane to the room left below the toolbar and the
+	// status bar: a long preview must scroll, not push the status bar out
+	// of the window.
+	ui.Box(c).Grow(1).FillWidth().MinHeight(0).Children(func() {
+		a.paneContent(c, t, 0)
+	})
 }
 
 // halfSplit returns the size of the first pane that leaves the two panes
@@ -579,7 +584,7 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 				}
 			}
 		}
-		drop := ui.Box(c).Grow(1).FillWidth().Children(func() {
+		drop := ui.Box(c).Grow(1).FillWidth().MinHeight(0).Children(func() {
 			if tab.preview {
 				sc := a.markdownPreview(c, t, tab, index, a.focusEditor && index == a.activePane)
 				if index != a.activePane && sc.FocusWithin() {
@@ -714,7 +719,15 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 			ui.Box(c).Size(6, 6).Radius(3).Background(t.Accent).Shrink(0)
 		}
 		if tab.preview {
-			ui.Icon(c, iconPreview).FontSize(11).TextColor(t.Accent).Shrink(0)
+			eye := ui.ButtonBase(c.Key(key+"-preview")).Size(16, 16).Center().Shrink(0).
+				Radius(4).Label(locales.BackToSource() + ": " + tab.doc.Name()).
+				Tooltip(locales.BackToSource()).Cursor(ui.CursorPointer)
+			eye.Children(func() {
+				ui.Icon(c, iconPreview).FontSize(11).TextColor(t.Accent)
+			})
+			if eye.Clicked() {
+				a.toggleTabPreview(tab)
+			}
 		}
 		ui.Text(c, tab.doc.Name()).FontSize(12).TextColor(text).SingleLine().
 			MaxWidth(tabTextWidth).TruncateMiddle()

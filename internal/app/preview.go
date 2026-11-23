@@ -157,10 +157,10 @@ func (a *App) markdownOptions(doc *Document, t *ui.Theme) *markdown.Options {
 func (a *App) markdownPreview(c *ui.Context, t *ui.Theme, tab *Tab, pane int, focus bool) ui.Element {
 	opts := a.markdownOptions(tab.doc, t)
 	sc := ui.Scroll(c).Key(fmt.Sprintf("markdown-preview-%s-%d", tab.doc.ID, pane)).
-		Grow(1).FillWidth().TrackScroll(&tab.previewScroll).Focusable()
+		Grow(1).FillWidth().MinHeight(0).TrackScroll(&tab.previewScroll).Focusable()
 	sc.Children(func() {
 		ui.Column(c).FillWidth().MaxWidth(markdownPreviewWidth).
-			AlignSelf(ui.Center).AlignItems(ui.Stretch).Padding(28, 32).
+			AlignSelf(ui.Center).AlignItems(ui.Stretch).Padding(28, 32, 40, 32).
 			Children(func() {
 				markdown.View(c, tab.doc.PreviewText(), opts)
 			})
