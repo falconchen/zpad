@@ -94,6 +94,8 @@ README 里的截图用同一套：`docs/screenshots/editor-light.png`、`editor-
 
 ## 下载数据
 
+首屏胶囊（`v0.4.0 已发布`）与首页「最近更新」都从 `data/release.json` 生成，`i18n` 里只有 `is_out` 这个词。不要在 `content/*.md` 的 front matter 里写版本号：0.3.2 那版就是手写在 `hero.eyebrow` 里，0.4.0 发布后官网还挂着旧版本号；`release_test.go` 的 `TestWebsiteHasNoHardcodedVersion` 现在会拦住这种写法。
+
 `data/release.json` 的结构：
 
 ```json

@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"image/png"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -162,6 +164,58 @@ func TestChangelogHasTheReleaseNotes(t *testing.T) {
 	}
 	if !strings.Contains(string(notes), "## "+cfg.Version) {
 		t.Fatalf("CHANGELOG.md has no section for %s", cfg.Version)
+	}
+}
+
+// The site's version comes from website/data/release.json, which the website
+// workflow rewrites when a release is published. A version typed into the copy
+// goes stale on the next release: the hero badge still said v0.3.2 after 0.4.0
+// shipped. Templates build the badge from the data, and nothing under website/
+// names a version by hand.
+func TestWebsiteHasNoHardcodedVersion(t *testing.T) {
+	// The icon SVGs are full of numbers like 1.02.08, so a template only counts
+	// as naming a version when it carries the v prefix the site uses.
+	templates := regexp.MustCompile(`\bv\d+\.\d+\.\d+`)
+	copyText := regexp.MustCompile(`\d+\.\d+\.\d+`)
+
+	var files []string
+	for _, glob := range []string{"website/content/*.md", "website/i18n/*.toml"} {
+		matched, err := filepath.Glob(glob)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(matched) == 0 {
+			t.Fatalf("%s matches nothing: is the site still there?", glob)
+		}
+		files = append(files, matched...)
+	}
+	err := filepath.WalkDir("website/layouts", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.HasSuffix(path, ".html") {
+			files = append(files, path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, path := range files {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		pattern := copyText
+		if strings.HasSuffix(path, ".html") {
+			pattern = templates
+		}
+		for i, line := range strings.Split(string(data), "\n") {
+			if m := pattern.FindString(line); m != "" {
+				t.Errorf("%s:%d names the version %q; derive it from website/data/release.json", path, i+1, m)
+			}
+		}
 	}
 }
 

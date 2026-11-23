@@ -2,7 +2,7 @@
 {{- $h := .Params.hero -}}
 <section class="hero">
   <div class="wrap hero-inner">
-    <p class="eyebrow">{{ $h.eyebrow }}</p>
+    <p class="eyebrow">{{ with hugo.Data.release }}v{{ .version }} {{ i18n "is_out" }}{{ end }}</p>
     <h1>{{ $h.title }}</h1>
     <p class="lead">{{ $h.lead }}</p>
     <div class="cta">
