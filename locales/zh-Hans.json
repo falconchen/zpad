@@ -185,6 +185,7 @@
     }
   },
   "untitled": "未命名",
+  "untitledN": "未命名 {n}",
   "lineColumn": "行 {line}, 列 {col}",
   "selectedCount": "已选 {count}",
   "textFiles": "文本文件",

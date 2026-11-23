@@ -156,11 +156,22 @@ func newUntitled(seq int, defaultEncoding string) *Document {
 	}
 }
 
+// name is what the tab, the title and the prompts call the document: a saved
+// file by its file name, an untitled one by the number it was created with.
+// The number stays as the other tabs close, so that a prompt naming one points
+// at it rather than at whichever tab moved into its place.
 func (d *Document) Name() string {
 	if d.Path == "" {
-		return locales.Untitled()
+		return d.untitledName()
 	}
 	return filepath.Base(d.Path)
+}
+
+func (d *Document) untitledName() string {
+	if d.UntitledSeq <= 0 {
+		return locales.Untitled()
+	}
+	return locales.UntitledN(d.UntitledSeq)
 }
 
 // saveName is the file name a save dialog starts with. An untitled
@@ -181,7 +192,7 @@ func (d *Document) saveName() string {
 // DisplayPath is the path relative to root when it is inside it.
 func (d *Document) DisplayPath(root string) string {
 	if d.Path == "" {
-		return locales.Untitled()
+		return d.untitledName()
 	}
 	if root != "" {
 		if rel, err := filepath.Rel(root, d.Path); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {

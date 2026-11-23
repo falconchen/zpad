@@ -1648,6 +1648,16 @@ func (msgs Messages) Untitled() string {
 	return Catalog.Format(msgs.locale, "untitled", nil)
 }
 
+// UntitledN says "Untitled {n}"
+// in the language the app shows.
+func UntitledN(n int) string { return In(i18n.Locale()).UntitledN(n) }
+
+// UntitledN says "Untitled {n}"
+// in the language of msgs.
+func (msgs Messages) UntitledN(n int) string {
+	return Catalog.Format(msgs.locale, "untitledN", map[string]any{"n": n})
+}
+
 // LineColumn says "Ln {line}, Col {col}"
 // in the language the app shows.
 func LineColumn(line int, col int) string { return In(i18n.Locale()).LineColumn(line, col) }

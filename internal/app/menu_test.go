@@ -50,6 +50,41 @@ func TestThemedMenusOpen(t *testing.T) {
 	}
 }
 
+// The menu runs outside the view, so a tab it adds owes the frame that shows
+// it: CmdOrCtrl+N pressed while Command stayed down used to add its tabs to a
+// view nothing rebuilt, and they appeared only once Command was let go.
+func TestNewFileMenuAsksForAFrame(t *testing.T) {
+	var frames int
+	old := askFrame
+	askFrame = func(*mygo.Window) { frames++ }
+	t.Cleanup(func() { askFrame = old })
+
+	a := New(settings.Default(), t.TempDir())
+	item := findMenuItem(a.menuItems(), locales.NewFile())
+	if item == nil || item.Click == nil {
+		t.Fatalf("the menu has no %q item with a click handler", locales.NewFile())
+	}
+	item.Click(item, nil)
+	if len(a.left.tabs) != 1 || a.left.active != 0 {
+		t.Fatalf("the menu added %d tabs, active %d, want one active tab", len(a.left.tabs), a.left.active)
+	}
+	if frames != 1 {
+		t.Fatalf("the menu asked for %d frames, want 1", frames)
+	}
+}
+
+func findMenuItem(items []*mygo.MenuItem, label string) *mygo.MenuItem {
+	for _, it := range items {
+		if it.Label == label {
+			return it
+		}
+		if found := findMenuItem(it.Submenu, label); found != nil {
+			return found
+		}
+	}
+	return nil
+}
+
 // The update item is ours rather than the plugin's: the plugin's label
 // would panic in tests, where the plugin is not used, and could not follow
 // the app's own language the way the rest of the menu does. Its click is

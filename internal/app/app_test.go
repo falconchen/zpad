@@ -3,6 +3,7 @@ package app
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -78,8 +79,28 @@ func TestTabs(t *testing.T) {
 	if len(a.left.tabs) != 1 || a.left.active != 0 {
 		t.Fatalf("after remove: tabs %d, active %d", len(a.left.tabs), a.left.active)
 	}
-	if a.left.tabs[0].doc.Name() != locales.Untitled() {
+	if a.left.tabs[0].doc.Name() != locales.UntitledN(1) {
 		t.Fatalf("tab name %q", a.left.tabs[0].doc.Name())
+	}
+}
+
+// New untitled documents are numbered, and the number stays as the tabs
+// around it close: a prompt that names one must keep pointing at it.
+func TestUntitledNamesKeepTheirNumbers(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.NewFile()
+	a.NewFile()
+	a.NewFile()
+	a.removeTab(0, 1) // 未命名 2
+	a.NewFile()
+
+	var names []string
+	for _, tab := range a.left.tabs {
+		names = append(names, tab.doc.Name())
+	}
+	want := []string{locales.UntitledN(1), locales.UntitledN(3), locales.UntitledN(4)}
+	if !slices.Equal(names, want) {
+		t.Fatalf("tab names %q, want %q", names, want)
 	}
 }
 

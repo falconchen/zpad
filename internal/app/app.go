@@ -319,10 +319,17 @@ func (a *App) onUI(fn func()) {
 	a.win.Update(fn)
 }
 
-func (a *App) update() {
-	if a.win != nil {
-		a.win.Update(func() {})
+// askFrame asks a window for a frame built anew. It is a variable so tests
+// can see that an action taken outside the view, as a menu item's, asked
+// for the frame showing what it changed.
+var askFrame = func(w *mygo.Window) {
+	if w != nil {
+		w.Update(func() {})
 	}
+}
+
+func (a *App) update() {
+	askFrame(a.win)
 }
 
 func (a *App) pane(i int) *Pane {

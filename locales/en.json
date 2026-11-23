@@ -265,6 +265,15 @@
     }
   },
   "untitled": "Untitled",
+  "untitledN": "Untitled {n}",
+  "@untitledN": {
+    "placeholders": {
+      "n": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "lineColumn": "Ln {line}, Col {col}",
   "@lineColumn": {
     "placeholders": {

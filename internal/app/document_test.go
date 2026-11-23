@@ -117,11 +117,14 @@ func TestDisplayPath(t *testing.T) {
 	if got := outside.DisplayPath(root); got != outside.Path {
 		t.Fatalf("outside path %q", got)
 	}
+	if got := (&Document{UntitledSeq: 2}).DisplayPath(root); got != locales.UntitledN(2) {
+		t.Fatalf("untitled path %q", got)
+	}
 }
 
 func TestNewUntitled(t *testing.T) {
 	doc := newUntitled(1, "gb18030")
-	if doc.Name() != locales.Untitled() || doc.Encoding != encoding.GB18030 {
+	if doc.Name() != locales.UntitledN(1) || doc.Encoding != encoding.GB18030 {
 		t.Fatalf("untitled %+v", doc)
 	}
 	if doc.Buffer.Modified() {
@@ -129,6 +132,10 @@ func TestNewUntitled(t *testing.T) {
 	}
 	if doc.ID != "untitled-1" || doc.UntitledSeq != 1 {
 		t.Fatalf("untitled id %q seq %d", doc.ID, doc.UntitledSeq)
+	}
+	// A document with no number still has a name.
+	if got := (&Document{}).Name(); got != locales.Untitled() {
+		t.Fatalf("unnumbered name %q", got)
 	}
 }
 

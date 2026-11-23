@@ -284,9 +284,11 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 	}()
 }
 
-// NewFile adds an untitled document.
+// NewFile adds an untitled document. The menu's CmdOrCtrl+N runs it with no
+// frame of the view around it, so it asks for the frame that shows the tab.
 func (a *App) NewFile() {
 	a.addDocument(a.newUntitledDocument())
+	a.update()
 }
 
 // Undo takes back the active buffer's last edit.
