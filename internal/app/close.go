@@ -127,6 +127,9 @@ func (a *App) closeTabs(paneIdx int, tabs []*Tab) {
 	if a.busy || len(tabs) == 0 {
 		return
 	}
+	// Snapshot the list: callers pass a slice of the pane's tab array, and
+	// removeTab shifts that array under us, which would skip tabs.
+	tabs = append([]*Tab(nil), tabs...)
 	docs := dirtyTabDocs(tabs)
 	if len(docs) == 0 {
 		// Closing from a tab's menu happens during a frame; remove the

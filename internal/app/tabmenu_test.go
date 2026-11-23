@@ -64,6 +64,35 @@ func TestTabMenuClosesTabsToTheRight(t *testing.T) {
 	}
 }
 
+// The two ranges pass a slice of the pane's tab array to closeTabs, the way
+// the menu does. The tests call closeTabs directly because the tester has no
+// window, so a removal asked for during a frame runs before the frame ends
+// instead of after it.
+func TestCloseTabsClosesEveryTabToTheRight(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	for _, name := range []string{"a", "b", "c", "d", "e"} {
+		a.addDocument(docAt("/tmp/"+name+".txt", name))
+	}
+	a.closeTabs(0, a.left.tabs[2:])
+	if got := tabNames(a.left.tabs); len(got) != 2 || got[0] != "a.txt" || got[1] != "b.txt" {
+		t.Fatalf("tabs %v after closing every tab to the right", got)
+	}
+}
+
+func TestCloseTabsClosesEveryTabToTheLeft(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	for _, name := range []string{"a", "b", "c", "d", "e"} {
+		a.addDocument(docAt("/tmp/"+name+".txt", name))
+	}
+	a.closeTabs(0, a.left.tabs[:3])
+	if got := tabNames(a.left.tabs); len(got) != 2 || got[0] != "d.txt" || got[1] != "e.txt" {
+		t.Fatalf("tabs %v after closing every tab to the left", got)
+	}
+	if active := a.left.activeTab(); active == nil || active.doc.Name() != "e.txt" {
+		t.Fatalf("active tab %d after closing every tab to the left, want e.txt", a.left.active)
+	}
+}
+
 func TestTabMenuClosesTabsToTheLeft(t *testing.T) {
 	a, tt := tabMenuApp(t, "a", "b", "c")
 	if err := tt.RightClick("b.txt"); err != nil {
