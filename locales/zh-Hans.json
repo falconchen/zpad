@@ -67,6 +67,7 @@
   "menuView": "显示",
   "menuEncoding": "编码",
   "menuHelp": "帮助",
+  "viewLog": "查看日志",
   "appearance": "外观",
   "language": "语言",
   "languageSystem": "跟随系统",
@@ -127,6 +128,15 @@
   "topPane": "上栏",
   "bottomPane": "下栏",
   "plainText": "纯文本",
+  "languageNoHighlight": "{language} · 未高亮",
+  "@languageNoHighlight": {
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Go"
+      }
+    }
+  },
   "untitled": "未命名",
   "lineColumn": "行 {line}, 列 {col}",
   "selectedCount": "已选 {count}",
@@ -160,6 +170,7 @@
   "readOnly": "只读",
   "opening": "正在打开…",
   "reloaded": "已从磁盘重新加载",
+  "noLog": "还没有写入日志",
   "externalChangeQuestion": "文件已被外部修改，要如何处理？",
   "reload": "重新加载",
   "keepMine": "保留我的修改",

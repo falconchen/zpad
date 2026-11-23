@@ -72,8 +72,10 @@ const Version = "0.1.0"
 type App struct {
 	Settings    settings.Settings
 	SettingsDir string
-	ThemeIndex  int // 0 light, 1 dark, 2 system
-	Dark        bool
+	// LogPath is where SetupLogging writes, "" when logging is off.
+	LogPath    string
+	ThemeIndex int // 0 light, 1 dark, 2 system
+	Dark       bool
 
 	win     *mygo.Window
 	running bool
@@ -133,6 +135,8 @@ type App struct {
 	closePromptOpen bool
 	allowClose      bool
 	allowQuit       bool
+	// viewLogged says the window size was logged, once, on the first frame.
+	viewLogged bool
 }
 
 // New returns an app with saved settings and the directory to save them
@@ -148,6 +152,7 @@ func New(s settings.Settings, settingsDir string) *App {
 	return &App{
 		Settings:     s,
 		SettingsDir:  settingsDir,
+		LogPath:      filepath.Join(settingsDir, LogName),
 		ThemeIndex:   idx,
 		Dark:         s.Theme == "dark",
 		treeSelected: -1,

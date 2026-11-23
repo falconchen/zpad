@@ -15,15 +15,15 @@ import (
 )
 
 func docAt(path, text string) *Document {
-	buf := editor.NewBuffer(text)
-	buf.SetLanguage(editor.LanguageFor(path))
-	return &Document{
+	doc := &Document{
 		ID:       path,
 		Path:     path,
-		Buffer:   buf,
+		Buffer:   editor.NewBuffer(text),
 		Encoding: encoding.UTF8,
 		Size:     int64(len(text)),
 	}
+	doc.setLanguage(path)
+	return doc
 }
 
 func TestToggleSplitDuplicatesAndMerges(t *testing.T) {

@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 	"os"
+	"runtime"
 	"runtime/debug"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -31,11 +33,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// The log carries what mygo says of the renderer, which a Windows build
+	// without a console would lose, and what the app did with big files.
+	logPath := app.SetupLogging(dir)
+
 	s, err := settings.Load(dir)
 	a := app.New(s, dir)
+	a.LogPath = logPath
 	if err != nil {
 		a.SetError(locales.LoadSettingsFailed() + ": " + err.Error())
 		log.Printf("load settings: %v", err)
+	}
+	if logPath != "" {
+		log.Printf("zpad %s %s/%s", app.Version, runtime.GOOS, runtime.GOARCH)
 	}
 	if err := settings.Ensure(dir, s); err != nil {
 		a.SetError(locales.SaveSettingsFailed() + ": " + err.Error())
@@ -67,7 +77,11 @@ func main() {
 			MinWidth:  800,
 			MinHeight: 520,
 			StateKey:  "main",
-			Content:   ui.View(a.View),
+			Content: ui.View(func(c *ui.Context) {
+				start := time.Now()
+				a.View(c)
+				app.NoteFrame(time.Since(start))
+			}),
 		})
 		a.Attach(win)
 		a.OpenCommandLine(os.Args[1:])

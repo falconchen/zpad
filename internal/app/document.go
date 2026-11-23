@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,9 +23,29 @@ type Document struct {
 	Path     string
 	Buffer   *editor.Buffer
 	Encoding encoding.Kind
+	// Language is the file's language, shown in the status bar; the buffer
+	// gets it only when the file is short enough to highlight.
+	Language *editor.Language
 	Size     int64
 	ModTime  time.Time
 	ReadOnly bool
+}
+
+// setLanguage gives the buffer the file's language, or none when the text
+// is too long to highlight, and remembers the language for the status bar.
+// It runs after the text is in the buffer: both reloads replace the text
+// first.
+func (d *Document) setLanguage(path string) {
+	d.Language = editor.LanguageFor(path)
+	if d.Language != nil && d.Buffer.LineCount() > maxLines {
+		// A file that long is read-only anyway, and highlighting it would
+		// keep the highlighter busy for seconds as it scrolls.
+		log.Printf("no highlight: %s %d lines > %d (%s)", filepath.Base(path),
+			d.Buffer.LineCount(), maxLines, d.Language.Name)
+		d.Buffer.SetLanguage(nil)
+		return
+	}
+	d.Buffer.SetLanguage(d.Language)
 }
 
 // loadDocument reads a file and detects its encoding.
@@ -100,15 +121,15 @@ func newDocument(path string, data []byte, kind encoding.Kind, size int64) (*Doc
 	if err != nil {
 		return nil, errors.New(locales.DecodeFailed())
 	}
-	buf := editor.NewBuffer(text)
-	buf.SetLanguage(editor.LanguageFor(path))
-	return &Document{
+	doc := &Document{
 		ID:       path,
 		Path:     path,
-		Buffer:   buf,
+		Buffer:   editor.NewBuffer(text),
 		Encoding: kind,
 		Size:     size,
-	}, nil
+	}
+	doc.setLanguage(path)
+	return doc, nil
 }
 
 func newUntitled(id string, defaultEncoding string) *Document {

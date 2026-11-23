@@ -83,6 +83,7 @@
   "menuView": "View",
   "menuEncoding": "Encoding",
   "menuHelp": "Help",
+  "viewLog": "View Log",
   "appearance": "Appearance",
   "language": "Language",
   "languageSystem": "Follow System",
@@ -191,6 +192,15 @@
   "topPane": "Top",
   "bottomPane": "Bottom",
   "plainText": "Plain Text",
+  "languageNoHighlight": "{language} · Not highlighted",
+  "@languageNoHighlight": {
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "Go"
+      }
+    }
+  },
   "untitled": "Untitled",
   "lineColumn": "Ln {line}, Col {col}",
   "@lineColumn": {
@@ -268,6 +278,7 @@
   "readOnly": "Read-Only",
   "opening": "Opening…",
   "reloaded": "Reloaded from disk",
+  "noLog": "No log has been written yet",
   "externalChangeQuestion": "The file changed on disk. What do you want to do?",
   "reload": "Reload",
   "keepMine": "Keep Mine",

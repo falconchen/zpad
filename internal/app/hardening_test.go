@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
@@ -33,6 +34,62 @@ func TestLargeFileOpensReadOnly(t *testing.T) {
 	tt := ui.NewTester(a.View, 900, 700)
 	if !tt.HasText(locales.ReadOnly()) {
 		t.Fatalf("status bar does not show read-only; texts %q", tt.Texts())
+	}
+}
+
+// TestLargeFileWithoutHighlight opens a code file too long to highlight:
+// the buffer keeps its text as plain text, while the status bar still names
+// the language and says it is not highlighted.
+func TestLargeFileWithoutHighlight(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "many.go")
+	if err := os.WriteFile(path, bytes.Repeat([]byte("x\n"), 600_000), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	doc, err := loadDocument(path, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if doc.Language == nil || doc.Language.Name != "Go" {
+		t.Fatalf("document language %v, want Go", doc.Language)
+	}
+	if doc.Buffer.Language() != nil {
+		t.Fatal("a file over 500,000 lines is highlighted")
+	}
+	a := New(settings.Default(), dir)
+	a.addDocument(doc)
+	tt := ui.NewTester(a.View, 900, 700)
+	if want := locales.LanguageNoHighlight("Go"); !tt.HasText(want) {
+		t.Fatalf("status bar does not show %q; texts %q", want, tt.Texts())
+	}
+}
+
+// TestSmallFileKeepsHighlight keeps the regression the other way: a file
+// below the limit still gets its language.
+func TestSmallFileKeepsHighlight(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "main.go")
+	if err := os.WriteFile(path, []byte("package main\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	doc, err := loadDocument(path, 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if doc.Buffer.Language() == nil {
+		t.Fatal("a short Go file is not highlighted")
+	}
+	if got := languageLabel(doc); got != "Go" {
+		t.Fatalf("status bar language %q, want Go", got)
+	}
+}
+
+// TestNoteFrameAllocatesNothing guards the per-frame cost of the frame log:
+// the hot path must not allocate, and must not write unless a frame ran
+// slow.
+func TestNoteFrameAllocatesNothing(t *testing.T) {
+	allocs := testing.AllocsPerRun(1000, func() { NoteFrame(time.Millisecond) })
+	if allocs > 0 {
+		t.Fatalf("NoteFrame allocates %v per frame, want 0", allocs)
 	}
 }
 

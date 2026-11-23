@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 	"unicode/utf8"
@@ -23,6 +24,11 @@ const (
 
 // View builds the window: toolbar, sidebar and content, status bar.
 func (a *App) View(c *ui.Context) {
+	if !a.viewLogged {
+		a.viewLogged = true
+		w, h := c.Size()
+		log.Printf("window %.0fx%.0f", w, h)
+	}
 	t := theme.For(a.Dark)
 	c.SetTheme(t)
 	c.SetMenuPresentation(ui.PopoverMenus)
@@ -912,7 +918,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 				ui.Text(c, doc.DisplayPath(a.root)).FontSize(11).TextColor(t.TextMuted).
 					MaxWidth(320).SingleLine()
 			}
-			ui.Text(c, languageName(doc)).FontSize(11).TextColor(t.TextMuted)
+			ui.Text(c, languageLabel(doc)).FontSize(11).TextColor(t.TextMuted)
 			if doc.ReadOnly {
 				ui.Text(c, locales.ReadOnly()).FontSize(11).TextColor(t.Warning)
 			}
@@ -972,11 +978,16 @@ func (a *App) paneLabel(i int) string {
 	return locales.LeftPane()
 }
 
-func languageName(doc *Document) string {
-	if lang := doc.Buffer.Language(); lang != nil {
-		return lang.Name
+// languageLabel names the document's language, noting the files too long to
+// highlight, whose buffer shows as plain text.
+func languageLabel(doc *Document) string {
+	if doc.Language == nil {
+		return locales.PlainText()
 	}
-	return locales.PlainText()
+	if doc.Buffer.Language() == nil {
+		return locales.LanguageNoHighlight(doc.Language.Name)
+	}
+	return doc.Language.Name
 }
 
 func eolLabel(eol string) string {

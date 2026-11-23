@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/locales"
 )
 
@@ -254,7 +253,7 @@ func (a *App) saveDocsForClose(docs []*Document, then func()) {
 				r.doc.Path = r.path
 				r.doc.ID = r.path
 				r.doc.Size = int64(len(r.data))
-				r.doc.Buffer.SetLanguage(editor.LanguageFor(r.path))
+				r.doc.setLanguage(r.path)
 				r.doc.Buffer.MarkSaved()
 			}
 			a.busy = false

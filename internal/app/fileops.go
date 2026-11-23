@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/locales"
 )
 
@@ -108,7 +107,7 @@ func (a *App) finishRename(old, newPath string) {
 			oldID := tab.doc.ID
 			tab.doc.Path = rebasePath(tab.doc.Path, old, newPath)
 			tab.doc.ID = tab.doc.Path
-			tab.doc.Buffer.SetLanguage(editor.LanguageFor(tab.doc.Path))
+			tab.doc.setLanguage(tab.doc.Path)
 			if a.revealDoc == oldID {
 				a.revealDoc = tab.doc.ID
 			}

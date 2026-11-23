@@ -3,6 +3,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/caseconv"
 	"github.com/helloxz/zpad/internal/encoding"
 	"github.com/helloxz/zpad/locales"
@@ -216,12 +216,16 @@ func (a *App) loadPaths(paths []string, paneIdx int) {
 			})
 		}
 		for _, path := range files {
+			started := time.Now()
 			doc, err := loadDocument(path, maxMB)
 			if err != nil {
 				a.endLoading(path)
 				a.fail(locales.OpenFailed(filepath.Base(path)), err)
 				continue
 			}
+			log.Printf("open %s %s %d lines ro=%t %s", filepath.Base(path),
+				formatSize(doc.Size), doc.Buffer.LineCount(), doc.ReadOnly,
+				time.Since(started).Round(time.Millisecond))
 			if doc.ReadOnly {
 				res, err := mygo.Dialog.Message(mygo.MessageOptions{
 					Parent:        a.win,
@@ -286,6 +290,19 @@ func (a *App) SaveAsActive() {
 // record the path without opening the file manager.
 var showItemInFolder = mygo.Shell.ShowItemInFolder
 
+// OpenLog opens the diagnostic log in a tab: what mygo said of the
+// renderer, the files opened, and the frames that ran slow.
+func (a *App) OpenLog() {
+	if a.LogPath == "" {
+		return
+	}
+	if _, err := os.Stat(a.LogPath); err != nil {
+		a.SetToast(locales.NoLog())
+		return
+	}
+	a.OpenPaths([]string{a.LogPath})
+}
+
 // canRevealActive reports whether the active tab has a file on disk to show
 // in the file manager: an untitled document has no directory.
 func (a *App) canRevealActive() bool {
@@ -345,14 +362,16 @@ func (a *App) ReopenWithEncoding(kind encoding.Kind) {
 func (a *App) reloadAs(tab *Tab, kind encoding.Kind) {
 	path := tab.doc.Path
 	go func() {
+		started := time.Now()
 		doc, err := loadDocumentWith(path, kind, a.Settings.LargeFileMB)
 		if err != nil {
 			a.fail(locales.ReopenFailed(), err)
 			return
 		}
+		log.Printf("reload %s %s", filepath.Base(path), time.Since(started).Round(time.Millisecond))
 		a.onUI(func() {
 			tab.doc.Buffer.Reset(doc.Buffer.String())
-			tab.doc.Buffer.SetLanguage(editor.LanguageFor(path))
+			tab.doc.setLanguage(path)
 			tab.doc.Encoding = kind
 			tab.doc.Size = doc.Size
 			tab.doc.ModTime = doc.ModTime
@@ -496,12 +515,15 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 			}
 		}
 
+		started := time.Now()
 		data, err := writeDocument(tab.doc, path)
 		if err != nil {
 			a.fail(locales.SaveFailed(), err)
 			mygo.Dialog.Error(locales.SaveFailed(), path+": "+err.Error())
 			return
 		}
+		log.Printf("save %s %d bytes %s", filepath.Base(path), len(data),
+			time.Since(started).Round(time.Millisecond))
 		var modTime time.Time
 		if info, statErr := os.Stat(path); statErr == nil {
 			modTime = info.ModTime()
@@ -511,7 +533,7 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 			tab.doc.ID = path
 			tab.doc.Size = int64(len(data))
 			tab.doc.ModTime = modTime
-			tab.doc.Buffer.SetLanguage(editor.LanguageFor(path))
+			tab.doc.setLanguage(path)
 			tab.doc.Buffer.MarkSaved()
 			if saveAs {
 				a.setDocReadOnly(tab.doc, false)

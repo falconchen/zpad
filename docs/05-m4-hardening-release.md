@@ -309,6 +309,9 @@ Windows / Linux 单实例（同日追加）：
 - 新增 `theme.FileTree`、`locales.allTabs`、`internal/app/tabbar_test.go`，以及滚动条 / 树主题单测。
 - 内存优化（实测 Activity Monitor 物理占用）：`main.go` 把 Go 堆目标设为 `debug.SetGCPercent(50)`，堆高水位从 24–28 MB 降到 14 MB；About 的 1024×1024 图标改为首次打开对话框时解码。同一会话（7+1 个文档、最大化 1920×995、焦点移走后稳定）空载从 80–87 MB 降到 68–73 MB，新启动空载 62 MB 不变。
 - 大文件内存：`Document` 原先把 `os.ReadFile` 的整份字节存在 `Raw` 里，但全项目没有读取处（外部修改检测用 `Size` + `ModTime`，保存从 `Buffer` 重新编码，重载与换编码会重新读盘）。删掉字段和 3 处赋值后，打开期间内存里只剩 rope 一份文本：20 万行 / 13.8 MB 的文档存活堆 44 MB → 20 MB，119 MB / 15 万行的文件 355 MB → 178 MB，约 1.1 倍文件大小；`GODEBUG=gctrace=1` 核对过，行为不变。
+- 诊断日志（`internal/app/log.go`）：写到用户数据目录的 `zpad.log`，`log.SetOutput(io.MultiWriter(文件, stderr))`，文件排在前面，Windows 上 stderr 无效时也能落盘；启动时超过 1 MB 轮转成 `zpad.log.1`，最多两个文件；`ZPAD_LOG=off` 关闭，`ZPAD_LOG=<路径>` 换位置。记录启动版本 / 平台、窗口大小、打开 / 重载 / 保存的耗时与大小、关闭高亮的判定，以及 MyGo 自己打印的渲染器日志——Windows 打包版是 `-H=windowsgui`，没有控制台，`mygo: DirectComposition draws with WARP` 这类信息只能从这里看到。菜单「查看日志」（macOS 应用菜单、其他平台 Help）用编辑器打开它。
+- 慢帧统计：`app.NoteFrame` 包在 `ui.View` 外，每帧只做一次 `time.Since` 和定长数组写入，**0 次分配**（`TestNoteFrameAllocatesNothing` 用 `testing.AllocsPerRun` 守住）；只有出现 > 12 ms 的帧才每 10 秒写一行 `frames 10s: n=… p50=… p95=… max=… slow=…`，正常运行时日志保持安静（`TestFastFramesStayQuiet`）。前 10 帧不计，避免首帧塑形的噪声。
+- 大文件不高亮：`Document.setLanguage` 在行数超过 `maxLines`（50 万，与只读阈值同一个数）时只把语言记在 `Document.Language` 上，`Buffer` 设为 nil；打开、两处重载、保存、保存全部、重命名六处统一走它，避免保存或改名后高亮「复活」。状态栏用 `locales.LanguageNoHighlight` 显示「Go · 未高亮」，普通文件不变。
 - 试过关闭全部标签后 `debug.FreeOSMemory` + `SetMemoryLimit`，实测 `HeapReleased` 只增加约 3 MB、Activity Monitor 无变化，已去掉，保持改动最小。
 - `go test ./...`、`go vet ./...`、`go build ./...` 通过。
 

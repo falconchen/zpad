@@ -92,6 +92,8 @@ docs/                      需求、里程碑、实现记录与签收
 
 - `editor.Buffer` **只接受 UTF-8**；所有文件编码转换必须走 `internal/encoding`。
 - `Document` 不保存文件原始字节：打开期间内存里只有 rope 一份文本（约 1.1 倍文件大小）；外部修改检测比 `Size` + `ModTime`，保存从 `Buffer` 重新编码，别为了「保险」再存一份原文。
+- 诊断日志写到用户数据目录的 `zpad.log`（1 MB 轮转，`ZPAD_LOG=off` 关闭，`ZPAD_LOG=<路径>` 换位置）。MyGo 的渲染器日志（Windows 上是否回退 WARP）只有这里能看到；慢帧统计 `app.NoteFrame` 每帧零分配，正常运行时保持安静。
+- 超过 50 万行的文件不给 `Buffer` 设语言（高亮会拖慢滚动），`Document.Language` 只用于状态栏；改语言一律走 `Document.setLanguage`，不要直接调 `Buffer.SetLanguage`。
 - 同一文件在左右栏时复用同一个 `*Document`；每个标签各自持有 `editor.State`。
 - 所有 UI / App 状态修改在主线程；文件读写与原生对话框在 goroutine，完成后用 `win.Update` 回到主线程。
 - 脏文档按 `*Document` 去重；关闭协调器用 `closePromptOpen` / `allowClose` / `allowQuit` 防止重复弹窗。

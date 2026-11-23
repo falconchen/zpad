@@ -1,10 +1,12 @@
 package app
 
 import (
+	"log"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/egoist/mygo"
-	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/locales"
 )
 
@@ -91,20 +93,28 @@ func (a *App) findTab(doc *Document) *Tab {
 }
 
 func (a *App) reloadExternal(doc *Document) {
+	started := time.Now()
 	loaded, err := loadDocumentWith(doc.Path, doc.Encoding, a.Settings.LargeFileMB)
 	if err != nil {
 		a.fail(locales.ReopenFailed(), err)
 		return
 	}
+	if doc.Path != a.LogPath {
+		// Reloading the log itself, which grows as it is read, is not
+		// worth a line of it each focus.
+		log.Printf("reload %s %s", filepath.Base(doc.Path), time.Since(started).Round(time.Millisecond))
+	}
 	a.onUI(func() {
 		doc.Buffer.Reset(loaded.Buffer.String())
-		doc.Buffer.SetLanguage(editor.LanguageFor(doc.Path))
+		doc.setLanguage(doc.Path)
 		doc.Encoding = loaded.Encoding
 		doc.Size = loaded.Size
 		doc.ModTime = loaded.ModTime
 		a.setDocReadOnly(doc, loaded.ReadOnly)
 		doc.Buffer.MarkSaved()
 		a.updateTitle()
-		a.SetToast(locales.Reloaded())
+		if doc.Path != a.LogPath {
+			a.SetToast(locales.Reloaded())
+		}
 	})
 }

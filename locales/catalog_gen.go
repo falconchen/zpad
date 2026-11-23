@@ -704,6 +704,16 @@ func (msgs Messages) MenuHelp() string {
 	return Catalog.Format(msgs.locale, "menuHelp", nil)
 }
 
+// ViewLog says "View Log"
+// in the language the app shows.
+func ViewLog() string { return In(i18n.Locale()).ViewLog() }
+
+// ViewLog says "View Log"
+// in the language of msgs.
+func (msgs Messages) ViewLog() string {
+	return Catalog.Format(msgs.locale, "viewLog", nil)
+}
+
 // Appearance says "Appearance"
 // in the language the app shows.
 func Appearance() string { return In(i18n.Locale()).Appearance() }
@@ -1304,6 +1314,18 @@ func (msgs Messages) PlainText() string {
 	return Catalog.Format(msgs.locale, "plainText", nil)
 }
 
+// LanguageNoHighlight says "{language} · Not highlighted"
+// in the language the app shows.
+func LanguageNoHighlight(language string) string {
+	return In(i18n.Locale()).LanguageNoHighlight(language)
+}
+
+// LanguageNoHighlight says "{language} · Not highlighted"
+// in the language of msgs.
+func (msgs Messages) LanguageNoHighlight(language string) string {
+	return Catalog.Format(msgs.locale, "languageNoHighlight", map[string]any{"language": language})
+}
+
 // Untitled says "Untitled"
 // in the language the app shows.
 func Untitled() string { return In(i18n.Locale()).Untitled() }
@@ -1632,6 +1654,16 @@ func Reloaded() string { return In(i18n.Locale()).Reloaded() }
 // in the language of msgs.
 func (msgs Messages) Reloaded() string {
 	return Catalog.Format(msgs.locale, "reloaded", nil)
+}
+
+// NoLog says "No log has been written yet"
+// in the language the app shows.
+func NoLog() string { return In(i18n.Locale()).NoLog() }
+
+// NoLog says "No log has been written yet"
+// in the language of msgs.
+func (msgs Messages) NoLog() string {
+	return Catalog.Format(msgs.locale, "noLog", nil)
 }
 
 // ExternalChangeQuestion says "The file changed on disk. What do you want to do?"
