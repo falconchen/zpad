@@ -44,14 +44,16 @@ func (msgs Messages) AppTagline() string {
 	return Catalog.Format(msgs.locale, "appTagline", nil)
 }
 
-// ShortcutsHint says "⌘O Open File · ⌘⇧O Open Folder · ⌘N New File"
+// ShortcutsHint says "{open} Open File · {openFolder} Open Folder · {new} New File"
 // in the language the app shows.
-func ShortcutsHint() string { return In(i18n.Locale()).ShortcutsHint() }
+func ShortcutsHint(open string, openFolder string, new string) string {
+	return In(i18n.Locale()).ShortcutsHint(open, openFolder, new)
+}
 
-// ShortcutsHint says "⌘O Open File · ⌘⇧O Open Folder · ⌘N New File"
+// ShortcutsHint says "{open} Open File · {openFolder} Open Folder · {new} New File"
 // in the language of msgs.
-func (msgs Messages) ShortcutsHint() string {
-	return Catalog.Format(msgs.locale, "shortcutsHint", nil)
+func (msgs Messages) ShortcutsHint(open string, openFolder string, new string) string {
+	return Catalog.Format(msgs.locale, "shortcutsHint", map[string]any{"open": open, "openFolder": openFolder, "new": new})
 }
 
 // AboutApp says "About ZPad"

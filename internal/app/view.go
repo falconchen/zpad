@@ -928,7 +928,11 @@ func (a *App) emptyState(c *ui.Context, t *ui.Theme) {
 				a.NewFile()
 			}
 		})
-		ui.Text(c, locales.ShortcutsHint()).FontSize(11).TextColor(t.TextMuted)
+		ui.Text(c, locales.ShortcutsHint(
+			shortcutText("CmdOrCtrl+O"),
+			shortcutText("CmdOrCtrl+Shift+O"),
+			shortcutText("CmdOrCtrl+N"),
+		)).FontSize(11).TextColor(t.TextMuted)
 	})
 }
 

@@ -3,7 +3,7 @@
 ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器：
 单窗口、左右双栏、每栏多标签，不启动 WebView，全部界面由 Go 绘制。
 
-当前阶段：**0.3.1 发布命名调整，等待发布**。
+当前阶段：**0.3.2 平台快捷键提示，等待发布**。
 
 ## 文档索引
 
@@ -74,6 +74,7 @@ ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / �
 | 2026-11-23 | Markdown 原生预览：标签内切换源码 / 预览（`⌘⇧V`），状态栏语言旁与标签右键菜单也可切换；分屏可源码 + 预览，支持 GFM、代码高亮、本地图片和链接；上限约 1 MB / 1 万行，原始 HTML、MDX、远程图片不渲染。 |
 | 2026-11-23 | 自动更新（0.3.0）：接入 MyGo 内置更新器与原生更新窗口，Ed25519 签名、GitHub Releases、增量包；菜单新增「检查更新…」；发布流程见 [06-auto-update.md](./06-auto-update.md)。 |
 | 2026-11-23 | 0.3.1：发布产物改用 `mygo build` 默认命名（`zpad-0.3.1-arm64.dmg`、`zpad-setup-0.3.1-amd64.exe` 等），不再重命名；CI 改用 `-upload`；macOS 不再额外提供 zip。 |
+| 2026-11-23 | 0.3.2：首页空状态的快捷键提示按平台显示，macOS 为 `⌘O` / `⌘⇧O` / `⌘N`，Windows 与 Linux 为 `Ctrl+O` / `Ctrl+Shift+O` / `Ctrl+N`；快捷键文案统一由 `internal/app/shortcut.go` 的 `shortcutText` 渲染，Markdown 预览与浏览器按钮的 tooltip 也走它。 |
 
 ## 环境
 

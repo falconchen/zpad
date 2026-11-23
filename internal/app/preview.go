@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/egoist/mygo"
@@ -212,10 +211,7 @@ func (a *App) previewButton(c *ui.Context, t *ui.Theme, tab *Tab) {
 // markdownPreviewShortcut is the shortcut that toggles the preview, as its
 // tooltip shows it.
 func markdownPreviewShortcut() string {
-	if runtime.GOOS == "darwin" {
-		return "⌘⇧V"
-	}
-	return "Ctrl+Shift+V"
+	return shortcutText("CmdOrCtrl+Shift+V")
 }
 
 // openMarkdownLink follows a link clicked in a preview: headings scroll

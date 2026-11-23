@@ -1,7 +1,23 @@
 {
   "@@locale": "en",
   "appTagline": "Open a file or folder to start editing",
-  "shortcutsHint": "⌘O Open File · ⌘⇧O Open Folder · ⌘N New File",
+  "shortcutsHint": "{open} Open File · {openFolder} Open Folder · {new} New File",
+  "@shortcutsHint": {
+    "placeholders": {
+      "open": {
+        "type": "String",
+        "example": "⌘O"
+      },
+      "openFolder": {
+        "type": "String",
+        "example": "⌘⇧O"
+      },
+      "new": {
+        "type": "String",
+        "example": "⌘N"
+      }
+    }
+  },
   "aboutApp": "About ZPad",
   "checkForUpdates": "Check for Updates…",
   "aboutTagline": "A lightweight text editor that works out of the box",

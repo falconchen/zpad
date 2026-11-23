@@ -1,7 +1,7 @@
 {
   "name": "ZPad",
   "identifier": "com.xiaoz.zpad",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "out": "build",
   "resourcesExclude": ["icon.png"],
   "updates": {

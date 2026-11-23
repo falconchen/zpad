@@ -3,7 +3,7 @@
 基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器。
 单窗口、左右或上下双栏、每栏多标签，不启动 WebView，界面全部由 Go 绘制。
 
-当前进度：**0.3.1 自动更新**。功能、设置、双语、分屏、会话、打包与自动更新均已完成；0.3.0 已发布，0.3.1 待发布。
+当前进度：**0.3.2 平台快捷键提示**。功能、设置、双语、分屏、会话、打包与自动更新均已完成；0.3.1 已发布，0.3.2 待发布。
 
 ## 截图
 
@@ -120,14 +120,14 @@ go tool mygo build
 
 产物沿用 `mygo build` 的默认命名，不再重命名（CI 用 `-upload` 直接上传）：
 
-- `zpad-0.3.1-arm64.dmg`、`zpad-0.3.1-amd64.dmg`
-- `zpad-setup-0.3.1-amd64.exe`
-- `zpad-0.3.1-windows-amd64-portable.zip`（CI 额外打的 Windows 绿色版）
+- `zpad-0.3.2-arm64.dmg`、`zpad-0.3.2-amd64.dmg`
+- `zpad-setup-0.3.2-amd64.exe`
+- `zpad-0.3.2-windows-amd64-portable.zip`（CI 额外打的 Windows 绿色版）
 
 自动更新的文件由 `mygo build` 生成，**不能改名**（manifest 里写死了 URL）：
 
-- `zpad-0.3.1-darwin-arm64.tar.gz`、`zpad-0.3.1-darwin-amd64.tar.gz`、`zpad-0.3.1-windows-amd64.tar.gz`
-- 增量包 `zpad-<旧版本>-to-0.3.1-<平台>.delta`
+- `zpad-0.3.2-darwin-arm64.tar.gz`、`zpad-0.3.2-darwin-amd64.tar.gz`、`zpad-0.3.2-windows-amd64.tar.gz`
+- 增量包 `zpad-<旧版本>-to-0.3.2-<平台>.delta`
 - 清单 `update-darwin-arm64.json`、`update-darwin-amd64.json`、`update-windows-amd64.json`
 
 发布构建需要 `MYGO_UPDATER_PRIVATE_KEY`（`mygo keygen` 生成的 `mygo-update.key`，同时作为仓库 secret）。`mygo build -upload` 会先上传安装包与 `.tar.gz` / `.delta`，最后上传 manifest；在 GitHub 上把 draft 发布为 **latest**（不要勾 pre-release）。详细流程见 [docs/06-auto-update.md](./docs/06-auto-update.md)。

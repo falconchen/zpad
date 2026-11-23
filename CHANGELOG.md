@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+### 修复
+
+- 首页空状态的快捷键提示不再固定写成 macOS 的 ⌘：Windows 与 Linux 显示 `Ctrl+O`、`Ctrl+Shift+O`、`Ctrl+N`；Markdown 预览与「在浏览器中打开」的 tooltip 也按同一规则显示。
+
 ## 0.3.1
 
 ### 打包

@@ -8,10 +8,10 @@ ZPad 是一个基于 **MyGo 原生 UI** 的轻量级文本 / 代码编辑器。�
 - Module：`github.com/helloxz/zpad`
 - 应用名：**ZPad**
 - Bundle ID：**`com.xiaoz.zpad`**
-- 版本：`0.3.1`
+- 版本：`0.3.2`
 - 许可证：**AGPL-3.0**（对外分发前确认源码义务）
 - 平台顺序：**macOS 先跑通 → Windows（后续）→ Linux（最后）**
-- 当前状态：**0.3.0 已发布；0.3.1 待发布**
+- 当前状态：**0.3.1 已发布；0.3.2 待发布**
 
 ## 技术栈
 
@@ -34,7 +34,7 @@ go tool mygo generate  # 改了 locales/*.json 后重新生成 catalog_gen.go
 go tool mygo build   # 打包 macOS .app / .dmg
 ```
 
-产物沿用 `mygo build` 的默认命名：`build/darwin-arm64/ZPad.app`、`zpad-0.3.1-arm64.dmg`、`zpad-0.3.1-darwin-arm64.tar.gz`、`update-darwin-arm64.json`；Windows 为 `zpad-setup-0.3.1-amd64.exe`、`zpad-0.3.1-windows-amd64.tar.gz`、`update-windows-amd64.json`。CI 额外打一个 `zpad-0.3.1-windows-amd64-portable.zip`。不要重命名这些文件（见下）。
+产物沿用 `mygo build` 的默认命名：`build/darwin-arm64/ZPad.app`、`zpad-0.3.2-arm64.dmg`、`zpad-0.3.2-darwin-arm64.tar.gz`、`update-darwin-arm64.json`；Windows 为 `zpad-setup-0.3.2-amd64.exe`、`zpad-0.3.2-windows-amd64.tar.gz`、`update-windows-amd64.json`。CI 额外打一个 `zpad-0.3.2-windows-amd64-portable.zip`。不要重命名这些文件（见下）。
 
 ## 产品需求（一期）
 
@@ -124,6 +124,7 @@ docs/                      需求、里程碑、实现记录与签收
 - **M4 加固、文件关联与 macOS 发布**：0.1.0 已发布。大文件只读、编码边界、外部修改检测、文件关联、正式图标、`.app` / `.dmg`。
 - **Markdown 原生预览（后续增补）**：已实现。标签内切换、状态栏 / 快捷键 / 右键菜单、分屏源码 + 预览、本地图片、链接、代码高亮；上限约 1 MB / 1 万行。
 - **自动更新（0.3.0 起）**：已实现。GitHub Releases + Ed25519 签名 + 原生更新窗口 + 增量包；菜单「检查更新…」；发布流程见 `docs/06-auto-update.md`。0.3.1 是第一个可自更新的版本，产物改用 `mygo` 默认命名。
+- **0.3.2**：首页空状态的快捷键提示按平台显示（macOS 为 `⌘`，Windows / Linux 为 `Ctrl+`），Markdown 预览与浏览器按钮的 tooltip 共用 `shortcutText`。
 
 测试覆盖：编码、行尾、大小写、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、字体过滤、中英文案、编辑器 token 颜色、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸。
 

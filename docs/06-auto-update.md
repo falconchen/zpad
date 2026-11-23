@@ -1,7 +1,7 @@
 # 06 · 自动更新（0.3.0 起）
 
 > 前置：0.3.0 已发布
-> 目标版本：0.3.0 / 0.3.1
+> 目标版本：0.3.0 / 0.3.1 / 0.3.2
 
 ## 1. 目标
 
@@ -51,11 +51,11 @@ GitHub Releases：`updates.github = "helloxz/zpad"`，默认 `tagPrefix` 为 `v`
 
 | 文件 | 说明 |
 | --- | --- |
-| `zpad-0.3.1-arm64.dmg`、`zpad-0.3.1-amd64.dmg` | `mygo build` 默认命名，CI 不改名 |
-| `zpad-setup-0.3.1-amd64.exe` | `mygo build` 默认命名 |
-| `zpad-0.3.1-windows-amd64-portable.zip` | CI 额外打的 Windows 绿色版，唯一非 MyGo 产物 |
-| `zpad-0.3.1-darwin-arm64.tar.gz` | 不可改名：manifest 里写死了 URL |
-| `zpad-<旧版本>-to-0.3.1-<target>.delta` | 不可改名 |
+| `zpad-0.3.2-arm64.dmg`、`zpad-0.3.2-amd64.dmg` | `mygo build` 默认命名，CI 不改名 |
+| `zpad-setup-0.3.2-amd64.exe` | `mygo build` 默认命名 |
+| `zpad-0.3.2-windows-amd64-portable.zip` | CI 额外打的 Windows 绿色版，唯一非 MyGo 产物 |
+| `zpad-0.3.2-darwin-arm64.tar.gz` | 不可改名：manifest 里写死了 URL |
+| `zpad-<旧版本>-to-0.3.2-<target>.delta` | 不可改名 |
 | `update-<target>.json` | 不可改名：应用从 `releases/latest/download/` 固定读取 |
 
 `zpad` 前缀来自 `mygo.json` 的 `slug`（默认应用名小写），平台目标为 `darwin-arm64`、`darwin-amd64`、`windows-amd64` 等。0.3.1 起不再把 dmg / exe 改成 `ZPad-...`，所有 MyGo 产物原样上传；macOS 也不再额外提供 `.zip`。
@@ -99,7 +99,7 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 - `.github/workflows/release.yml`：构建带私钥并直接用 `-upload` 上传，不再重命名安装包；Windows 额外打绿色版并排除安装包与更新文件。
 - `release_test.go`：公钥合法性、更新源与 CHANGELOG 版本小节。
 - `internal/app/menu_test.go`：菜单存在「检查更新…」且有回调（不点击，避免测试中未注册插件）。
-- `CHANGELOG.md`：0.3.0 与 0.3.1 小节。
+- `CHANGELOG.md`：0.3.0、0.3.1 与 0.3.2 小节。
 - 文档：本文件、`docs/README.md`、`README.md`、`AGENTS.md`。
 
 密钥（2026-11-23 生成，`mygo keygen`）：
@@ -109,13 +109,13 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 
 ## 7. 验收清单
 
-- [ ] 0.3.1 发布后，「检查更新…」在中文 / 英文下都显示正确文案。
+- [ ] 0.3.2 发布后，「检查更新…」在中文 / 英文下都显示正确文案。
 - [ ] 开发版点击「检查更新…」提示不能更新，并说明原因。
-- [ ] 安装的 0.3.0 在启动后或手动检查时发现 0.3.1。
-- [ ] 更新窗口显示 0.3.1 的 `CHANGELOG.md` 小节，可安装、稍后提醒、跳过。
-- [ ] 安装后重启，版本号变为 0.3.1，会话恢复、未保存提示行为正常。
-- [ ] 0.3.1 自身检查时显示「已是最新」，不再出现 404。
-- [ ] 0.3.2 发布时生成 `0.3.1-to-0.3.2` 增量包，下载失败时回退完整包。
+- [ ] 安装的 0.3.1 在启动后或手动检查时发现 0.3.2。
+- [ ] 更新窗口显示 0.3.2 的 `CHANGELOG.md` 小节，可安装、稍后提醒、跳过。
+- [ ] 安装后重启，版本号变为 0.3.2，首页快捷键提示按平台显示（Windows / Linux 为 `Ctrl+`），会话恢复、未保存提示行为正常。
+- [ ] 0.3.2 自身检查时显示「已是最新」，不再出现 404。
+- [ ] 0.3.3 发布时生成 `0.3.2-to-0.3.3` 增量包，下载失败时回退完整包。
 - [ ] 已安装目录不可写时，更新窗口说明不能更新。
 - [ ] 未保存文档存在时点「安装并重启」，先出现 ZPad 的保存提示；取消后更新在下次启动生效。
 

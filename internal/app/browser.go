@@ -2,7 +2,6 @@ package app
 
 import (
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/egoist/mygo"
@@ -27,10 +26,7 @@ func isHTMLPath(path string) bool {
 // openInBrowserShortcut is the shortcut that opens the active HTML file in
 // the browser, as its tooltip shows it.
 func openInBrowserShortcut() string {
-	if runtime.GOOS == "darwin" {
-		return "⌘⇧B"
-	}
-	return "Ctrl+Shift+B"
+	return shortcutText("CmdOrCtrl+Shift+B")
 }
 
 // canOpenInBrowser reports whether the active tab has an HTML file to open

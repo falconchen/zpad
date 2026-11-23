@@ -1,7 +1,7 @@
 {
   "@@locale": "zh-Hans",
   "appTagline": "打开文件或文件夹开始编辑",
-  "shortcutsHint": "⌘O 打开文件 · ⌘⇧O 打开文件夹 · ⌘N 新建文件",
+  "shortcutsHint": "{open} 打开文件 · {openFolder} 打开文件夹 · {new} 新建文件",
   "aboutApp": "关于 ZPad",
   "checkForUpdates": "检查更新…",
   "aboutTagline": "开箱即用的轻量级文本编辑器",
