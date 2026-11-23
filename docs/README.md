@@ -3,7 +3,7 @@
 ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器：
 单窗口、左右双栏、每栏多标签，不启动 WebView，全部界面由 Go 绘制。
 
-当前阶段：**M4 已实现，等待 0.1.0 签收**。
+当前阶段：**0.3.0 自动更新已实现，等待验证与签收**。
 
 ## 文档索引
 
@@ -15,6 +15,7 @@ ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / �
 | [03-m2-split-session.md](./03-m2-split-session.md) | M2 左右双栏与会话恢复 |
 | [04-m3-appearance-settings.md](./04-m3-appearance-settings.md) | M3 视觉、设置、字体与中英双语 |
 | [05-m4-hardening-release.md](./05-m4-hardening-release.md) | M4 加固、文件关联与 macOS 发布 |
+| [06-auto-update.md](./06-auto-update.md) | 自动更新：签名、GitHub Releases、原生更新窗口 |
 
 ## 里程碑总览
 
@@ -71,6 +72,7 @@ ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / �
 | 2026-11-23 | 新建文件另存为的默认名改为英文 `untitled-N.txt`（N 为创建序号），保存框起始目录改为工作区根目录，无工作区时用主目录；标签栏仍显示「未命名」。 |
 | 2026-11-23 | 文件类动作移到状态栏：「在文件管理器中显示」跟在路径旁，HTML「在浏览器中打开」跟在语言旁（`⌘⇧B`）；标签右键菜单保留两项，未命名文件不显示定位按钮。 |
 | 2026-11-23 | Markdown 原生预览：标签内切换源码 / 预览（`⌘⇧V`），状态栏语言旁与标签右键菜单也可切换；分屏可源码 + 预览，支持 GFM、代码高亮、本地图片和链接；上限约 1 MB / 1 万行，原始 HTML、MDX、远程图片不渲染。 |
+| 2026-11-23 | 自动更新（0.3.0）：接入 MyGo 内置更新器与原生更新窗口，Ed25519 签名、GitHub Releases、增量包；菜单新增「检查更新…」；发布流程见 [06-auto-update.md](./06-auto-update.md)。 |
 
 ## 环境
 

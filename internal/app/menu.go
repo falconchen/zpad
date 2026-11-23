@@ -4,6 +4,7 @@ import (
 	"runtime"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/plugins/updater"
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/caseconv"
 	"github.com/helloxz/zpad/internal/encoding"
@@ -98,6 +99,7 @@ func (a *App) menuItems() []*mygo.MenuItem {
 	// would not open. The rest of the menu keeps the platform roles.
 	appMenu := &mygo.MenuItem{Role: mygo.RoleAppMenu, Submenu: []*mygo.MenuItem{
 		{Label: locales.AboutApp(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openAbout() }},
+		{Label: locales.CheckForUpdates(), Click: func(*mygo.MenuItem, *mygo.Window) { updater.CheckForUpdates() }},
 		{Label: locales.ViewLog(), Disabled: a.LogPath == "", Click: func(*mygo.MenuItem, *mygo.Window) { a.OpenLog() }},
 		mygo.Separator(),
 		{Role: mygo.RoleServices},
@@ -121,6 +123,7 @@ func (a *App) menuItems() []*mygo.MenuItem {
 	if runtime.GOOS != "darwin" {
 		items = append(items, &mygo.MenuItem{Label: locales.MenuHelp(), Submenu: []*mygo.MenuItem{
 			{Label: locales.AboutApp(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openAbout() }},
+			{Label: locales.CheckForUpdates(), Click: func(*mygo.MenuItem, *mygo.Window) { updater.CheckForUpdates() }},
 			{Label: locales.ViewLog(), Disabled: a.LogPath == "", Click: func(*mygo.MenuItem, *mygo.Window) { a.OpenLog() }},
 		}})
 	}

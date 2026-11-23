@@ -3,7 +3,7 @@
 基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器。
 单窗口、左右或上下双栏、每栏多标签，不启动 WebView，界面全部由 Go 绘制。
 
-当前进度：**M4 加固与 macOS 发布**。功能、设置、双语、分屏、会话与打包均已完成，0.1.0 已发布，0.2.0 待发布。
+当前进度：**0.3.0 自动更新**。功能、设置、双语、分屏、会话、打包与自动更新均已完成；0.2.0 已发布，0.3.0 待发布。
 
 ## 截图
 
@@ -33,7 +33,7 @@ go tool mygo build   # 打包 macOS 应用
 
 ```
 .
-├── main.go                 # 应用入口：设置、窗口、主题源
+├── main.go                 # 应用入口：设置、窗口、主题源、更新插件
 ├── fonts.go                # 嵌入并注册 JetBrains Mono
 ├── fonts/                  # JetBrains Mono TTF + OFL
 ├── mygo.json               # 应用名称 / 标识 / 版本 / 文件关联
@@ -61,6 +61,7 @@ go tool mygo build   # 打包 macOS 应用
 - [M2 左右双栏与会话恢复](./docs/03-m2-split-session.md)
 - [M3 视觉、设置、字体与中英双语](./docs/04-m3-appearance-settings.md)
 - [M4 加固、文件关联与 macOS 发布](./docs/05-m4-hardening-release.md)
+- [自动更新](./docs/06-auto-update.md)
 - [CHANGELOG](./CHANGELOG.md)
 
 ## 快捷键
@@ -109,6 +110,7 @@ go tool mygo build   # 打包 macOS 应用
 - 外部修改检测：窗口聚焦时比较 mtime / size，未修改自动重载，有修改时选择重载 / 保留 / 另存为。
 - 文件关联：文本 / 数据 / 源码共 86 个扩展名；支持 Finder、拖拽、命令行打开。
 - 文件保存失败、只读目录、文件被删除等错误处理。
+- 自动更新：从 GitHub Releases 检查新版本，原生窗口显示发布说明并安装；更新包用 Ed25519 签名校验，支持增量下载。菜单「ZPad / 帮助 → 检查更新…」可手动检查。
 
 ## macOS 发布
 
@@ -118,18 +120,27 @@ go tool mygo build
 
 产物（`go tool mygo build` 后统一改名到 `build/release/`，见 `.github/workflows/release.yml`）：
 
-- `ZPad-0.2.0-macos-arm64.dmg`、`ZPad-0.2.0-macos-arm64.zip`
-- `ZPad-0.2.0-macos-amd64.dmg`、`ZPad-0.2.0-macos-amd64.zip`
-- `ZPad-0.2.0-windows-amd64-setup.exe`、`ZPad-0.2.0-windows-amd64-portable.zip`
+- `ZPad-0.3.0-macos-arm64.dmg`、`ZPad-0.3.0-macos-arm64.zip`
+- `ZPad-0.3.0-macos-amd64.dmg`、`ZPad-0.3.0-macos-amd64.zip`
+- `ZPad-0.3.0-windows-amd64-setup.exe`、`ZPad-0.3.0-windows-amd64-portable.zip`
+
+自动更新的文件由 `mygo build` 生成，**不能改名**（manifest 里写死了 URL）：
+
+- `zpad-0.3.0-darwin-arm64.tar.gz`、`zpad-0.3.0-darwin-amd64.tar.gz`、`zpad-0.3.0-windows-amd64.tar.gz`
+- 增量包 `zpad-<旧版本>-to-0.3.0-<平台>.delta`
+- 清单 `update-darwin-arm64.json`、`update-darwin-amd64.json`、`update-windows-amd64.json`
+
+发布构建需要 `MYGO_UPDATER_PRIVATE_KEY`（`mygo keygen` 生成的 `mygo-update.key`，同时作为仓库 secret）。CI 先上传安装包，再上传 `.tar.gz` / `.delta`，最后上传 manifest；在 GitHub 上把 draft 发布为 **latest**。详细流程见 [docs/06-auto-update.md](./docs/06-auto-update.md)。
 
 `mygo.json` 已声明 `fileAssociations`：`Text Document`（txt / md / html / css / json / yaml / xml / diff 等）与 `Source Code`（go / py / rs / js / ts / c / cpp / java / rb / php / lua / sh / sql / vue / svelte 等），共 86 个扩展名。构建后 Finder 双击对应文件可用 ZPad 打开；如系统未立即刷新关联，可重新登录或清理 LaunchServices 缓存。macOS 的 `CFBundleDocumentTypes` 由 MyGo 写入 `LSHandlerRank: Default`，与系统已有默认程序冲突时以用户选择为准。
 
-当前构建未签名、未公证。首次打开可能被 Gatekeeper 拦截：右键应用选择“打开”，或在系统设置中允许。正式分发需要 Apple Developer 账号并完成签名 / 公证。
+当前构建未签名、未公证。首次打开可能被 Gatekeeper 拦截：右键应用选择“打开”，或在系统设置中允许。正式分发需要 Apple Developer 账号并完成签名 / 公证。自更新不依赖 Apple 签名（更新包由 Ed25519 验签），但 ad-hoc 签名每次构建都会变化，更新后 macOS 可能要求重新授予文件访问等权限。
 
 ## 当前限制
 
 - 全局搜索在二期；外部修改只做窗口聚焦时的 mtime 检查，不含完整监听与三方合并。
 - Markdown 预览上限约 1 MB / 1 万行；预览内查找、滚动同步、目录 / TOC、MDX、远程图片、frontmatter 和数学 / Mermaid 渲染未做；预览模式不写入会话，重启后按源码恢复；宽表格在窄栏内横向滚动（单列上限约 600px）。
+- 自动更新：0.3.0 是第一个带更新器的版本，它自己收不到更新；开发版（`mygo dev` / `go run`）不能更新。标准用户需把应用装在 `~/Applications`（`/Applications` 需要管理员权限），从只读 DMG 直接运行也无法自更新。
 - 标签中键关闭、拖拽排序未实现。
 - 设置修改立即写盘，未做防抖。
 - 超过 50 万行的文件只读；大文件不参与会话恢复的完整滚动精度。

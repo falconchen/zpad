@@ -64,6 +64,16 @@ func (msgs Messages) AboutApp() string {
 	return Catalog.Format(msgs.locale, "aboutApp", nil)
 }
 
+// CheckForUpdates says "Check for Updates…"
+// in the language the app shows.
+func CheckForUpdates() string { return In(i18n.Locale()).CheckForUpdates() }
+
+// CheckForUpdates says "Check for Updates…"
+// in the language of msgs.
+func (msgs Messages) CheckForUpdates() string {
+	return Catalog.Format(msgs.locale, "checkForUpdates", nil)
+}
+
 // AboutTagline says "A lightweight text editor that works out of the box"
 // in the language the app shows.
 func AboutTagline() string { return In(i18n.Locale()).AboutTagline() }

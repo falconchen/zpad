@@ -8,10 +8,10 @@ ZPad 是一个基于 **MyGo 原生 UI** 的轻量级文本 / 代码编辑器。�
 - Module：`github.com/helloxz/zpad`
 - 应用名：**ZPad**
 - Bundle ID：**`com.xiaoz.zpad`**
-- 版本：`0.2.0`
+- 版本：`0.3.0`
 - 许可证：**AGPL-3.0**（对外分发前确认源码义务）
 - 平台顺序：**macOS 先跑通 → Windows（后续）→ Linux（最后）**
-- 当前状态：**0.1.0 已发布；0.2.0 待发布**
+- 当前状态：**0.1.0、0.2.0 已发布；0.3.0 待发布（自动更新）**
 
 ## 技术栈
 
@@ -34,7 +34,7 @@ go tool mygo generate  # 改了 locales/*.json 后重新生成 catalog_gen.go
 go tool mygo build   # 打包 macOS .app / .dmg
 ```
 
-产物：`build/darwin-arm64/ZPad.app`，以及统一命名的 `ZPad-0.2.0-macos-arm64.dmg` / `.zip`。
+产物：`build/darwin-arm64/ZPad.app`，以及统一命名的 `ZPad-0.3.0-macos-arm64.dmg` / `.zip`。同一目录还有自动更新文件：`zpad-0.3.0-<target>.tar.gz`、`.delta`、`update-<target>.json`（名字不可改，见下）。
 
 ## 产品需求（一期）
 
@@ -56,6 +56,7 @@ go tool mygo build   # 打包 macOS .app / .dmg
 - 标签右键菜单：关闭当前 / 左侧 / 右侧、移动到主 / 副窗口、复制到主 / 副窗口；已保存文件另有「在文件管理器中显示」，HTML 另有「在浏览器中打开」，Markdown 另有「预览 Markdown / 返回源码」；右键不切换活动标签，未分屏且只有一个标签时禁止移动到副窗口；批量关闭未保存文档只弹一次汇总提示。
 - 「打开的文件」列表对已保存文件提供同样的文件操作；弹窗菜单在窗口内用主题绘制，顶部菜单栏保持原生。
 - 文件关联、拖拽打开；文件关联在 M4 完成。
+- 自动更新：应用从 GitHub Releases（`helloxz/zpad`）检查新版本，原生更新窗口显示发布说明并安装；更新包用 Ed25519 签名校验；菜单「检查更新…」可手动触发。开发版不能更新。
 
 非目标：LSP、调试器、Git 集成、插件系统、云同步、HTML 内嵌预览、移动端。HTML 文件可从状态栏或标签右键菜单（或 `⌘⇧B`）在系统浏览器中打开；Markdown 原生预览已实现，全局搜索与预览滚动同步放二期。
 
@@ -103,6 +104,9 @@ docs/                      需求、里程碑、实现记录与签收
 - 会话只保存有路径的文件；未命名文件不持久化。
 - 单实例用 `mygo.App.RequestSingleInstanceLock()`（`main` 开头）+ `mygo.App.OnSecondInstance(a.HandleSecondInstance)`：第二进程立即退出，第一个实例前置窗口后打开传来的文件 / 文件夹。参数由应用自己解析（MyGo 只转发 `fileAssociations` 里登记的扩展名），`openPaths` 用 `beginLoading` / `endLoading` 的「正在读取」集合保证同一路径只读一次。
 - 版本只在 `mygo.json`：`main` 里 `app.SetVersion(mygo.App.Version())` 注入，状态栏与关于对话框读 `app.Version`；不要在 Go 代码里再写一份版本号（`go test` / `go run` 下显示 `dev`）。
+- 自动更新用 MyGo 内置链路：`mygo.json` 的 `updates` 提供 Ed25519 公钥与 GitHub 仓库；`main` 调用 `mygo.Use(native.New(updater.Options{Icon: appIconPNG}))`，不要换成 WebView 版插件。菜单项用 `locales.CheckForUpdates()` + `updater.CheckForUpdates()`，不要用 `updater.MenuItem()`：后者在未注册插件的测试里会 panic，文案也不走本项目 catalogs。
+- 更新文件 `<slug>-<版本>-<target>.tar.gz`、`.delta`、`update-<target>.json` 的 URL 写在 manifest 里，不能改名；`ZPad-<版本>-<平台>-<架构>.dmg` / `.zip` / `setup.exe` 可以照旧改名。发布时先传安装包与更新包，manifest 最后，release 必须发布为 latest（`releases/latest/download/` 才能读到）。
+- 更新私钥只在 `~/Library/Application Support/mygo/update-keys/mygo-update.key` 和 GitHub secret `MYGO_UPDATER_PRIVATE_KEY`；不要提交、不要打印。私钥丢失后，已安装的用户无法再收到更新。发布构建缺私钥会跳过签名，只适合本地打包。
 - 强制外观用 `mygo.Theme.SetSource`，UI 主题用 `c.SetTheme` / `ui.Themed`。
 - 失败提示分两类：用户动作的一次性结果（打开 / 重新打开 / 对话框失败）用 `SetErrorToast(title, detail)`，走 toast 队列，6 秒自动消失、悬停暂停、Esc 关闭；`SetError` 只用于文档还开着、需要用户处理的保存 / 关闭失败（状态栏红字，下一次成功打开时清零）。不要把一次性结果写进 `errMsg`，否则它会一直留在状态栏。
 - 弹窗菜单统一 `c.SetMenuPresentation(ui.PopoverMenus)` 在窗口内绘制；顶部系统菜单栏保持原生。侧栏树菜单用 `PopoverMenu` + `sidebarMenuOptions`，避免继承文件树的选中样式。
@@ -119,8 +123,9 @@ docs/                      需求、里程碑、实现记录与签收
 - **M3 视觉、设置、字体与中英双语**：已签收。完整主题、设置面板、JetBrains Mono、中英切换、查找栏 / 跳行栏样式。
 - **M4 加固、文件关联与 macOS 发布**：0.1.0 已发布。大文件只读、编码边界、外部修改检测、文件关联、正式图标、`.app` / `.dmg`。
 - **Markdown 原生预览（后续增补）**：已实现。标签内切换、状态栏 / 快捷键 / 右键菜单、分屏源码 + 预览、本地图片、链接、代码高亮；上限约 1 MB / 1 万行。
+- **自动更新（0.3.0）**：已实现，待验证 / 签收。GitHub Releases + Ed25519 签名 + 原生更新窗口 + 增量包；菜单「检查更新…」；发布流程见 `docs/06-auto-update.md`。
 
-测试覆盖：编码、行尾、大小写、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、字体过滤、中英文案、编辑器 token 颜色、大文件只读、只读目录保存失败、外部重载、文件关联配置、图标尺寸。
+测试覆盖：编码、行尾、大小写、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、字体过滤、中英文案、编辑器 token 颜色、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸。
 
 ## 已知限制 / 后续
 
@@ -134,7 +139,8 @@ docs/                      需求、里程碑、实现记录与签收
 - 关闭 / 退出对话框仍需人工点选验证。
 - 分隔线宽度在切换分屏 / 关闭时保存，不在拖拽每一帧写盘。
 - 编码底层的错误详情可能仍为英文技术信息；主提示已本地化。
-- macOS 构建未签名、未公证；正式分发需 Apple Developer 账号。
+- macOS 构建未签名、未公证；正式分发需 Apple Developer 账号。自更新不依赖 Apple 签名，但 ad-hoc 每次构建指纹不同，更新后 TCC 权限可能要重授。
+- 自动更新：0.3.0 是首个带更新器的版本，自身收不到更新；标准用户需装在 `~/Applications`，只读 DMG 或包管理器安装的实例 `Updater.Enabled()` 为 false；Windows 装在 `Program Files` 的机器级安装不能自更新；更新窗口不参与主窗口会话。
 - Windows 安装包只把 ZPad 登记到「打开方式」，默认应用需用户手动选择；Windows / Linux 打包尚未验证。
 - UTF-16 无 BOM 检测失败时通过状态栏手动切换编码，没有独立预览选择框。
 

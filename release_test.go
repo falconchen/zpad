@@ -1,10 +1,13 @@
 package main
 
 import (
+	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"image/png"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/helloxz/zpad/internal/app"
@@ -107,6 +110,60 @@ func TestVersionIsAReleaseVersion(t *testing.T) {
 
 // releaseVersion is what the tag of a release names, as v1.2.3.
 var releaseVersion = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
+
+// Installed apps accept only updates signed with the private half of the
+// key here, and find their manifests in the latest release of updates.github:
+// both are compiled into the app by mygo build.
+func TestUpdatesAreConfigured(t *testing.T) {
+	data, err := os.ReadFile("mygo.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg struct {
+		Updates *struct {
+			PublicKey string `json:"publicKey"`
+			GitHub    string `json:"github"`
+		} `json:"updates"`
+	}
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	if cfg.Updates == nil {
+		t.Fatal("mygo.json has no updates: the app cannot update itself")
+	}
+	key, err := base64.StdEncoding.DecodeString(cfg.Updates.PublicKey)
+	if err != nil {
+		t.Fatalf("updates.publicKey is not base64: %v", err)
+	}
+	if len(key) != ed25519.PublicKeySize {
+		t.Fatalf("updates.publicKey is %d bytes, want an Ed25519 key of %d", len(key), ed25519.PublicKeySize)
+	}
+	if cfg.Updates.GitHub != "helloxz/zpad" {
+		t.Fatalf("updates.github is %q, want helloxz/zpad", cfg.Updates.GitHub)
+	}
+}
+
+// The update window shows the version's section of CHANGELOG.md, which mygo
+// build writes into the manifests: a version without one fails the build.
+func TestChangelogHasTheReleaseNotes(t *testing.T) {
+	data, err := os.ReadFile("mygo.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		t.Fatal(err)
+	}
+	notes, err := os.ReadFile("CHANGELOG.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(notes), "## "+cfg.Version) {
+		t.Fatalf("CHANGELOG.md has no section for %s", cfg.Version)
+	}
+}
 
 func TestAppIconSize(t *testing.T) {
 	f, err := os.Open("resources/icon.png")

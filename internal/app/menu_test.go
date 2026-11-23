@@ -50,6 +50,31 @@ func TestThemedMenusOpen(t *testing.T) {
 	}
 }
 
+// The update item is ours rather than the plugin's: the plugin's label
+// would panic in tests, where the plugin is not used, and could not follow
+// the app's own language the way the rest of the menu does. Its click is
+// the plugin's, so it is not exercised here.
+func TestCheckForUpdatesMenuEntry(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	var item *mygo.MenuItem
+	var walk func(items []*mygo.MenuItem)
+	walk = func(items []*mygo.MenuItem) {
+		for _, it := range items {
+			if it.Label == locales.CheckForUpdates() {
+				item = it
+			}
+			walk(it.Submenu)
+		}
+	}
+	walk(a.menuItems())
+	if item == nil {
+		t.Fatalf("the menu has no %q item", locales.CheckForUpdates())
+	}
+	if item.Click == nil {
+		t.Fatalf("%q has no click handler", locales.CheckForUpdates())
+	}
+}
+
 // The About item is ours rather than the system's, so that the dialog can
 // show the license and the repository.
 func TestAboutMenuEntry(t *testing.T) {

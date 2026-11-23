@@ -1,9 +1,13 @@
 {
   "name": "ZPad",
   "identifier": "com.xiaoz.zpad",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "out": "build",
   "resourcesExclude": ["icon.png"],
+  "updates": {
+    "publicKey": "VpjYZ2qwESl69oLtFpHFrYM2qgYptfUXYL5/u5K2jVA=",
+    "github": "helloxz/zpad"
+  },
   "i18n": {
     "dir": "locales",
     "source": "en"

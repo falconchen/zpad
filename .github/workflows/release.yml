@@ -1,9 +1,12 @@
 name: Release
 
 # A tag you push builds the apps and puts them in a draft release, which you
-# review and publish. Nothing is signed and nothing updates itself: macOS apps
-# are signed ad hoc, which Gatekeeper blocks on other Macs, and the Windows
-# apps have no signature, which SmartScreen warns about.
+# review and publish. macOS apps are signed ad hoc, which Gatekeeper blocks on
+# other Macs, and the Windows apps have no signature, which SmartScreen warns
+# about. Installed apps update themselves from the release's signed update
+# files, so publish it as the latest release: the manifests are fetched from
+# releases/latest/download/. The manifests are uploaded last, once their
+# archives and deltas are there.
 on:
   push:
     tags: ["v*"]
@@ -60,7 +63,9 @@ jobs:
           go-version-file: go.mod
       - name: Test on the platform the app ships
         run: go test ./...
-      - name: Build the app and the disk images
+      - name: Build the app, the disk images and the update
+        env:
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
         run: go tool mygo build -platform darwin/arm64,darwin/amd64
       - name: Name the artifacts
         run: |
@@ -77,6 +82,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" build/release/* --clobber
+      - name: Upload the signed updates
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(jq -r .version mygo.json)
+          shopt -s nullglob
+          # Archives and deltas first: the manifests name them, and an app
+          # that reads a manifest before its files are there gets a 404.
+          files=(build/darwin-*/zpad-$v-*.tar.gz build/darwin-*/zpad-*-to-$v-*.delta)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no update files were built: is MYGO_UPDATER_PRIVATE_KEY set?"
+            exit 1
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+          gh release upload "$GITHUB_REF_NAME" \
+            build/darwin-*/update-darwin-*.json --clobber
 
   windows:
     name: Windows
@@ -89,7 +110,9 @@ jobs:
           go-version-file: go.mod
       - name: Install NSIS, for the Windows installer
         run: sudo apt-get update && sudo apt-get install -y nsis
-      - name: Build the app and the installer
+      - name: Build the app, the installer and the update
+        env:
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
         run: go tool mygo build -platform windows/amd64
       - name: Name the artifacts
         run: |
@@ -102,12 +125,29 @@ jobs:
             "build/release/ZPad-$v-windows-amd64-setup.exe"
           cd build
           # The portable app, without the updater's file list, which a
-          # portable app has none of. The installer was moved out above.
+          # portable app has none of, nor the update's files. The installer
+          # was moved out above.
           rm -rf ZPad
           cp -a windows-amd64 ZPad
-          rm -f ZPad/.mygo-files
+          rm -f ZPad/.mygo-files ZPad/install.ps1
+          rm -f ZPad/zpad-*.tar.gz ZPad/*.delta ZPad/update-*.json
           zip -qr "release/ZPad-$v-windows-amd64-portable.zip" ZPad
       - name: Upload the archives
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "$GITHUB_REF_NAME" build/release/* --clobber
+      - name: Upload the signed update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=$(jq -r .version mygo.json)
+          shopt -s nullglob
+          files=(build/windows-amd64/zpad-$v-windows-amd64.tar.gz \
+                 build/windows-amd64/zpad-*-to-$v-windows-amd64.delta)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::no update files were built: is MYGO_UPDATER_PRIVATE_KEY set?"
+            exit 1
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+          gh release upload "$GITHUB_REF_NAME" \
+            build/windows-amd64/update-windows-amd64.json --clobber

@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/plugins/updater"
+	"github.com/egoist/mygo/plugins/updater/native"
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/app"
 	"github.com/helloxz/zpad/internal/settings"
@@ -27,6 +29,11 @@ func main() {
 	if !mygo.App.RequestSingleInstanceLock() {
 		return
 	}
+
+	// Signed updates from the GitHub releases of helloxz/zpad: the window is
+	// drawn in native UI, so the app needs no webview to update itself. The
+	// icon comes from the binary, as the resources carry no icon.png.
+	mygo.Use(native.New(updater.Options{Icon: appIconPNG}))
 
 	dir, err := mygo.App.Path(mygo.PathUserData)
 	if err != nil {
