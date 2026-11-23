@@ -626,7 +626,8 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 				tab.state.SetScrollY(y)
 			}
 			if a.focusEditor && index == a.activePane {
-				v.AutoFocus()
+				v.Bind(&a.editorRef)
+				a.editorRef.Focus(c)
 				a.focusEditor = false
 			}
 		})

@@ -121,7 +121,12 @@ type App struct {
 	revealPane  int
 	revealDoc   string
 
+	// focusEditor asks the next frame to give the keyboard to the active
+	// pane's editor. editorRef finds that editor: its element outlives a
+	// tab, so AutoFocus would not take it once one is open, and a handle
+	// focuses it in the frame the flag is set.
 	focusEditor bool
+	editorRef   ui.Handle
 	untitledSeq int
 	busy        bool
 	loading     int

@@ -166,7 +166,8 @@ func (a *App) markdownPreview(c *ui.Context, t *ui.Theme, tab *Tab, pane int, fo
 			})
 	})
 	if focus {
-		sc.AutoFocus()
+		sc.Bind(&a.editorRef)
+		a.editorRef.Focus(c)
 		a.focusEditor = false
 	}
 	return sc
