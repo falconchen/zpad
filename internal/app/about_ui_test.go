@@ -1,6 +1,7 @@
 package app
 
 import (
+	"os"
 	"testing"
 
 	"github.com/egoist/mygo/ui"
@@ -64,8 +65,8 @@ func TestAboutDialogCloses(t *testing.T) {
 	}
 }
 
-// The About dialog shows the app icon `mygo build` ships, and keeps the
-// letter mark when no resources are there, as in these tests.
+// The About dialog shows the icon the app embeds, and keeps the letter
+// mark when the binary carries none, as in these tests.
 func TestAboutIconLoads(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
 	a.readAboutIcon("../../resources/icon.png")
@@ -88,5 +89,29 @@ func TestAboutIconLoads(t *testing.T) {
 	missing.readAboutIcon("../../resources/missing.png")
 	if missing.aboutIcon != nil {
 		t.Fatal("a missing icon was reported as loaded")
+	}
+}
+
+// main embeds resources/icon.png: the dialog decodes it through SetAppIcon.
+func TestAboutIconFromTheApp(t *testing.T) {
+	data, err := os.ReadFile("../../resources/icon.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.SetAppIcon(data)
+	a.loadAboutIcon()
+	if a.aboutIcon == nil {
+		t.Fatal("the embedded icon did not decode")
+	}
+	if w, h := ui.ImageSize(a.aboutIcon); w != 1024 || h != 1024 {
+		t.Fatalf("the embedded icon is %vx%v, want 1024x1024", w, h)
+	}
+
+	// Without one, the letter mark stays.
+	bare := New(settings.Default(), t.TempDir())
+	bare.loadAboutIcon()
+	if bare.aboutIcon != nil {
+		t.Fatal("an app without an icon reported one")
 	}
 }

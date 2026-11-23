@@ -145,7 +145,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 修改后至少运行 `go test ./...`、`go vet ./...`、`go build ./...`；涉及打包时运行 `go tool mygo build`。
 - UI 变更优先用 `ui.Tester` 做视图测试，必要时生成截图人工检查。
 - 用户可见文案必须加到 `locales/en.json` 和 `locales/zh-Hans.json`，然后运行 `go tool mygo generate`，通过 `locales.X()` 使用；不要硬编码。
-- 新增字体必须确认 OFL / 商业许可，并把许可文件放进 `fonts/` 与 `resources/`。
+- 新增字体必须确认 OFL / 商业许可，并把许可文件放进 `fonts/`；许可文本不随应用打包（`resources/` 只放构建期素材，用 `resourcesExclude` 排除，或直接不放进去）。
 - 主题颜色优先走 `internal/theme`，不要在 view 里散落硬编码色值。
 - 文件关联写在 `mygo.json` 的 `fileAssociations`；构建后检查 Info.plist 的 `CFBundleDocumentTypes`。`internal/app/textExtensions`（打开对话框筛选器）必须与关联列表一致，`release_test.go` 会校验。
 - 发布构建用 `go tool mygo build`，产物在 `build/darwin-arm64/`；当前未签名，正式分发另行处理公证。

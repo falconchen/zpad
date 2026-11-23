@@ -3,6 +3,7 @@
   "identifier": "com.xiaoz.zpad",
   "version": "0.1.0",
   "out": "build",
+  "resourcesExclude": ["icon.png"],
   "i18n": {
     "dir": "locales",
     "source": "en"

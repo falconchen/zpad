@@ -125,6 +125,8 @@ type App struct {
 	showSettings bool
 	aboutOpen    bool
 	aboutIcon    *ui.Bitmap
+	// appIconPNG is the icon the About dialog decodes, embedded by main.
+	appIconPNG   []byte
 	fontSize     float64
 	lineHeight   float64
 	fontFamilies []string
@@ -262,6 +264,14 @@ func (a *App) SetErrorToast(title, detail string) {
 func (a *App) SetToast(msg string) {
 	a.pendingToasts = append(a.pendingToasts, ui.Toast{ID: msg, Title: msg})
 	a.update()
+}
+
+// SetAppIcon gives the About dialog the icon the app embeds. mygo build
+// reads the same PNG for the app's own icon, and mygo.json's
+// resourcesExclude keeps it out of the app, so that no file beside the app
+// carries it: the binary does.
+func (a *App) SetAppIcon(data []byte) {
+	a.appIconPNG = data
 }
 
 // onUI runs fn on the main thread, or at once before a window exists.

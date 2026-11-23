@@ -40,6 +40,7 @@ func main() {
 	s, err := settings.Load(dir)
 	a := app.New(s, dir)
 	a.LogPath = logPath
+	a.SetAppIcon(appIconPNG)
 	if err != nil {
 		a.SetErrorToast(locales.LoadSettingsFailed(), err.Error())
 		log.Printf("load settings: %v", err)

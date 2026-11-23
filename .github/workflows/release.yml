@@ -62,21 +62,21 @@ jobs:
         run: go test ./...
       - name: Build the app and the disk images
         run: go tool mygo build -platform darwin/arm64,darwin/amd64
-      - name: Zip the app bundles
+      - name: Name the artifacts
         run: |
           v=$(jq -r .version mygo.json)
+          mkdir -p build/release
           for arch in arm64 amd64; do
-            test -d "build/darwin-$arch/ZPad.app"
+            test -f "build/darwin-$arch/zpad-$v-$arch.dmg"
+            mv "build/darwin-$arch/zpad-$v-$arch.dmg" \
+              "build/release/ZPad-$v-macos-$arch.dmg"
             ditto -c -k --keepParent "build/darwin-$arch/ZPad.app" \
-              "build/zpad-$v-macos-$arch.app.zip"
+              "build/release/ZPad-$v-macos-$arch.zip"
           done
       - name: Upload the disk images and the app bundles
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload "$GITHUB_REF_NAME" \
-            build/darwin-arm64/*.dmg build/darwin-amd64/*.dmg build/*.app.zip \
-            --clobber
+        run: gh release upload "$GITHUB_REF_NAME" build/release/* --clobber
 
   windows:
     name: Windows
@@ -91,21 +91,23 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y nsis
       - name: Build the app and the installer
         run: go tool mygo build -platform windows/amd64
-      - name: Zip the portable app and the installer
+      - name: Name the artifacts
         run: |
           v=$(jq -r .version mygo.json)
           test -f build/windows-amd64/ZPad.exe
-          test -f build/windows-amd64/zpad-setup-$v-amd64.exe
+          test -f "build/windows-amd64/zpad-setup-$v-amd64.exe"
+          mkdir -p build/release
+          # The installer ships as it is: a zip of it would only hide it.
+          mv "build/windows-amd64/zpad-setup-$v-amd64.exe" \
+            "build/release/ZPad-$v-windows-amd64-setup.exe"
           cd build
-          # The portable app, without the installer that sits beside it.
+          # The portable app, without the updater's file list, which a
+          # portable app has none of. The installer was moved out above.
           rm -rf ZPad
           cp -a windows-amd64 ZPad
-          rm -f ZPad/zpad-setup-*.exe
-          zip -qr "zpad-$v-windows-amd64-portable.zip" ZPad
-          # The installer in a zip, which a browser and antivirus programs
-          # pass on more readily than a bare .exe.
-          zip -j "zpad-setup-$v-amd64.zip" "windows-amd64/zpad-setup-$v-amd64.exe"
+          rm -f ZPad/.mygo-files
+          zip -qr "release/ZPad-$v-windows-amd64-portable.zip" ZPad
       - name: Upload the archives
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" build/*.zip --clobber
+        run: gh release upload "$GITHUB_REF_NAME" build/release/* --clobber

@@ -3,9 +3,7 @@ package app
 import (
 	"log"
 	"os"
-	"path/filepath"
 
-	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/locales"
 )
@@ -16,21 +14,24 @@ const (
 	aboutLicenseURL = aboutRepoURL + "/blob/main/LICENSE"
 )
 
-// loadAboutIcon decodes the app icon once, for the About dialog. It reads
-// the icon `mygo build` ships in the app's resources; without one, as in
-// tests, the dialog keeps the letter mark.
+// loadAboutIcon decodes the icon the binary embeds once, for the About
+// dialog. Without one, as in tests, the dialog keeps the letter mark.
 func (a *App) loadAboutIcon() {
-	dir, err := mygo.App.Path(mygo.PathResources)
-	if err != nil {
-		log.Printf("find app resources: %v", err)
-		return
-	}
-	a.readAboutIcon(filepath.Join(dir, "icon.png"))
+	a.readAboutIconData(a.appIconPNG)
 }
 
+// readAboutIcon decodes the icon at path, as tests do with the one in the
+// repository.
 func (a *App) readAboutIcon(path string) {
 	data, err := os.ReadFile(path)
 	if err != nil {
+		return
+	}
+	a.readAboutIconData(data)
+}
+
+func (a *App) readAboutIconData(data []byte) {
+	if len(data) == 0 {
 		return
 	}
 	icon, err := ui.DecodeBitmap(data)
