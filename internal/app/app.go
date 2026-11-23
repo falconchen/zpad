@@ -4,6 +4,7 @@ package app
 import (
 	"log"
 	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -515,20 +516,33 @@ func (a *App) moveTab(from paneDrag, toPane int) {
 	if from.pane == toPane || from.pane < 0 || from.pane > 1 || toPane < 0 || toPane > 1 {
 		return
 	}
-	src := a.pane(from.pane)
-	for i, tab := range src.tabs {
-		if tab.doc.ID == from.id {
-			a.moveTabIndex(from.pane, i, toPane)
-			return
-		}
-	}
+	a.dropTabAt(from, toPane, -1)
 }
 
 // moveTabIndex moves a pane's tab into the other pane, at the end, or
 // shows the copy the target pane already has. The source pane's split
 // closes when its last tab leaves.
 func (a *App) moveTabIndex(srcPane, idx, dstPane int) {
-	if srcPane == dstPane || srcPane < 0 || srcPane > 1 || dstPane < 0 || dstPane > 1 {
+	a.moveTabAt(srcPane, idx, dstPane, -1)
+}
+
+// dropTabAt moves the tab a paneDrag carries to index to of pane, -1 for
+// the end, finding it in its own pane first.
+func (a *App) dropTabAt(d paneDrag, pane, to int) {
+	for i, tab := range a.pane(d.pane).tabs {
+		if tab.doc.ID == d.id {
+			a.moveTabAt(d.pane, i, pane, to)
+			return
+		}
+	}
+}
+
+// moveTabAt moves a pane's tab to index to of a pane, -1 for the end:
+// within one pane that reorders its tabs, which needs to, and across the
+// two that moves the tab there, or shows the copy the target already has.
+// The source pane's split closes when its last tab leaves.
+func (a *App) moveTabAt(srcPane, idx, dstPane, to int) {
+	if srcPane < 0 || srcPane > 1 || dstPane < 0 || dstPane > 1 {
 		return
 	}
 	if dstPane == 1 && !a.split {
@@ -538,7 +552,18 @@ func (a *App) moveTabIndex(srcPane, idx, dstPane int) {
 	if idx < 0 || idx >= len(src.tabs) {
 		return
 	}
+	if srcPane == dstPane {
+		// Dropping on the pane alone draws no place to reorder to.
+		if to < 0 {
+			return
+		}
+		a.reorderTab(srcPane, idx, to)
+		return
+	}
 	tab := src.tabs[idx]
+	if to < 0 || to > len(dst.tabs) {
+		to = len(dst.tabs)
+	}
 	target := -1
 	for i, other := range dst.tabs {
 		if other.doc == tab.doc {
@@ -558,8 +583,8 @@ func (a *App) moveTabIndex(srcPane, idx, dstPane int) {
 	}
 
 	if target < 0 {
-		dst.tabs = append(dst.tabs, tab)
-		target = len(dst.tabs) - 1
+		dst.tabs = slices.Insert(dst.tabs, to, tab)
+		target = to
 	}
 	dst.active = target
 	a.activePane = dstPane
@@ -569,6 +594,39 @@ func (a *App) moveTabIndex(srcPane, idx, dstPane int) {
 	}
 	a.focusEditor = true
 	a.revealPane, a.revealDoc = a.activePane, tab.doc.ID
+	a.updateTitle()
+	a.saveSession()
+	a.update()
+}
+
+// reorderTab moves a pane's tab to index to, counted before the tab
+// leaves its place, keeping the tab chosen chosen.
+func (a *App) reorderTab(paneIdx, idx, to int) {
+	p := a.pane(paneIdx)
+	if idx < 0 || idx >= len(p.tabs) {
+		return
+	}
+	if to < 0 {
+		return
+	}
+	if to > len(p.tabs) {
+		to = len(p.tabs)
+	}
+	// Dropped where it is, or right after itself, the tab stays.
+	if to == idx || to == idx+1 {
+		return
+	}
+	tab, chosen := p.tabs[idx], p.activeTab()
+	tabs := append(p.tabs[:idx], p.tabs[idx+1:]...)
+	if to > idx {
+		to--
+	}
+	p.tabs = slices.Insert(tabs, to, tab)
+	if chosen != nil {
+		p.active = slices.Index(p.tabs, chosen)
+	}
+	a.activePane = paneIdx
+	a.revealPane, a.revealDoc = paneIdx, tab.doc.ID
 	a.updateTitle()
 	a.saveSession()
 	a.update()

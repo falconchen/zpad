@@ -651,17 +651,46 @@ func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border).
 		Children(func() {
 			area := ui.ScrollHorizontal(c).Height(34).Grow(1).Scrollbars(false)
+			// The bar takes the tabs dragged over it, drawing where the
+			// tab would land: a tab reorders its own pane's tabs, and
+			// lands at the pointer's place in the other pane's.
+			drag, over := ui.DragOver[paneDrag](area)
 			var inner ui.Element
+			var rects []ui.Rect
 			area.Children(func() {
 				inner = ui.Row(c).Height(34).Children(func() {
 					for i, tab := range p.tabs {
-						a.tabItem(c, t, index, p, i, tab)
+						rects = append(rects, a.tabItem(c, t, index, p, i, tab).Bounds())
 					}
 					if !a.tabOverflow[index] {
 						a.newTabButton(c, t, index)
 					}
 				})
 			})
+			dropAt, caret := 0, float32(0)
+			x, _, in := area.PointerPosition()
+			if in && len(rects) > 0 {
+				dropAt, caret = tabDropAt(rects, area.Bounds().X+x)
+			}
+			switch {
+			case in && over && drag.kind == dragTab && !a.tabStaysAt(drag, index, dropAt):
+				area.DrawOver(func(paint *ui.Painter, r ui.Rect) {
+					paint.Fill(ui.Rect{X: caret - 1, Y: r.Y + 5, W: 2, H: r.H - 10}, t.Accent, 1)
+				})
+			case in && over && drag.kind == dragFile:
+				// A file dropped on the bar opens in the pane, at the
+				// end: a line under the tabs says the bar takes it.
+				area.DrawOver(func(paint *ui.Painter, r ui.Rect) {
+					paint.Fill(ui.Rect{X: r.X, Y: r.Y + r.H - 2, W: r.W, H: 2}, t.Accent, 0)
+				})
+			}
+			if d, ok := ui.Drop[paneDrag](area); ok {
+				if d.kind == dragTab && in && len(rects) > 0 && !a.tabStaysAt(d, index, dropAt) {
+					a.dropTabAt(d, index, dropAt)
+				} else {
+					a.dropOnPane(d, index)
+				}
+			}
 			if a.tabOverflow[index] {
 				a.newTabButton(c, t, index)
 				a.tabListButton(c, index, p)
@@ -674,6 +703,34 @@ func (a *App) tabBar(c *ui.Context, t *ui.Theme, index int, p *Pane) {
 				a.update()
 			}
 		})
+}
+
+// tabDropAt returns the index a tab dropped at window x takes among the
+// tabs whose boxes are rects, and where the caret before it goes: that of
+// the first tab whose middle is right of x, or past the last.
+func tabDropAt(rects []ui.Rect, x float32) (int, float32) {
+	for i, r := range rects {
+		if x < r.X+r.W/2 {
+			return i, r.X
+		}
+	}
+	last := rects[len(rects)-1]
+	return len(rects), last.X + last.W
+}
+
+// tabStaysAt reports whether a tab dragged from one pane to index to of
+// another, or of its own, keeps its place: dropped on itself or right
+// after itself there is nothing to move.
+func (a *App) tabStaysAt(d paneDrag, pane, to int) bool {
+	if d.pane != pane {
+		return false
+	}
+	for i, tab := range a.pane(d.pane).tabs {
+		if tab.doc.ID == d.id {
+			return to == i || to == i+1
+		}
+	}
+	return false
 }
 
 // tabListButton shows a menu of all of a pane's tabs, for the ones a full
@@ -696,7 +753,7 @@ func (a *App) tabListButton(c *ui.Context, paneIdx int, p *Pane) {
 // below it; the title tooltip and the tab list carry the rest.
 const tabTextWidth float32 = 180
 
-func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, tab *Tab) {
+func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, tab *Tab) ui.Element {
 	active := i == p.active
 	bg := theme.TabBar(t)
 	text := t.TextMuted
@@ -756,6 +813,7 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		a.revealDoc = ""
 		a.revealPane = -1
 	}
+	return b
 }
 
 // tabContextMenu fills a tab's context menu: closing it or the tabs
