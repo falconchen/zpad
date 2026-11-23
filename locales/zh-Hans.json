@@ -18,6 +18,8 @@
   "saveAs": "另存为…",
   "saveFileTitle": "保存文件",
   "revealInFileManager": "在文件管理器中显示",
+  "openInBrowser": "在浏览器中打开",
+  "openInBrowserFailed": "无法在浏览器中打开",
   "closeTab": "关闭标签",
   "closeTabsLeft": "关闭左侧标签",
   "closeTabsRight": "关闭右侧标签",

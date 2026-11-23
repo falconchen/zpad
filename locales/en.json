@@ -26,6 +26,8 @@
   "saveAs": "Save As…",
   "saveFileTitle": "Save File",
   "revealInFileManager": "Reveal in File Manager",
+  "openInBrowser": "Open in Browser",
+  "openInBrowserFailed": "Could not open in the browser",
   "closeTab": "Close Tab",
   "closeTabsLeft": "Close Tabs to the Left",
   "closeTabsRight": "Close Tabs to the Right",

@@ -214,6 +214,26 @@ func (msgs Messages) RevealInFileManager() string {
 	return Catalog.Format(msgs.locale, "revealInFileManager", nil)
 }
 
+// OpenInBrowser says "Open in Browser"
+// in the language the app shows.
+func OpenInBrowser() string { return In(i18n.Locale()).OpenInBrowser() }
+
+// OpenInBrowser says "Open in Browser"
+// in the language of msgs.
+func (msgs Messages) OpenInBrowser() string {
+	return Catalog.Format(msgs.locale, "openInBrowser", nil)
+}
+
+// OpenInBrowserFailed says "Could not open in the browser"
+// in the language the app shows.
+func OpenInBrowserFailed() string { return In(i18n.Locale()).OpenInBrowserFailed() }
+
+// OpenInBrowserFailed says "Could not open in the browser"
+// in the language of msgs.
+func (msgs Messages) OpenInBrowserFailed() string {
+	return Catalog.Format(msgs.locale, "openInBrowserFailed", nil)
+}
+
 // CloseTab says "Close Tab"
 // in the language the app shows.
 func CloseTab() string { return In(i18n.Locale()).CloseTab() }

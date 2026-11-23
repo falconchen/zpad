@@ -32,6 +32,10 @@ func (a *App) View(c *ui.Context) {
 	t := theme.For(a.Dark)
 	c.SetTheme(t)
 	c.SetMenuPresentation(ui.PopoverMenus)
+	if !a.showSettings && !a.aboutOpen && !a.renameOpen &&
+		c.Shortcut(ui.Cmd|ui.Shift, ui.KeyB) {
+		a.OpenActiveInBrowser()
+	}
 
 	ui.Themed(c, t).Fill().Children(func() {
 		a.toolbar(c, t)
@@ -74,8 +78,6 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 			KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyO)
 		a.iconButton(c, t, iconSave, locales.Save(), false, a.SaveActive).
 			KeyShortcuts(ui.Cmd, ui.KeyS)
-		a.iconButton(c, t, iconReveal, locales.RevealInFileManager(), false, a.ShowActiveInFileManager).
-			Disabled(!a.canRevealActive())
 		ui.Box(c).Width(1).Height(18).Background(t.Border).Margin(0, 4)
 		a.iconButton(c, t, iconUndo, locales.Undo(), false, a.Undo).
 			KeyShortcuts(ui.Cmd, ui.KeyZ)
@@ -732,6 +734,9 @@ func (a *App) tabContextMenu(m *ui.Menu, paneIdx, i int) {
 	if i < 0 || i >= len(p.tabs) {
 		return
 	}
+	// The items below can close or move this tab while the menu is built,
+	// so keep it now for the entry that opens it.
+	tab := p.tabs[i]
 	if m.Item(locales.CloseTab()).Chosen() {
 		a.CloseTab(paneIdx, i)
 	}
@@ -760,6 +765,15 @@ func (a *App) tabContextMenu(m *ui.Menu, paneIdx, i int) {
 	if m.Item(locales.CopyToOtherPane()).Disabled(paneIdx == 1).Chosen() {
 		a.ensureSplit()
 		a.copyTabIndex(paneIdx, i, 1)
+	}
+	if tab.doc.Path != "" {
+		m.Separator()
+		if m.Item(locales.RevealInFileManager()).Chosen() {
+			a.revealDocument(tab.doc)
+		}
+		if isHTMLPath(tab.doc.Path) && m.Item(locales.OpenInBrowser()).Chosen() {
+			a.openTabInBrowser(tab)
+		}
 	}
 }
 
@@ -917,8 +931,10 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 			} else {
 				ui.Text(c, doc.DisplayPath(a.root)).FontSize(11).TextColor(t.TextMuted).
 					MaxWidth(320).SingleLine()
+				a.revealButton(c, t, doc)
 			}
 			ui.Text(c, languageLabel(doc)).FontSize(11).TextColor(t.TextMuted)
+			a.browserButton(c, t, tab)
 			if doc.ReadOnly {
 				ui.Text(c, locales.ReadOnly()).FontSize(11).TextColor(t.Warning)
 			}
@@ -963,6 +979,55 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 				ui.Box(c).Size(6, 6).Radius(3).Background(t.Accent)
 			}
 		})
+}
+
+// revealButton shows a saved file in the system file manager, beside the
+// path it belongs to. An untitled document has no path, so the status bar
+// shows nothing for it.
+func (a *App) revealButton(c *ui.Context, t *ui.Theme, doc *Document) {
+	if doc == nil || doc.Path == "" {
+		return
+	}
+	b := ui.ButtonBase(c.Key("reveal-in-file-manager")).Size(20, 20).Center().Radius(4).
+		Label(locales.RevealInFileManager()).
+		Tooltip(locales.RevealInFileManager()).
+		Cursor(ui.CursorPointer)
+	color := t.TextMuted
+	if b.Hovered() {
+		b.Background(t.SurfaceHover)
+		color = t.Text
+	}
+	b.Children(func() {
+		ui.Icon(c, iconReveal).FontSize(13).TextColor(color)
+	})
+	if b.Clicked() {
+		a.revealDocument(doc)
+	}
+}
+
+// browserButton opens the active HTML tab in the system browser, beside
+// the language it belongs to. Other files have no such action, so the
+// status bar shows nothing for them.
+func (a *App) browserButton(c *ui.Context, t *ui.Theme, tab *Tab) {
+	if tab == nil || !isHTMLPath(tab.doc.Path) {
+		return
+	}
+	b := ui.ButtonBase(c.Key("open-in-browser")).Size(20, 20).Center().Radius(4).
+		Label(locales.OpenInBrowser()).
+		Tooltip(locales.OpenInBrowser()+" ("+openInBrowserShortcut()+")").
+		KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyB).
+		Cursor(ui.CursorPointer)
+	color := t.TextMuted
+	if b.Hovered() {
+		b.Background(t.SurfaceHover)
+		color = t.Text
+	}
+	b.Children(func() {
+		ui.Icon(c, iconBrowser).FontSize(13).TextColor(color)
+	})
+	if b.Clicked() {
+		a.openTabInBrowser(tab)
+	}
 }
 
 func (a *App) paneLabel(i int) string {

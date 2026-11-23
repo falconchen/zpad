@@ -79,24 +79,20 @@ func TestShowActiveInFileManagerUsesTheActivePane(t *testing.T) {
 	}
 }
 
-func TestToolbarRevealButtonFollowsTheActiveTab(t *testing.T) {
+func TestStatusBarRevealButtonFollowsTheActiveTab(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
 	tt := ui.NewTester(a.View, 900, 600)
 	tt.Frame()
 
-	info, ok := tt.Access(locales.RevealInFileManager())
-	if !ok {
-		t.Fatalf("no reveal button in the toolbar; access %v", tt.AccessAll())
-	}
-	if !info.Disabled {
-		t.Fatal("the reveal button is enabled with no tab open")
+	if info, ok := tt.Access(locales.RevealInFileManager()); ok {
+		t.Fatalf("the status bar shows the reveal button with no tab open: %+v", info)
 	}
 
 	a.addDocument(docAt("/tmp/reveal.txt", "x"))
 	tt.Frame()
-	info, ok = tt.Access(locales.RevealInFileManager())
+	info, ok := tt.Access(locales.RevealInFileManager())
 	if !ok || info.Disabled {
-		t.Fatalf("the reveal button is not enabled for a saved file: %+v, found %v", info, ok)
+		t.Fatalf("the status bar has no reveal button for a saved file: %+v, found %v", info, ok)
 	}
 
 	var calls []string
@@ -110,8 +106,29 @@ func TestToolbarRevealButtonFollowsTheActiveTab(t *testing.T) {
 
 	a.NewFile()
 	tt.Frame()
-	info, ok = tt.Access(locales.RevealInFileManager())
-	if !ok || !info.Disabled {
-		t.Fatalf("the reveal button is enabled for an untitled tab: %+v, found %v", info, ok)
+	if info, ok := tt.Access(locales.RevealInFileManager()); ok {
+		t.Fatalf("the status bar shows the reveal button for an untitled tab: %+v", info)
+	}
+}
+
+func TestTabContextMenuRevealsSavedFile(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/reveal.txt", "x"))
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	if err := tt.RightClick("reveal.txt"); err != nil {
+		t.Fatal(err)
+	}
+	if !menuHas(tt.Menu(), locales.RevealInFileManager()) {
+		t.Fatalf("tab menu %q does not show %q", tt.Menu(), locales.RevealInFileManager())
+	}
+
+	var calls []string
+	stubShowItemInFolder(t, &calls)
+	if err := tt.ChooseMenuItem(locales.RevealInFileManager()); err != nil {
+		t.Fatal(err)
+	}
+	if len(calls) != 1 || calls[0] != "/tmp/reveal.txt" {
+		t.Fatalf("the menu revealed %q, want [/tmp/reveal.txt]", calls)
 	}
 }

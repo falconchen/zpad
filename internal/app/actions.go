@@ -345,15 +345,22 @@ func (a *App) canRevealActive() bool {
 	return tab != nil && tab.doc.Path != ""
 }
 
-// ShowActiveInFileManager reveals the active file in the system file
-// manager: Finder and Explorer select it, and other systems open its
-// folder.
-func (a *App) ShowActiveInFileManager() {
-	tab := a.activeTab()
-	if tab == nil || tab.doc.Path == "" {
+// revealDocument shows doc's file in the system file manager: Finder and
+// Explorer select it, and other systems open its folder. An untitled
+// document has no file to show.
+func (a *App) revealDocument(doc *Document) {
+	if doc == nil || doc.Path == "" {
 		return
 	}
-	showItemInFolder(tab.doc.Path)
+	showItemInFolder(doc.Path)
+}
+
+// ShowActiveInFileManager reveals the active file in the system file
+// manager.
+func (a *App) ShowActiveInFileManager() {
+	if tab := a.activeTab(); tab != nil {
+		a.revealDocument(tab.doc)
+	}
 }
 
 // SaveWithEncoding saves the active tab in kind.
