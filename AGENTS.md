@@ -121,7 +121,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 文件树行同时承担拖拽与单击打开；整行（缩进、箭头、文件名、左右空白）都由 `treeRow` 自己绘制，`ui.OutlineState.Prefix` 置空以去掉 Outline 自带的缩进和箭头，因此行内任意位置都能命中同一个 Row。点击处理用 `Clicked()` 并手动 `selectTreePath`：整行是应用自己的元素，Outline 的行收不到点击，选中必须自己同步。
 - 标签栏本身是拖拽的放置目标：`ScrollHorizontal` 的 `ui.DragOver` / `ui.Drop` 接住 `paneDrag`，用 `area.PointerPosition()`（拖拽期间照样更新）加各标签上一帧的 `Bounds()` 算出插入索引与竖线位置，再交给 `moveTabAt`。落在同一栏即重排（活动标签跟着原标签走，不跟着指针换），落在另一栏的标签栏按位置插入，落在编辑区仍追加到末尾。分屏分隔线有一圈抓取区域盖在两侧栏上，落在抓取区里的拖拽没有目标，属既有行为。
 - 会话保存标签顺序，标签重排后必须 `saveSession()`，否则重启按旧顺序恢复。
-- 官网是独立静态站：源码在 `website/`，Hugo 生成，CF Pages 构建（`root=website`、`output=public`、`HUGO_VERSION=0.170.1`）。`website/data/release.json` 和 `website/static/_redirects` 由 `website/scripts/release/main.go` 生成，`.github/workflows/website.yml` 在 release 发布时更新并提交，不要手改这两个文件。官网截图由 `internal/app/site_shots_test.go` 的 headless 渲染生成（`ZPAD_SHOTS` 打开），原图在 `website/assets/screenshots`；换应用图标时同时更新 `website/assets/icon.png`（`sips -c 824 824 resources/icon.png`）。
+- 官网是独立静态站：源码在 `website/`，Hugo 生成，CF Pages 构建（`root=website`、`output=public`、`HUGO_VERSION=0.170.1`）。`website/data/release.json` 和 `website/static/_redirects` 由 `website/scripts/release/main.go` 生成，`.github/workflows/website.yml` 在 release 发布时更新并提交（release 还没有文件时只警告跳过，`release.yml` 的 `site` 作业会补跑），不要手改这两个文件。官网截图由 `internal/app/site_shots_test.go` 的 headless 渲染生成（`ZPAD_SHOTS` 打开），原图在 `website/assets/screenshots`；换应用图标时同时更新 `website/assets/icon.png`（`sips -c 824 824 resources/icon.png`）。
 - 不引入 WebView。
 
 ## 当前进度
@@ -170,4 +170,4 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 主题颜色优先走 `internal/theme`，不要在 view 里散落硬编码色值。
 - 文件关联写在 `mygo.json` 的 `fileAssociations`；构建后检查 Info.plist 的 `CFBundleDocumentTypes`。`internal/app/textExtensions`（打开对话框筛选器）必须与关联列表一致，`release_test.go` 会校验。
 - 发布构建用 `go tool mygo build`，产物在 `build/darwin-arm64/`；当前未签名，正式分发另行处理公证。
-- 发布顺序不可颠倒：打 tag 推送后等 CI 把 draft 的 macOS / Windows 产物传完，再点 Publish。draft 先发布、资产后到会让 `releases/latest/download/update-<target>.json` 短暂 404（自动更新报错），并让 `website.yml` 读到空 release 失败；漏了就等 CI 变绿后在 Actions 里跑一次 `Website`。
+- 发布顺序建议但不再强求：打 tag 推送后等 CI 把 draft 的 macOS / Windows 产物传完再 Publish。提前发布只会让 `releases/latest/download/update-<target>.json` 短暂 404（自动更新报错）；官网作业已经能自愈——读到没有文件的 release 只输出 `::warning::` 并跳过，`release.yml` 的 `site` 作业在上传完成后会 dispatch `website.yml -f tag=<tag>` 补写数据。

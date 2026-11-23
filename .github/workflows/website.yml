@@ -3,10 +3,19 @@ name: Website
 # A new release updates the data behind the download page, the release notes
 # and the /download/* short links. The commit this job makes is what Cloudflare
 # Pages builds, so the site never fetches GitHub's API at build time.
+#
+# Publishing a release fires this run at once, and the files are uploaded by
+# the Release workflow over the following minutes: a release published before
+# its build finished lands here with no assets. That is a skip, not a failure;
+# release.yml dispatches this workflow again once the uploads are done.
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag; empty takes the latest release
+        required: false
 
 permissions:
   contents: write
@@ -27,9 +36,10 @@ jobs:
       - name: Read the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
+          # A manual run, with no release payload, takes its tag input and
+          # otherwise the latest release.
+          TAG: ${{ inputs.tag || github.event.release.tag_name }}
         run: |
-          # A manual run, with no release payload, takes the latest release.
           tag="${TAG:-$(gh release view --json tagName -q .tagName)}"
           gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" > "$RUNNER_TEMP/release.json"
       - name: Write data/release.json and the short links

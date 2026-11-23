@@ -105,3 +105,19 @@ jobs:
           v=$(jq -r .version mygo.json)
           gh release upload "$GITHUB_REF_NAME" \
             "build/zpad-$v-windows-amd64-portable.zip" --clobber
+
+  site:
+    name: Update the site data
+    # Publishing a release fires website.yml at once, before these apps have
+    # uploaded anything, and that run skips an empty release. This job is the
+    # one that actually points the site at the new version: it runs once the
+    # files are there, whatever order you published in.
+    needs: [macos, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Run the website workflow for this tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run website.yml --ref main -f tag="$GITHUB_REF_NAME"

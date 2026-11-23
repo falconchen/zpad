@@ -87,11 +87,14 @@ func main() {
 		fail(fmt.Sprintf("%s: no tag_name: gh api wrote no release here", os.Args[1]))
 	}
 	if len(gh.Assets) == 0 {
-		// The release exists but has no files. That is either a failed build or
-		// a release published before the Release workflow uploaded anything:
-		// .github/workflows/website.yml fires on published, which can be
-		// seconds after the click, while the apps take minutes to build.
-		fail(fmt.Sprintf("release %s has no files: its build may have failed, or it was published before the upload finished; rerun this workflow once the Release workflow is green", gh.TagName))
+		// The release exists but has no files: it was published before the
+		// Release workflow finished uploading, which is the normal order when
+		// you publish the draft and push the tag together. Skipping is right:
+		// release.yml dispatches this workflow again once the apps are uploaded,
+		// and a build that really failed shows up as a red Release run. The
+		// annotation keeps the reason visible in the job summary.
+		fmt.Fprintf(os.Stderr, "::warning::release %s has no files yet: skipping, the data is written when the build uploads them\n", gh.TagName)
+		return
 	}
 
 	out := release{
