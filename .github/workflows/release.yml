@@ -120,4 +120,6 @@ jobs:
       - name: Run the website workflow for this tag
         env:
           GH_TOKEN: ${{ github.token }}
+          # gh infers the repository from a checkout, and this job has none.
+          GH_REPO: ${{ github.repository }}
         run: gh workflow run website.yml --ref main -f tag="$GITHUB_REF_NAME"
