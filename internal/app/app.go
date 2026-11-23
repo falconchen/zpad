@@ -177,7 +177,6 @@ func SetThemeSource(mode string) {
 // Call it on the main thread once the app is ready, before the window.
 func (a *App) Prepare() {
 	a.running = true
-	a.loadAboutIcon()
 	if a.Settings.Theme == "system" {
 		a.Dark = mygo.Theme.IsDark()
 	}

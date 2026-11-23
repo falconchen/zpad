@@ -100,6 +100,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 强制外观用 `mygo.Theme.SetSource`，UI 主题用 `c.SetTheme` / `ui.Themed`。
 - 弹窗菜单统一 `c.SetMenuPresentation(ui.PopoverMenus)` 在窗口内绘制；顶部系统菜单栏保持原生。侧栏树菜单用 `PopoverMenu` + `sidebarMenuOptions`，避免继承文件树的选中样式。
 - 菜单项手型光标在 `PopoverMenuOptions` / `PopoverMenuButtonOptions` 的 `Item` 中设置；MyGo 内部的编辑器右键与输入框编辑菜单无法从应用层设置，仍是箭头。
+- 内存：`main` 开头 `debug.SetGCPercent(50)`，把 Go 堆高水位从 24–28 MB 压到 14 MB；About 图标按需解码。不要再加 `FreeOSMemory` 定时器或 `SetMemoryLimit`：实测前者在 macOS 上只多释放约 3 MB 且 Activity Monitor 不变，后者在 20 MB 大文件下可能触发连续 GC。新增内存相关改动时同时量一遍 Activity Monitor 的物理占用。
 - 文件树行同时承担拖拽与单击打开；整行（缩进、箭头、文件名、左右空白）都由 `treeRow` 自己绘制，`ui.OutlineState.Prefix` 置空以去掉 Outline 自带的缩进和箭头，因此行内任意位置都能命中同一个 Row。点击处理用 `Clicked()` 并手动 `selectTreePath`：整行是应用自己的元素，Outline 的行收不到点击，选中必须自己同步。
 - 不引入 WebView。
 
@@ -116,6 +117,7 @@ docs/                      需求、里程碑、实现记录与签收
 ## 已知限制 / 后续
 
 - 超过设置阈值（默认 20 MB）或 50 万行的文件以只读方式打开。
+- 空载物理占用约 60–75 MB：其中约 28 MB 是 MyGo 的一个全尺寸 Metal drawable；聚焦编辑时 MyGo 保留 3 个（1920×995 屏幕约 85 MB）并伴随数十 MB Metal 缓存，应用层无法控制，需上游支持。
 - 标签中键关闭、同一栏内拖拽排序未实现（跨栏拖拽已支持）。
 - 文件树删除为永久删除，未接入废纸篓；重命名使用模态框，未做 Finder 式行内编辑。
 - 设置修改立即写盘，未做防抖。

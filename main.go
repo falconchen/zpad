@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"runtime/debug"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -12,6 +13,12 @@ import (
 )
 
 func main() {
+	// The editor's live heap is small, and Go's default target of doubling
+	// it buys nothing while a Metal drawable alone is tens of megabytes: a
+	// lower target keeps the heap's high-water mark down (24 MB before it,
+	// 14 MB after).
+	debug.SetGCPercent(50)
+
 	// One instance: on Windows and Linux, opening a file from the file
 	// manager starts another process, which hands its command line to this
 	// one and exits. macOS delivers the file to the running app itself.

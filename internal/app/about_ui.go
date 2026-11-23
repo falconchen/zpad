@@ -45,6 +45,11 @@ func (a *App) openAbout() {
 	a.showSettings = false
 	a.renameOpen = false
 	a.aboutOpen = true
+	// The icon is a 1024×1024 bitmap: decode it when the dialog first
+	// opens, not at every launch.
+	if a.aboutIcon == nil {
+		a.loadAboutIcon()
+	}
 	a.update()
 }
 

@@ -307,6 +307,8 @@ Windows / Linux 单实例（同日追加）：
 - 新增 `internal/app/tabmenu_test.go`；`go test ./...`、`go vet ./...`、`go build ./...` 通过。
 - 点击分屏按钮时按内容区（窗口减去侧栏和 1px 分隔线）50/50 拆分。
 - 新增 `theme.FileTree`、`locales.allTabs`、`internal/app/tabbar_test.go`，以及滚动条 / 树主题单测。
+- 内存优化（实测 Activity Monitor 物理占用）：`main.go` 把 Go 堆目标设为 `debug.SetGCPercent(50)`，堆高水位从 24–28 MB 降到 14 MB；About 的 1024×1024 图标改为首次打开对话框时解码。同一会话（7+1 个文档、最大化 1920×995、焦点移走后稳定）空载从 80–87 MB 降到 68–73 MB，新启动空载 62 MB 不变。
+- 试过关闭全部标签后 `debug.FreeOSMemory` + `SetMemoryLimit`，实测 `HeapReleased` 只增加约 3 MB、Activity Monitor 无变化，已去掉，保持改动最小。
 - `go test ./...`、`go vet ./...`、`go build ./...` 通过。
 
 需要人工确认：
