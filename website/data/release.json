@@ -1,40 +1,40 @@
 {
-  "tag": "v0.3.2",
-  "version": "0.3.2",
-  "published_at": "2026-11-23T05:13:44Z",
+  "tag": "v0.4.0",
+  "version": "0.4.0",
+  "published_at": "2026-11-23T09:22:50Z",
   "date": "2026-11-23",
-  "url": "https://github.com/helloxz/zpad/releases/tag/v0.3.2",
-  "notes": "* 优化：根据操作系统动态调整快捷键提示",
+  "url": "https://github.com/helloxz/zpad/releases/tag/v0.4.0",
+  "notes": "* 新增：标签支持拖拽排序\r\n* 新增：全局文件搜索\r\n* 修复：官网图片查看器不居中的问题",
   "assets": {
     "checksums": {
       "name": "SHA256SUMS",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/SHA256SUMS",
-      "size": "1 KB",
-      "bytes": 1030
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.0/SHA256SUMS",
+      "size": "2 KB",
+      "bytes": 1662
     },
     "macos_amd64": {
-      "name": "zpad-0.3.2-amd64.dmg",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-0.3.2-amd64.dmg",
+      "name": "zpad-0.4.0-amd64.dmg",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.0/zpad-0.4.0-amd64.dmg",
       "size": "6.8 MB",
-      "bytes": 7159296
+      "bytes": 7149568
     },
     "macos_arm64": {
-      "name": "zpad-0.3.2-arm64.dmg",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-0.3.2-arm64.dmg",
+      "name": "zpad-0.4.0-arm64.dmg",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.0/zpad-0.4.0-arm64.dmg",
       "size": "5.8 MB",
-      "bytes": 6040064
+      "bytes": 6063104
     },
     "windows_portable": {
-      "name": "zpad-0.3.2-windows-amd64-portable.zip",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-0.3.2-windows-amd64-portable.zip",
-      "size": "8.3 MB",
-      "bytes": 8736482
+      "name": "zpad-0.4.0-windows-amd64-portable.zip",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.0/zpad-0.4.0-windows-amd64-portable.zip",
+      "size": "8.4 MB",
+      "bytes": 8791127
     },
     "windows_setup": {
-      "name": "zpad-setup-0.3.2-amd64.exe",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-setup-0.3.2-amd64.exe",
-      "size": "6.4 MB",
-      "bytes": 6740024
+      "name": "zpad-setup-0.4.0-amd64.exe",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.0/zpad-setup-0.4.0-amd64.exe",
+      "size": "6.5 MB",
+      "bytes": 6777607
     }
   }
 }
