@@ -2,6 +2,7 @@
 # templates repeat on every page belong here.
 skip_to_content = "Skip to content"
 nav_features = "Features"
+nav_compare = "Compare"
 nav_download = "Download"
 nav_changelog = "Releases"
 nav_feedback = "Feedback"

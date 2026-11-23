@@ -13,6 +13,7 @@
   --accent-hover: #4338ca;
   --accent-fg: #ffffff;
   --accent-soft: rgba(79, 70, 229, 0.1);
+  --accent-line: rgba(79, 70, 229, 0.28);
   --header-bg: rgba(255, 255, 255, 0.82);
   --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
   --shadow-lg: 0 24px 60px -24px rgba(17, 24, 39, 0.28), 0 2px 8px rgba(17, 24, 39, 0.05);
@@ -35,6 +36,7 @@ html[data-theme="dark"] {
   --accent-hover: #93a1ff;
   --accent-fg: #0f1115;
   --accent-soft: rgba(124, 140, 255, 0.14);
+  --accent-line: rgba(124, 140, 255, 0.34);
   --header-bg: rgba(15, 17, 21, 0.78);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 30px 70px -26px rgba(0, 0, 0, 0.8), 0 2px 10px rgba(0, 0, 0, 0.45);
@@ -504,6 +506,85 @@ h1 {
   font-size: 0.88rem;
 }
 
+/* Compare */
+
+.compare-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  -webkit-overflow-scrolling: touch;
+}
+
+.compare {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.compare th,
+.compare td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Column separators, including the edge where the tinted ZPad column starts. */
+.compare th + th,
+.compare th + td,
+.compare td + td {
+  border-left: 1px solid var(--border);
+}
+
+.compare tbody tr:last-child th,
+.compare tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.compare thead th {
+  padding-top: 1.1rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border-strong);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.compare thead th.is-self {
+  color: var(--accent);
+}
+
+.compare tbody th {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.compare tbody td {
+  color: var(--muted);
+}
+
+/* ZPad's column: the answer this page is making, in the accent colour. Its
+   separators need the accent tint too: light grey on the lavender wash is
+   invisible, which is the same as having no rows at all. */
+.compare .is-self {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--fg);
+}
+
+.compare-note {
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
 /* FAQ */
 
 .faq {
@@ -961,6 +1042,81 @@ h1 {
 
   .brand-name {
     display: none;
+  }
+}
+
+/* Compare: on a phone the four columns become one card per row, each value
+   labelled with its software name from data-col. */
+
+@media (max-width: 720px) {
+  .compare-scroll {
+    overflow: visible;
+    border: 0;
+    background: none;
+  }
+
+  .compare {
+    display: block;
+    min-width: 0;
+  }
+
+  .compare thead {
+    display: none;
+  }
+
+  .compare tbody,
+  .compare tr,
+  .compare th,
+  .compare td {
+    display: block;
+  }
+
+  .compare tbody tr {
+    margin-bottom: 0.7rem;
+    padding: 0.9rem 1rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+
+  .compare tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .compare tbody th {
+    margin-bottom: 0.5rem;
+    padding: 0;
+    border: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+    white-space: normal;
+  }
+
+  .compare tbody td {
+    margin-top: 0.55rem;
+    padding: 0;
+    border: 0;
+  }
+
+  .compare tbody td::before {
+    content: attr(data-col);
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.7;
+  }
+
+  .compare .is-self {
+    background: none;
+  }
+
+  .compare tbody td.is-self {
+    color: var(--fg);
   }
 }
 

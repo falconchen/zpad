@@ -31,6 +31,51 @@ features:
     title: "Ready out of the box"
     text: "No setup wizard, no plugin market. Drop a file in and write."
 features_more: "Also: encodings (UTF-8 / UTF-16 / GB18030), find and replace, session restore."
+compare_title: "How it compares"
+compare_label: "Feature"
+compare_columns: ["ZPad", "Sublime Text", "Notepad++"]
+compare_rows:
+  - label: "Platforms"
+    values:
+      - "macOS, Windows, Linux"
+      - "macOS, Windows, Linux"
+      - "Windows only"
+  - label: "Price and license"
+    values:
+      - "Free · AGPL-3.0, open source"
+      - "$99 one-time · 3 years of updates · unlimited trial"
+      - "Free · GPL-3.0, open source"
+  - label: "Interface language"
+    values:
+      - "Chinese / English, built in"
+      - "Community translation package (English only otherwise)"
+      - "Many languages built in, incl. Simplified Chinese"
+  - label: "Encodings and line endings"
+    values:
+      - "UTF-8, BOM, UTF-16, GB18030, auto-detected; line endings kept"
+      - "UTF-8, UTF-16, GB18030 and more, picked by hand"
+      - "UTF-8, UTF-16, local code page, auto-detected"
+  - label: "Panes and tabs"
+    values:
+      - "Two fixed panes, tabs in each, one shared buffer"
+      - "2–4 panes, tabs in each"
+      - "Two views, tabs in each"
+  - label: "Markdown preview"
+    values:
+      - "Built in, source and preview side by side"
+      - "Needs a package"
+      - "Needs a plugin"
+  - label: "Packages"
+    values:
+      - "None, on purpose"
+      - "Package Control"
+      - "Plugin Admin"
+  - label: "Updates in the app"
+    values:
+      - "Built in (install folder must be writable)"
+      - "Built in"
+      - "Built in (WinGUp; can be left out at install)"
+compare_note: "Rows reflect the stable builds available in November 2026. Features change over time, so treat this as a reference only."
 gallery_title: "Screenshots"
 gallery:
   - name: split-en

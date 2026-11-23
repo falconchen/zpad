@@ -55,6 +55,9 @@ GitHub Releases：`updates.github = "helloxz/zpad"`，默认 `tagPrefix` 为 `v`
 | `zpad-setup-0.3.2-amd64.exe` | `mygo build` 默认命名 |
 | `zpad-0.3.2-windows-amd64-portable.zip` | CI 额外打的 Windows 绿色版，唯一非 MyGo 产物 |
 | `zpad-0.3.2-darwin-arm64.tar.gz` | 不可改名：manifest 里写死了 URL |
+| `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm` | Linux 软件包，`linux.formats` 决定写哪些 |
+| `zpad-<版本>-linux-amd64.tar.gz` | Linux 通用包，`install.sh` 装的就是它，不可改名 |
+| `install.sh` | Linux（以及带更新的 macOS）安装脚本，装到 `~/.local` 才能自更新 |
 | `zpad-<旧版本>-to-0.3.2-<target>.delta` | 不可改名 |
 | `update-<target>.json` | 不可改名：应用从 `releases/latest/download/` 固定读取 |
 
@@ -64,16 +67,17 @@ GitHub Releases：`updates.github = "helloxz/zpad"`，默认 `tagPrefix` 为 `v`
 
 1. 修改 `mygo.json` 的 `version`，并在 `CHANGELOG.md` 写 `## <版本>` 一节（更新窗口显示这一节，缺失会导致构建失败）。
 2. 提交、打 tag `v<版本>`、推送，CI 创建 draft release。
-3. macOS 与 Windows 作业带 `MYGO_UPDATER_PRIVATE_KEY` 运行 `go tool mygo build -upload`：
+3. macOS、Windows 与 Linux 作业带 `MYGO_UPDATER_PRIVATE_KEY` 运行 `go tool mygo build -upload`：
    - macOS：生成并上传 dmg、`.tar.gz`、`.delta`、`update-darwin-*.json` 与 `install.sh`。
    - Windows：生成并上传安装包、`.tar.gz`、`.delta`、`update-windows-amd64.json` 与 `install.ps1`。
-   - `-upload` 自己按“安装包 / 更新包 → manifest”的顺序上传，并合并两个作业的 `SHA256SUMS`。
+   - Linux：生成并上传 `.deb`、`.rpm`、`.tar.gz`、`.delta`、`update-linux-amd64.json` 与 `install.sh`。
+   - `-upload` 自己按“安装包 / 更新包 → manifest”的顺序上传，并合并各作业的 `SHA256SUMS`。
 4. Windows 作业额外打 `zpad-<版本>-windows-amd64-portable.zip` 并上传。
-5. 在 GitHub 上检查 draft，**等 macOS 与 Windows 作业都变绿、资产齐全**再发布为 **latest**（不要勾选 pre-release）。
+5. 在 GitHub 上检查 draft，**等 macOS、Windows 与 Linux 作业都变绿、资产齐全**再发布为 **latest**（不要勾选 pre-release）。
 
-   发布时机不能提前：release 一发布就是 `releases/latest`，应用会立刻检查到新版本；此时更新清单还没上传，`releases/latest/download/update-<target>.json` 会返回 404。官网那边已经不会再因此报错（见下），但自动更新会：所以仍然建议等 macOS / Windows 作业变绿、draft 里文件齐全再 Publish。
+   发布时机不能提前：release 一发布就是 `releases/latest`，应用会立刻检查到新版本；此时更新清单还没上传，`releases/latest/download/update-<target>.json` 会返回 404。官网那边已经不会再因此报错（见下），但自动更新会：所以仍然建议等各平台作业变绿、draft 里文件齐全再 Publish。
 
-   官网作业允许提前发布：`.github/workflows/website.yml` 由 `release: published` 触发时如果 release 还没有文件，脚本输出 `::warning::release vX.Y.Z has no files yet` 后跳过（不失败）；`release.yml` 末尾的 `site` 作业在 macOS / Windows 都上传完后会用 `gh workflow run website.yml -f tag=<tag>` 再跑一次，由它写数据。
+   官网作业允许提前发布：`.github/workflows/website.yml` 由 `release: published` 触发时如果 release 还没有文件，脚本输出 `::warning::release vX.Y.Z has no files yet` 后跳过（不失败）；`release.yml` 末尾的 `site` 作业在 macOS / Windows / Linux 都上传完后会用 `gh workflow run website.yml -f tag=<tag>` 再跑一次，由它写数据。
 
 本地构建需要签名时：
 
@@ -88,6 +92,7 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 - **未签名、未公证**：自更新本身可用（Ed25519 验签，下载的文件不带 quarantine），但首次从 DMG 安装仍会被 Gatekeeper 拦截，这是 0.2.0 已有的问题。将来加 Developer ID 不影响更新链路，只要 Ed25519 私钥不变。
 - **ad-hoc 签名**每次构建指纹不同，macOS 可能把更新后的应用当成新的应用，TCC 权限（文件与文件夹等）可能需要重新授权；ZPad 主要使用系统打开 / 保存面板，影响较小，需要实测。
 - 应用必须能写安装目录：`/Applications` 对管理员用户可写；标准用户需要装到 `~/Applications`。从只读 DMG 直接运行、或由包管理器安装时 `Updater.Enabled()` 为 false。
+- Linux：`.deb` / `.rpm` 装到 `/opt/zpad` 与 `/usr/bin/zpad`，由包管理器更新，`Updater.Enabled()` 为 false；只有 `curl -fsSL https://github.com/helloxz/zpad/releases/latest/download/install.sh | sh` 装进 `~/.local/ZPad.app`（命令在 `~/.local/bin/zpad`）的实例能自更新。AppImage 不能自更新，MyGo 直接拒绝。deb 只声明 `libgtk-3-0`（`linux.webview: false`），不依赖 WebKitGTK。
 - 开发版（`mygo dev` / `go test` / `go run`）不能更新，`Check` 返回 `mygo.ErrUpdatesDisabled`；更新窗口会说明原因。
 - 第一个带更新器的版本（0.3.0）自己收不到更新；0.3.1 是第一个可自更新的版本。
 - 更新时 `Relaunch` 走正常退出流程，会触发 ZPad 的未保存汇总提示；用户取消退出则更新在下次启动时生效。

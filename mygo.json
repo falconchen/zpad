@@ -12,6 +12,14 @@
     "dir": "locales",
     "source": "en"
   },
+  "linux": {
+    "maintainer": "xiaoz <xiaoz93@outlook.com>",
+    "comment": "轻量、原生的文本编辑器",
+    "categories": ["Utility", "TextEditor"],
+    "command": "zpad",
+    "webview": false,
+    "formats": ["deb", "rpm"]
+  },
   "fileAssociations": [
     {
       "ext": ["txt", "log", "csv",

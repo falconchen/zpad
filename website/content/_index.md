@@ -31,6 +31,51 @@ features:
     title: "开箱即用"
     text: "没有配置向导和插件市场，文件拖进来就能写。"
 features_more: "还有编码与行尾（UTF-8 / UTF-16 / GB18030）、查找替换、会话恢复。"
+compare_title: "同类编辑器对比"
+compare_label: "对比项"
+compare_columns: ["ZPad", "Sublime Text", "Notepad++"]
+compare_rows:
+  - label: "支持平台"
+    values:
+      - "macOS、Windows、Linux"
+      - "macOS、Windows、Linux"
+      - "仅 Windows"
+  - label: "价格与许可"
+    values:
+      - "免费 · AGPL-3.0 开源"
+      - "$99 买断 · 含 3 年更新 · 可无限期试用"
+      - "免费 · GPL-3.0 开源"
+  - label: "界面语言"
+    values:
+      - "中文 / English（内置）"
+      - "需安装社区汉化插件（官方仅英文）"
+      - "内置多语言（含简体中文）"
+  - label: "编码与行尾"
+    values:
+      - "UTF-8·BOM·UTF-16·GB18030，自动检测，保存保留原行尾"
+      - "UTF-8·UTF-16·GB18030 等，需手动选择"
+      - "UTF-8·UTF-16·本地代码页，自动检测"
+  - label: "分屏与标签"
+    values:
+      - "左右双栏 × 每栏多标签，同一文件共享缓冲"
+      - "2–4 栏 × 多标签"
+      - "双视图 × 多标签"
+  - label: "Markdown 预览"
+    values:
+      - "内置，源码 + 预览可分屏"
+      - "需安装插件"
+      - "需安装插件"
+  - label: "插件生态"
+    values:
+      - "无（有意取舍）"
+      - "Package Control"
+      - "Plugin Admin"
+  - label: "在线更新"
+    values:
+      - "有（需装在可写目录）"
+      - "有"
+      - "有（WinGUp，安装时可不装）"
+compare_note: "对比基于各软件在 2026 年 11 月的稳定版本，随着时间推移，功能可能发生变化，对比结果仅供参考！"
 gallery_title: "截图"
 gallery:
   - name: split

@@ -2,6 +2,7 @@
 # templates repeat on every page belong here.
 skip_to_content = "跳到正文"
 nav_features = "功能"
+nav_compare = "对比"
 nav_download = "下载"
 nav_changelog = "更新"
 nav_feedback = "反馈"

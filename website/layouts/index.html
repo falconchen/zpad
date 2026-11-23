@@ -41,6 +41,39 @@
   </div>
 </section>
 
+<section class="section" id="compare">
+  <div class="wrap">
+    <header class="section-head">
+      <h2>{{ .Params.compare_title }}</h2>
+    </header>
+    <div class="compare-scroll">
+      <table class="compare">
+        <thead>
+          <tr>
+            <th scope="col"><span class="sr-only">{{ .Params.compare_label }}</span></th>
+            {{- range $i, $name := .Params.compare_columns }}
+            <th scope="col"{{ if eq $i 0 }} class="is-self"{{ end }}>{{ $name }}</th>
+            {{- end }}
+          </tr>
+        </thead>
+        <tbody>
+          {{- range .Params.compare_rows }}
+          <tr>
+            <th scope="row">{{ .label }}</th>
+            {{- range $i, $value := .values }}
+            <td data-col="{{ index $.Params.compare_columns $i }}"{{ if eq $i 0 }} class="is-self"{{ end }}>{{ $value }}</td>
+            {{- end }}
+          </tr>
+          {{- end }}
+        </tbody>
+      </table>
+    </div>
+    {{- with .Params.compare_note }}
+    <p class="compare-note">{{ . }}</p>
+    {{- end }}
+  </div>
+</section>
+
 <section class="section" id="screenshots">
   <div class="wrap">
     <header class="section-head">
