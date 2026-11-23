@@ -3,7 +3,7 @@ title: ZPad
 hero:
   title: "A lightweight, native, focused text editor"
   lead: "Split panes, multiple tabs, live Markdown preview. Drawn in Go — no WebView."
-  note: "macOS and Windows · Linux coming soon"
+  note: "macOS, Windows and Linux"
   primary: "Download"
   secondary: "GitHub"
   shot: split-en
@@ -103,7 +103,7 @@ faq:
   - q: "Is the updater safe?"
     a: "Update packages are verified with an Ed25519 signature and a mismatch is never installed. The app must live in a writable folder to update itself."
   - q: "Which systems are supported?"
-    a: "macOS 12 or later and Windows 10 / 11 (64-bit). Linux is being ported."
+    a: "macOS 12 or later, Windows 10 / 11 (64-bit), and Linux (x86_64, deb / rpm / tar.gz)."
   - q: "Why no plugins, Git or AI?"
     a: "ZPad is a plain text editor on purpose: fast to start, predictable to use. A heavier IDE fits those jobs better."
 changelog_title: "Latest release"

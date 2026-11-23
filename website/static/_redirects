@@ -4,3 +4,6 @@
 /download/mac-intel  https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-amd64.dmg  302
 /download/windows  https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-setup-0.4.1-amd64.exe  302
 /download/windows-portable  https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-windows-amd64-portable.zip  302
+/download/linux  https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad_0.4.1_amd64.deb  302
+/download/linux-rpm  https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-1.x86_64.rpm  302
+/download/linux-tar  https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-linux-amd64.tar.gz  302

@@ -9,7 +9,7 @@ ZPad 的产品官网：首屏、功能、截图、常见问题、下载。源码
 
 ## 范围
 
-首页六段：首屏（截图 + 下载 / GitHub 按钮）、六个功能点、与 Notepad++ / Sublime Text 的对比表、四张截图（两列，点击放大）、常见问题、最近更新。导航是 功能 / 对比 / 下载 / 更新 / 反馈 / GitHub（窄屏只留 下载 / 更新 / 反馈 / GitHub），反馈直接进 GitHub 新建 issue。下载页按平台列安装包，Linux 显示「即将上线」。不做的：博客、文档站、评论区、账号体系。
+首页六段：首屏（截图 + 下载 / GitHub 按钮）、六个功能点、与 Notepad++ / Sublime Text 的对比表、四张截图（两列，点击放大）、常见问题、最近更新。导航是 功能 / 对比 / 下载 / 更新 / 反馈 / GitHub（窄屏只留 下载 / 更新 / 反馈 / GitHub），反馈直接进 GitHub 新建 issue。下载页按平台列安装包，macOS / Windows / Linux 各两个按钮。不做的：博客、文档站、评论区、账号体系。
 
 `docs/` 下的开发文档不对外，官网只链到 GitHub。
 
@@ -111,10 +111,15 @@ README 里的截图用同一套：`docs/screenshots/editor-light.png`、`editor-
     "macos_amd64":      { … },
     "windows_setup":    { … },
     "windows_portable": { … },
+    "linux_deb":        { … },
+    "linux_rpm":        { … },
+    "linux_tar":        { … },
     "checksums":        { … }
   }
 }
 ```
+
+Linux 的三个 key 分别是 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`。下载页只给 deb / rpm 两个按钮（各平台都两个，排版对齐）；tar.gz 不进按钮，一条 `/download/linux-tar` 短链和安装说明里的 `install.sh` 一行命令都靠它。
 
 `.github/workflows/website.yml` 在 `release: published` 时调用 GitHub API 拿到 release，跑 `website/scripts/release/main.go` 重写 `data/release.json` 和 `static/_redirects`，然后提交。CF Pages 的 Git 集成看到这次提交就重新构建，所以：
 
@@ -123,7 +128,7 @@ README 里的截图用同一套：`docs/screenshots/editor-light.png`、`editor-
 - 构建期不访问 GitHub API，不需要在 CF 里放 token
 - 手动补数据：Actions 里跑一次 `Website`（`workflow_dispatch`，默认取 latest）
 
-**发布时机**：作业由 `release: published` 触发，而那一刻 release 可能还没有文件——draft 的文件是 macOS / Windows 构建期间陆续上传的，要几分钟。这种情况不算失败：脚本输出 `::warning::release vX.Y.Z has no files yet` 后跳过，`release.yml` 末尾的 `site` 作业在 macOS / Windows 都上传完之后用 `gh workflow run website.yml -f tag=<tag>` 再跑一次，由它写数据。所以先发布还是后发布都不影响最终结果，也不会再出现假红叉。
+**发布时机**：作业由 `release: published` 触发，而那一刻 release 可能还没有文件——draft 的文件是 macOS / Windows / Linux 构建期间陆续上传的，要几分钟。这种情况不算失败：脚本输出 `::warning::release vX.Y.Z has no files yet` 后跳过，`release.yml` 末尾的 `site` 作业在三个平台都上传完之后用 `gh workflow run website.yml -f tag=<tag>` 再跑一次，由它写数据。所以先发布还是后发布都不影响最终结果，也不会再出现假红叉。
 
 固定短链（生成到 `_redirects`，可写进 README 或别人的博客）：
 
@@ -132,6 +137,9 @@ README 里的截图用同一套：`docs/screenshots/editor-light.png`、`editor-
 /download/mac-intel    → 最新 Intel dmg
 /download/windows      → 最新安装包
 /download/windows-portable
+/download/linux        → 最新 deb
+/download/linux-rpm    → 最新 rpm
+/download/linux-tar    → 最新 Linux tar.gz
 ```
 
 `.delta` 和 `update-*.json` 是更新器的产物，脚本按文件名过滤，不会出现在下载页。发布但没勾选 latest、或者发成 pre-release 时，脚本会跳过（`draft`/`prerelease` 直接退出），避免官网指向更新器不提供的版本。
@@ -186,8 +194,8 @@ hugo --minify                      # 产出 website/public
 - [ ] 对比表中英两种语言各 8 行，ZPad 列带底色高亮；手机（390px）下每行改成一张卡片，页面不横向滚动
 - [ ] 手机（390px）下导航、卡片、按钮、截图不溢出，截图单列
 - [ ] 导航的「反馈」打开 GitHub 新建 issue 页面
-- [ ] 下载页四个按钮指向当前版本，Linux 显示「即将上线」，安装说明含 sudo 命令
-- [ ] `/download/mac-arm64` 302 到当前版本 dmg
+- [ ] 下载页每个平台两个按钮（Linux 为 deb / rpm）指向当前版本，安装说明含 sudo 与 `install.sh` 命令
+- [ ] `/download/mac-arm64` 302 到当前版本 dmg，`/download/linux` 302 到当前版本 deb
 - [ ] 新版本发布后 5 分钟内，官网版本号与下载链接更新
 - [ ] 无 JS 时页面仍可读、按钮仍可用（首屏截图固定暗色，截图链接直接开原图）
 
@@ -197,4 +205,5 @@ hugo --minify                      # 产出 website/public
 - 2026-11-23：首屏与截图区改用 headless 渲染的新截图（中英各一套）；favicon 与页头 logo 换成 `resources/icon.png`；新增常见问题；下载页改名「安装说明」并补 `xattr` 命令；截图支持点击放大。
 - 2026-11-23：标题定为「轻量、原生、纯粹的文本编辑器」；撤掉 Markdown 预览截图，图库缩为四张两列（预览呈现方式待调整）；灯箱控制条移到图片下方居中并加张数；导航加「反馈」进 GitHub issues；`word-break: keep-all` 避免手机端把「纯粹」拆行。
 - 2026-11-23：首页新增「对比」段（ZPad / Sublime Text / Notepad++，8 行），行数据写在首页 front matter 的 `compare_rows`，`index.html` 只负责渲染，样式在 `site.css` 的 `.compare*`；窄屏（≤720px）thead 隐藏、每人一列改成同一张卡片里按 `data-col` 标注；导航加「对比」。ZPad 列那层 `--accent-soft` 底色上普通 `--border` 分隔线几乎看不见，所以该列的分隔线走新增的 `--accent-line`（亮暗各一档）。脚注不写具体版本号：`TestWebsiteHasNoHardcodedVersion` 会拦住 `x.y.z` 文案，版本用「2026 年 11 月的稳定版本」表述。
+- 2026-11-23：下载页补上 Linux：生成脚本认领 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`，新增 `/download/linux`、`/download/linux-rpm`、`/download/linux-tar` 短链并重新生成现有版本的数据；Linux 卡片给 deb（主按钮）与 rpm 两个按钮，与另外两个平台对齐，tar.gz 只在安装说明里通过 `install.sh` 一行命令出现。说明里写清 deb / rpm 由包管理器更新、只有装进 `~/.local` 的实例能自更新；首页首屏与常见问题同步去掉「即将上线」。
 - 未接入统计：`cfAnalyticsToken` 留空，拿到 token 填入即生效。

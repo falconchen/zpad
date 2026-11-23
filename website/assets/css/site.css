@@ -863,10 +863,6 @@ h1 {
   background: var(--surface);
 }
 
-.platform.is-soon {
-  opacity: 0.72;
-}
-
 .platform-head {
   display: flex;
   gap: 0.9rem;

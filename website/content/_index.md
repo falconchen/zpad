@@ -3,7 +3,7 @@ title: ZPad
 hero:
   title: "轻量、原生、纯粹的文本编辑器"
   lead: "左右分屏、多标签、Markdown 即时预览。界面全部由 Go 绘制，没有 WebView。"
-  note: "macOS 与 Windows · Linux 即将上线"
+  note: "macOS、Windows 与 Linux"
   primary: "下载"
   secondary: "GitHub"
   shot: split
@@ -103,7 +103,7 @@ faq:
   - q: "自动更新安全吗？"
     a: "更新包用 Ed25519 签名校验，签名不符不会安装。应用需要装在可写目录才能自更新。"
   - q: "支持哪些系统？"
-    a: "macOS 12 及以上、Windows 10 / 11（64 位）。Linux 正在适配。"
+    a: "macOS 12 及以上、Windows 10 / 11（64 位）、Linux（x86_64，deb / rpm / tar.gz）。"
   - q: "为什么不支持插件、Git、AI？"
     a: "定位是一个纯粹的文本编辑器：启动够快、行为可预期。需要这些能力时，用更重的 IDE 更合适。"
 changelog_title: "最近更新"

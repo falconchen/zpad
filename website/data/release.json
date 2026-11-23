@@ -12,6 +12,24 @@
       "size": "2 KB",
       "bytes": 1935
     },
+    "linux_deb": {
+      "name": "zpad_0.4.1_amd64.deb",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad_0.4.1_amd64.deb",
+      "size": "8.2 MB",
+      "bytes": 8562634
+    },
+    "linux_rpm": {
+      "name": "zpad-0.4.1-1.x86_64.rpm",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-1.x86_64.rpm",
+      "size": "8.2 MB",
+      "bytes": 8564044
+    },
+    "linux_tar": {
+      "name": "zpad-0.4.1-linux-amd64.tar.gz",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-linux-amd64.tar.gz",
+      "size": "8.2 MB",
+      "bytes": 8603978
+    },
     "macos_amd64": {
       "name": "zpad-0.4.1-amd64.dmg",
       "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-amd64.dmg",

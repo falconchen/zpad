@@ -11,7 +11,7 @@ ZPad 是一个基于 **MyGo 原生 UI** 的轻量级文本 / 代码编辑器。�
 - 版本：`0.4.1`
 - 许可证：**AGPL-3.0**（对外分发前确认源码义务）
 - 平台：**macOS 与 Windows 已发布；Linux 自 0.4.1 起提供打包**（deb / rpm / tar.gz + `install.sh`）
-- 当前状态：**0.4.1 待发布**；0.4.0 已发布，官网 <https://zpad.xphub.dev> 已上线
+- 当前状态：**0.4.1 已发布**（macOS / Windows / Linux），官网 <https://zpad.xphub.dev> 已上线
 
 ## 技术栈
 
@@ -136,7 +136,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - **0.3.2**：首页空状态的快捷键提示按平台显示（macOS 为 `⌘`，Windows / Linux 为 `Ctrl+`），Markdown 预览与浏览器按钮的 tooltip 共用 `shortcutText`。已发布。
 - **跨文件搜索（后续增补）**：已实现。`⌘⇧F` 居中浮层搜索所有已打开标签，按文件分组，支持区分大小写、全词、正则。输入和切换选项后不自动搜索，按 `↵` 或点击右侧搜索按钮才扫描；结果是最新时 `↵` 打开选中项，`↑`/`↓` 选择。关闭面板保留关键词和结果，便于点开另一个结果；输入框末尾的 X 才清空；`Esc` 只关闭。关闭标签时同步剔除该文档的结果，避免结果引用住它的 `Buffer`。后台读 `Buffer` 快照扫描，结果上限每文件 200、全局 2000；预览标签跳转前切回源码；只覆盖打开标签，不读工作区磁盘文件。未发布。
 - **标签拖拽排序（后续增补）**：已实现。栏内拖动改变顺序，标签栏显示插入竖线；拖到另一栏的标签栏按落点位置插入，拖到编辑区仍追加到末尾；活动标签不因拖拽切换；文件拖到标签栏沿用追加并提示。未发布。
-- **Linux 打包（后续增补）**：已接入 `mygo build -platform linux/amd64`，产出 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`、`update-linux-amd64.json` 与 `install.sh`。`mygo.json` 的 `linux` 段：`webview: false`（不声明 WebKitGTK，只依赖 GTK3）、`formats` 只留 `deb` 与 `rpm`、命令名 `zpad`、维护者与分类。CI 新增 `Linux` 作业，`site` 作业改为等三个平台都上传完再补官网数据。官网下载页仍显示「即将上线」，没有对应的数据键。未发布。
+- **Linux 打包（后续增补）**：已接入 `mygo build -platform linux/amd64`，产出 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`、`update-linux-amd64.json` 与 `install.sh`。`mygo.json` 的 `linux` 段：`webview: false`（不声明 WebKitGTK，只依赖 GTK3）、`formats` 只留 `deb` 与 `rpm`、命令名 `zpad`、维护者与分类。CI 新增 `Linux` 作业，`site` 作业改为等三个平台都上传完再补官网数据。0.4.1 起发布；官网下载页给 deb（主按钮）与 rpm 两个按钮，tar.gz 只在安装说明里通过 `install.sh` 一行命令出现。
 - **macOS 窗口最小化（后续增补）**：已实现。应用自带菜单栏原先没有 Window 菜单，`⌘M` 按下去没有反应；现在 macOS 的菜单栏多出「窗口 → 最小化」（`⌘M`），`⌘W` 仍只关闭标签，关窗行为不变。未发布。
 - **官网**：`website/` 的 Hugo 站点（首页、下载页、更新日志），中英双语、亮暗主题、下载链接随 release 自动更新；线上 <https://zpad.xphub.dev>。
 

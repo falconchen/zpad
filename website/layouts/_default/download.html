@@ -61,7 +61,7 @@
     </article>
     {{- end }}
 
-    <article class="platform is-soon">
+    <article class="platform">
       <div class="platform-head">
         <span class="platform-icon">{{ partial "icon.html" "terminal" }}</span>
         <div>
@@ -70,7 +70,19 @@
         </div>
       </div>
       <div class="platform-actions">
+        {{- with $release.assets.linux_deb }}
+        <a class="btn btn-primary btn-block" href="{{ .url }}">
+          <span>{{ i18n "deb_package" }}</span><span class="btn-meta">{{ .size }}</span>
+        </a>
+        {{- end }}
+        {{- with $release.assets.linux_rpm }}
+        <a class="btn btn-block" href="{{ .url }}">
+          <span>{{ i18n "rpm_package" }}</span><span class="btn-meta">{{ .size }}</span>
+        </a>
+        {{- end }}
+        {{- if not (or $release.assets.linux_deb $release.assets.linux_rpm) }}
         <span class="badge">{{ i18n "coming_soon" }}</span>
+        {{- end }}
       </div>
     </article>
   </div>
