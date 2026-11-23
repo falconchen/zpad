@@ -22,6 +22,11 @@ const (
 	// markdownPreviewWidth is the reading width of the rendered text, which
 	// stays centered in a wider pane.
 	markdownPreviewWidth float32 = 820
+	// markdownTableMaxPixels is how wide a table column may grow, in DIPs.
+	// The Markdown view measures TableMaxColumn in ems, so the preview
+	// divides this by its font size, keeping a column about this wide at
+	// every font size.
+	markdownTableMaxPixels float32 = 600
 	// markdownPreviewMaxBytes and markdownPreviewMaxLines keep the preview
 	// responsive: the Markdown view builds every block each frame, which is
 	// right for a README and too much for a whole book.
@@ -139,6 +144,10 @@ func (a *App) markdownOptions(doc *Document, t *ui.Theme) *markdown.Options {
 	previewTheme.LineHeight = 1.6
 	previewTheme.CodeFont = a.Settings.FontFamily
 	previewTheme.CodeColors = theme.EditorTheme(t)
+	// The component's default is 24em, which wraps a table cell after
+	// about 360 DIPs at the default size and leaves most of the reading
+	// width empty.
+	previewTheme.TableMaxColumn = markdownTableMaxPixels / previewTheme.FontSize
 	doc.md.Theme = previewTheme
 	return doc.md
 }

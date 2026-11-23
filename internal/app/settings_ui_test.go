@@ -19,6 +19,8 @@ func TestSettingsModalOpens(t *testing.T) {
 		locales.EditorSection(),
 		locales.FilesSection(),
 		locales.WorkspaceSection(),
+		locales.SoftWrap(),
+		locales.SoftWrapDescription(),
 		locales.RestoreDefaults(),
 		locales.Done(),
 	} {

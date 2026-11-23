@@ -142,7 +142,7 @@ func (a *App) settingsEditor(c *ui.Context, t *ui.Theme) {
 			a.update()
 		}
 	})
-	a.switchField(c, locales.SoftWrap(), &a.Settings.SoftWrap)
+	a.switchField(c, locales.SoftWrap(), &a.Settings.SoftWrap, locales.SoftWrapDescription())
 	a.selectField(c, locales.LineNumbers(), lineNumbersLabel(a.Settings.LineNumbers),
 		[]string{locales.LineNumbersAbsolute(), locales.LineNumbersRelative(), locales.LineNumbersOff()},
 		func(label string) {
@@ -222,13 +222,16 @@ func (a *App) selectField(c *ui.Context, label, current string, options []string
 	})
 }
 
-func (a *App) switchField(c *ui.Context, label string, v *bool) {
-	ui.Field(c, label, func() {
+func (a *App) switchField(c *ui.Context, label string, v *bool, description ...string) {
+	f := ui.Field(c, label, func() {
 		if ui.Switch(c, v).Cursor(ui.CursorPointer).Changed() {
 			a.saveSettings()
 			a.update()
 		}
 	})
+	if len(description) > 0 && description[0] != "" {
+		f.Description(description[0])
+	}
 }
 
 func (a *App) setLanguage(tag string) {

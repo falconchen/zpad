@@ -336,6 +336,24 @@ func TestMarkdownPreviewLoadsEncodedImagePaths(t *testing.T) {
 	}
 }
 
+func TestMarkdownPreviewTableWidthFollowsFontSize(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	doc := docAt("/tmp/README.md", "| Date | Text |\n| --- | --- |\n| 2026-11-23 | Hello |")
+	a.addDocument(doc)
+
+	for _, size := range []float32{13, 20} {
+		a.Settings.FontSize = size
+		opts := a.markdownOptions(doc, ui.LightTheme())
+		font := size + 2
+		if got := opts.Theme.FontSize; got != font {
+			t.Fatalf("preview font %v, want %v", got, font)
+		}
+		if got, want := opts.Theme.TableMaxColumn, markdownTableMaxPixels/font; got != want {
+			t.Fatalf("TableMaxColumn at font %v = %v, want %v", font, got, want)
+		}
+	}
+}
+
 func TestMarkdownPreviewLinkHandling(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
 	doc := docAt("/tmp/README.md", "# One")

@@ -884,14 +884,24 @@ func (msgs Messages) LineHeight() string {
 	return Catalog.Format(msgs.locale, "lineHeight", nil)
 }
 
-// SoftWrap says "Soft Wrap"
+// SoftWrap says "Word Wrap"
 // in the language the app shows.
 func SoftWrap() string { return In(i18n.Locale()).SoftWrap() }
 
-// SoftWrap says "Soft Wrap"
+// SoftWrap says "Word Wrap"
 // in the language of msgs.
 func (msgs Messages) SoftWrap() string {
 	return Catalog.Format(msgs.locale, "softWrap", nil)
+}
+
+// SoftWrapDescription says "Wraps long lines to the pane width; the file stays unchanged."
+// in the language the app shows.
+func SoftWrapDescription() string { return In(i18n.Locale()).SoftWrapDescription() }
+
+// SoftWrapDescription says "Wraps long lines to the pane width; the file stays unchanged."
+// in the language of msgs.
+func (msgs Messages) SoftWrapDescription() string {
+	return Catalog.Format(msgs.locale, "softWrapDescription", nil)
 }
 
 // LineNumbers says "Line Numbers"
