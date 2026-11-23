@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"image/png"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/helloxz/zpad/internal/app"
@@ -86,7 +87,9 @@ func TestTextExtensionsMatchAssociations(t *testing.T) {
 	}
 }
 
-func TestVersionMatchesConfig(t *testing.T) {
+// mygo.json is the app's only version: mygo build links it into the binary,
+// and names the artifacts and the tag with it.
+func TestVersionIsAReleaseVersion(t *testing.T) {
 	data, err := os.ReadFile("mygo.json")
 	if err != nil {
 		t.Fatal(err)
@@ -97,10 +100,13 @@ func TestVersionMatchesConfig(t *testing.T) {
 	if err := json.Unmarshal(data, &cfg); err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Version != app.Version {
-		t.Fatalf("mygo.json says version %q, the About dialog shows %q", cfg.Version, app.Version)
+	if !releaseVersion.MatchString(cfg.Version) {
+		t.Fatalf("mygo.json says version %q, want MAJOR.MINOR.PATCH", cfg.Version)
 	}
 }
+
+// releaseVersion is what the tag of a release names, as v1.2.3.
+var releaseVersion = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
 
 func TestAppIconSize(t *testing.T) {
 	f, err := os.Open("resources/icon.png")

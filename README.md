@@ -3,7 +3,7 @@
 基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器。
 单窗口、左右或上下双栏、每栏多标签，不启动 WebView，界面全部由 Go 绘制。
 
-当前进度：**M4 加固与 macOS 发布**。功能、设置、双语、分屏、会话与打包均已完成，等待 0.1.0 验收。
+当前进度：**M4 加固与 macOS 发布**。功能、设置、双语、分屏、会话与打包均已完成，0.1.0 已发布，0.2.0 待发布。
 
 ## 截图
 
@@ -116,10 +116,11 @@ go tool mygo build   # 打包 macOS 应用
 go tool mygo build
 ```
 
-产物：
+产物（`go tool mygo build` 后统一改名到 `build/release/`，见 `.github/workflows/release.yml`）：
 
-- `build/darwin-arm64/ZPad.app`
-- `build/darwin-arm64/zpad-0.1.0-arm64.dmg`
+- `ZPad-0.2.0-macos-arm64.dmg`、`ZPad-0.2.0-macos-arm64.zip`
+- `ZPad-0.2.0-macos-amd64.dmg`、`ZPad-0.2.0-macos-amd64.zip`
+- `ZPad-0.2.0-windows-amd64-setup.exe`、`ZPad-0.2.0-windows-amd64-portable.zip`
 
 `mygo.json` 已声明 `fileAssociations`：`Text Document`（txt / md / html / css / json / yaml / xml / diff 等）与 `Source Code`（go / py / rs / js / ts / c / cpp / java / rb / php / lua / sh / sql / vue / svelte 等），共 86 个扩展名。构建后 Finder 双击对应文件可用 ZPad 打开；如系统未立即刷新关联，可重新登录或清理 LaunchServices 缓存。macOS 的 `CFBundleDocumentTypes` 由 MyGo 写入 `LSHandlerRank: Default`，与系统已有默认程序冲突时以用户选择为准。
 

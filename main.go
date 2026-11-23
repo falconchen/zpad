@@ -41,6 +41,7 @@ func main() {
 	a := app.New(s, dir)
 	a.LogPath = logPath
 	a.SetAppIcon(appIconPNG)
+	app.SetVersion(mygo.App.Version())
 	if err != nil {
 		a.SetErrorToast(locales.LoadSettingsFailed(), err.Error())
 		log.Printf("load settings: %v", err)

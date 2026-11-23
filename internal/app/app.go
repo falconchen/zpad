@@ -68,9 +68,19 @@ const (
 	sidebarWorkspace
 )
 
-// Version is the release version shown in the status bar and the About
-// dialog. Keep it equal to the version in mygo.json.
-const Version = "0.1.0"
+// Version is the version the status bar and the About dialog show. main
+// sets it from mygo.json, which mygo build links in: that file is the app's
+// only version, so a release bumps one file. It is "dev" until then, as
+// under go test or go run.
+var Version = "dev"
+
+// SetVersion records the version mygo build or mygo dev linked in; an empty
+// one, as from a plain go build, keeps the default.
+func SetVersion(v string) {
+	if v != "" {
+		Version = v
+	}
+}
 
 // App is the state the window shows.
 type App struct {

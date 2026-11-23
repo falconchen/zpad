@@ -20,8 +20,28 @@ func TestViewShowsSkeleton(t *testing.T) {
 	if !tt.HasText(locales.AppTagline()) {
 		t.Fatalf("view does not show the empty state; texts %q", tt.Texts())
 	}
-	if !tt.HasText("ZPad 0.1.0") {
+	if !tt.HasText("ZPad " + Version) {
 		t.Fatalf("status bar does not show the version; texts %q", tt.Texts())
+	}
+}
+
+// main sets Version from mygo.json, which mygo build links in: the app has
+// no version of its own to miss.
+func TestSetVersionReachesTheView(t *testing.T) {
+	old := Version
+	t.Cleanup(func() { Version = old })
+
+	SetVersion("9.9.9")
+	a := New(settings.Default(), t.TempDir())
+	tt := ui.NewTester(a.View, 1200, 800)
+	if !tt.HasText("ZPad 9.9.9") {
+		t.Fatalf("the status bar does not show the version set; texts %q", tt.Texts())
+	}
+
+	// A plain go build links none: the default stays, also over an empty one.
+	SetVersion("")
+	if Version != "9.9.9" {
+		t.Fatalf("an empty version left %q, want 9.9.9", Version)
 	}
 }
 

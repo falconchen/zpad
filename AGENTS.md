@@ -8,10 +8,10 @@ ZPad 是一个基于 **MyGo 原生 UI** 的轻量级文本 / 代码编辑器。�
 - Module：`github.com/helloxz/zpad`
 - 应用名：**ZPad**
 - Bundle ID：**`com.xiaoz.zpad`**
-- 版本：`0.1.0`
+- 版本：`0.2.0`
 - 许可证：**AGPL-3.0**（对外分发前确认源码义务）
 - 平台顺序：**macOS 先跑通 → Windows（后续）→ Linux（最后）**
-- 当前状态：**M4 已完成，等待 0.1.0 发布验收**
+- 当前状态：**0.1.0 已发布；0.2.0 待发布**
 
 ## 技术栈
 
@@ -34,7 +34,7 @@ go tool mygo generate  # 改了 locales/*.json 后重新生成 catalog_gen.go
 go tool mygo build   # 打包 macOS .app / .dmg
 ```
 
-产物：`build/darwin-arm64/ZPad.app`、`zpad-0.1.0-arm64.dmg`。
+产物：`build/darwin-arm64/ZPad.app`，以及统一命名的 `ZPad-0.2.0-macos-arm64.dmg` / `.zip`。
 
 ## 产品需求（一期）
 
@@ -102,6 +102,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 保存使用原子写；保留原文件权限、编码、BOM 和行尾。
 - 会话只保存有路径的文件；未命名文件不持久化。
 - 单实例用 `mygo.App.RequestSingleInstanceLock()`（`main` 开头）+ `mygo.App.OnSecondInstance(a.HandleSecondInstance)`：第二进程立即退出，第一个实例前置窗口后打开传来的文件 / 文件夹。参数由应用自己解析（MyGo 只转发 `fileAssociations` 里登记的扩展名），`openPaths` 用 `beginLoading` / `endLoading` 的「正在读取」集合保证同一路径只读一次。
+- 版本只在 `mygo.json`：`main` 里 `app.SetVersion(mygo.App.Version())` 注入，状态栏与关于对话框读 `app.Version`；不要在 Go 代码里再写一份版本号（`go test` / `go run` 下显示 `dev`）。
 - 强制外观用 `mygo.Theme.SetSource`，UI 主题用 `c.SetTheme` / `ui.Themed`。
 - 失败提示分两类：用户动作的一次性结果（打开 / 重新打开 / 对话框失败）用 `SetErrorToast(title, detail)`，走 toast 队列，6 秒自动消失、悬停暂停、Esc 关闭；`SetError` 只用于文档还开着、需要用户处理的保存 / 关闭失败（状态栏红字，下一次成功打开时清零）。不要把一次性结果写进 `errMsg`，否则它会一直留在状态栏。
 - 弹窗菜单统一 `c.SetMenuPresentation(ui.PopoverMenus)` 在窗口内绘制；顶部系统菜单栏保持原生。侧栏树菜单用 `PopoverMenu` + `sidebarMenuOptions`，避免继承文件树的选中样式。
@@ -116,7 +117,7 @@ docs/                      需求、里程碑、实现记录与签收
 - **M1 单栏编辑闭环**：已签收。打开文件 / 文件夹、侧栏、标签、编辑器、保存、编码、换行、大小写、状态栏、菜单、拖拽。
 - **M2 左右双栏与会话恢复**：已签收。分屏、跨栏共享 Buffer、会话恢复、关闭 / 退出汇总提示。
 - **M3 视觉、设置、字体与中英双语**：已签收。完整主题、设置面板、JetBrains Mono、中英切换、查找栏 / 跳行栏样式。
-- **M4 加固、文件关联与 macOS 发布**：已实现，待 0.1.0 发布验收。大文件只读、编码边界、外部修改检测、文件关联、正式图标、`.app` / `.dmg`。
+- **M4 加固、文件关联与 macOS 发布**：0.1.0 已发布。大文件只读、编码边界、外部修改检测、文件关联、正式图标、`.app` / `.dmg`。
 - **Markdown 原生预览（后续增补）**：已实现。标签内切换、状态栏 / 快捷键 / 右键菜单、分屏源码 + 预览、本地图片、链接、代码高亮；上限约 1 MB / 1 万行。
 
 测试覆盖：编码、行尾、大小写、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、字体过滤、中英文案、编辑器 token 颜色、大文件只读、只读目录保存失败、外部重载、文件关联配置、图标尺寸。
