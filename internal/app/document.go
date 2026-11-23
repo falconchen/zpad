@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -29,6 +30,9 @@ type Document struct {
 	Size     int64
 	ModTime  time.Time
 	ReadOnly bool
+	// UntitledSeq is the number the document was created with, for the name
+	// its save dialog starts from; 0 for a document with a path.
+	UntitledSeq int
 }
 
 // setLanguage gives the buffer the file's language, or none when the text
@@ -132,12 +136,13 @@ func newDocument(path string, data []byte, kind encoding.Kind, size int64) (*Doc
 	return doc, nil
 }
 
-func newUntitled(id string, defaultEncoding string) *Document {
+func newUntitled(seq int, defaultEncoding string) *Document {
 	buf := editor.NewBuffer("")
 	return &Document{
-		ID:       id,
-		Buffer:   buf,
-		Encoding: encoding.Parse(defaultEncoding),
+		ID:          fmt.Sprintf("untitled-%d", seq),
+		Buffer:      buf,
+		Encoding:    encoding.Parse(defaultEncoding),
+		UntitledSeq: seq,
 	}
 }
 
@@ -146,6 +151,21 @@ func (d *Document) Name() string {
 		return locales.Untitled()
 	}
 	return filepath.Base(d.Path)
+}
+
+// saveName is the file name a save dialog starts with. An untitled
+// document gets an English name with its creation number and the text
+// extension, so the dialog does not offer a localized name that the user
+// would have to replace.
+func (d *Document) saveName() string {
+	if d.Path != "" {
+		return filepath.Base(d.Path)
+	}
+	seq := d.UntitledSeq
+	if seq <= 0 {
+		seq = 1
+	}
+	return fmt.Sprintf("untitled-%d.txt", seq)
 }
 
 // DisplayPath is the path relative to root when it is inside it.

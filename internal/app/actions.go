@@ -502,21 +502,39 @@ func (a *App) removeTabByPointer(paneIdx int, t *Tab) {
 	}
 }
 
+// saveDialogPath is where the save dialog for doc starts. A file keeps its
+// path; an untitled document starts with its English default name in the
+// workspace root, else in the home folder, so the dialog does not open at
+// the process's working directory.
+func (a *App) saveDialogPath(doc *Document) string {
+	if doc.Path != "" {
+		return doc.Path
+	}
+	name := doc.saveName()
+	dir := a.root
+	if dir == "" {
+		if home, err := os.UserHomeDir(); err == nil {
+			dir = home
+		}
+	}
+	if dir == "" {
+		return name
+	}
+	return filepath.Join(dir, name)
+}
+
 func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 	if a.busy {
 		return
 	}
 	a.busy = true
+	defaultPath := a.saveDialogPath(tab.doc)
 	go func() {
 		defer a.onUI(func() { a.busy = false })
 
 		saveAs = saveAs || tab.doc.ReadOnly
 		path := tab.doc.Path
 		if saveAs || path == "" {
-			defaultPath := path
-			if defaultPath == "" {
-				defaultPath = tab.doc.Name()
-			}
 			p, err := mygo.Dialog.Save(mygo.SaveDialogOptions{
 				Parent:      a.win,
 				Title:       locales.SaveFileTitle(),

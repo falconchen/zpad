@@ -2,7 +2,6 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 	"sync"
@@ -408,7 +407,7 @@ func (a *App) addDocumentAt(paneIdx int, doc *Document) {
 
 func (a *App) newUntitledDocument() *Document {
 	a.untitledSeq++
-	doc := newUntitled(fmt.Sprintf("untitled-%d", a.untitledSeq), a.Settings.DefaultEncoding)
+	doc := newUntitled(a.untitledSeq, a.Settings.DefaultEncoding)
 	doc.Buffer.SetLineEnding(a.Settings.DefaultEOL)
 	return doc
 }

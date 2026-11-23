@@ -120,11 +120,27 @@ func TestDisplayPath(t *testing.T) {
 }
 
 func TestNewUntitled(t *testing.T) {
-	doc := newUntitled("untitled-1", "gb18030")
+	doc := newUntitled(1, "gb18030")
 	if doc.Name() != locales.Untitled() || doc.Encoding != encoding.GB18030 {
 		t.Fatalf("untitled %+v", doc)
 	}
 	if doc.Buffer.Modified() {
 		t.Fatal("new untitled document is modified")
+	}
+	if doc.ID != "untitled-1" || doc.UntitledSeq != 1 {
+		t.Fatalf("untitled id %q seq %d", doc.ID, doc.UntitledSeq)
+	}
+}
+
+func TestSaveName(t *testing.T) {
+	if got := newUntitled(3, "utf-8").saveName(); got != "untitled-3.txt" {
+		t.Fatalf("untitled save name %q", got)
+	}
+	if got := newUntitled(0, "utf-8").saveName(); got != "untitled-1.txt" {
+		t.Fatalf("unnumbered save name %q", got)
+	}
+	path := filepath.Join(t.TempDir(), "notes.md")
+	if got := (&Document{Path: path}).saveName(); got != "notes.md" {
+		t.Fatalf("saved document save name %q", got)
 	}
 }

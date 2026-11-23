@@ -63,6 +63,32 @@ func TestTabs(t *testing.T) {
 	}
 }
 
+func TestSaveDialogNamesAnUntitledDocument(t *testing.T) {
+	workspace := t.TempDir()
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(workspace)
+	doc := a.newUntitledDocument()
+	if got, want := a.saveDialogPath(doc), filepath.Join(workspace, "untitled-1.txt"); got != want {
+		t.Fatalf("untitled save path %q, want %q", got, want)
+	}
+	second := a.newUntitledDocument()
+	if got, want := a.saveDialogPath(second), filepath.Join(workspace, "untitled-2.txt"); got != want {
+		t.Fatalf("second save path %q, want %q", got, want)
+	}
+	doc.Path = filepath.Join(workspace, "note.md")
+	if got := a.saveDialogPath(doc); got != doc.Path {
+		t.Fatalf("saved path %q, want %q", got, doc.Path)
+	}
+
+	if home, err := os.UserHomeDir(); err == nil {
+		bare := New(settings.Default(), t.TempDir())
+		want := filepath.Join(home, "untitled-1.txt")
+		if got := bare.saveDialogPath(bare.newUntitledDocument()); got != want {
+			t.Fatalf("home save path %q, want %q", got, want)
+		}
+	}
+}
+
 func TestWorkspaceOpensSidebar(t *testing.T) {
 	workspace := t.TempDir()
 	if err := os.WriteFile(filepath.Join(workspace, "a.txt"), []byte("a"), 0o644); err != nil {

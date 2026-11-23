@@ -211,6 +211,10 @@ func (a *App) saveDocsForClose(docs []*Document, then func()) {
 		return
 	}
 	a.busy = true
+	defaults := make([]string, len(docs))
+	for i, doc := range docs {
+		defaults[i] = a.saveDialogPath(doc)
+	}
 	go func() {
 		type saved struct {
 			doc  *Document
@@ -218,13 +222,13 @@ func (a *App) saveDocsForClose(docs []*Document, then func()) {
 			data []byte
 		}
 		var results []saved
-		for _, doc := range docs {
+		for i, doc := range docs {
 			path := doc.Path
 			if path == "" {
 				p, err := mygo.Dialog.Save(mygo.SaveDialogOptions{
 					Parent:      a.win,
 					Title:       locales.SaveFileTitle(),
-					DefaultPath: doc.Name(),
+					DefaultPath: defaults[i],
 					Filters:     textFilters(),
 				})
 				if err != nil {
