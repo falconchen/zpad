@@ -4,11 +4,8 @@ heading: "下载 ZPad"
 layout: download
 lead: "macOS、Windows 与 Linux 都能用。选对包，安装和更新方式见下方说明。"
 macos_title: "macOS 12 及以上"
-macos_lead: "按芯片选择，选错架构会打不开。"
 windows_title: "Windows 10 / 11（64 位）"
-windows_lead: "安装版会登记为文本文件的打开方式，便携版解压即用。"
 linux_title: "Linux"
-linux_lead: "x86_64 的 deb 与 rpm：deb 给 Debian / Ubuntu，rpm 给 Fedora / RHEL 系。"
 notes_title: "安装说明"
 notes:
   - text: "macOS 首次打开会被 Gatekeeper 拦下：右键应用 → 打开，或到「系统设置 → 隐私与安全性」里选「仍要打开」。"

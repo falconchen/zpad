@@ -2,7 +2,7 @@
 title: ZPad
 hero:
   title: "A lightweight, native, focused text editor"
-  lead: "Split panes, multiple tabs, live Markdown preview. Drawn in Go — no WebView."
+  lead: "Split panes, multiple tabs, Markdown preview. Drawn in Go — no WebView."
   note: "macOS, Windows and Linux"
   primary: "Download"
   secondary: "GitHub"

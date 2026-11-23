@@ -2,7 +2,7 @@
 title: ZPad
 hero:
   title: "轻量、原生、纯粹的文本编辑器"
-  lead: "左右分屏、多标签、Markdown 即时预览。界面全部由 Go 绘制，没有 WebView。"
+  lead: "左右分屏、多标签、Markdown 预览。界面全部由 Go 绘制，没有 WebView。"
   note: "macOS、Windows 与 Linux"
   primary: "下载"
   secondary: "GitHub"
