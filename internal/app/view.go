@@ -32,9 +32,13 @@ func (a *App) View(c *ui.Context) {
 	t := theme.For(a.Dark)
 	c.SetTheme(t)
 	c.SetMenuPresentation(ui.PopoverMenus)
-	if !a.showSettings && !a.aboutOpen && !a.renameOpen &&
-		c.Shortcut(ui.Cmd|ui.Shift, ui.KeyB) {
-		a.OpenActiveInBrowser()
+	if !a.showSettings && !a.aboutOpen && !a.renameOpen {
+		if c.Shortcut(ui.Cmd|ui.Shift, ui.KeyV) && !c.ShortcutRepeated() {
+			a.ToggleMarkdownPreview()
+		}
+		if c.Shortcut(ui.Cmd|ui.Shift, ui.KeyB) && !c.ShortcutRepeated() {
+			a.OpenActiveInBrowser()
+		}
 	}
 
 	ui.Themed(c, t).Fill().Children(func() {
@@ -84,7 +88,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 		a.iconButton(c, t, iconRedo, locales.Redo(), false, a.Redo).
 			KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyZ)
 		a.iconButton(c, t, iconSearch, locales.Find(), false, func() {
-			if tab := a.activeTab(); tab != nil {
+			if tab := a.activeTab(); tab != nil && !tab.preview {
 				tab.state.Run(editor.Find)
 			}
 		}).KeyShortcuts(ui.Cmd, ui.KeyF)
@@ -563,6 +567,9 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 		if tab == nil {
 			return
 		}
+		if tab.preview && !isMarkdownPath(tab.doc.Path) {
+			tab.preview = false
+		}
 		a.configureEditor(tab, t)
 		if index == a.activePane {
 			if dirty := tab.doc.Buffer.Modified(); dirty != a.lastDirty {
@@ -573,6 +580,14 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 			}
 		}
 		drop := ui.Box(c).Grow(1).FillWidth().Children(func() {
+			if tab.preview {
+				sc := a.markdownPreview(c, t, tab, index, a.focusEditor && index == a.activePane)
+				if index != a.activePane && sc.FocusWithin() {
+					a.activePane = index
+					a.updateTitle()
+				}
+				return
+			}
 			v := editor.View(c, tab.state).Grow(1).FillWidth()
 			if tab.pendingScroll != nil {
 				y := *tab.pendingScroll
@@ -591,7 +606,7 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 		if drop.FileDragOver() {
 			drop.Border(2, t.Accent)
 		}
-		if tab.state.Focused() && a.activePane != index {
+		if !tab.preview && tab.state.Focused() && a.activePane != index {
 			a.activePane = index
 			a.updateTitle()
 		}
@@ -698,6 +713,9 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		if tab.doc.Buffer.Modified() {
 			ui.Box(c).Size(6, 6).Radius(3).Background(t.Accent).Shrink(0)
 		}
+		if tab.preview {
+			ui.Icon(c, iconPreview).FontSize(11).TextColor(t.Accent).Shrink(0)
+		}
 		ui.Text(c, tab.doc.Name()).FontSize(12).TextColor(text).SingleLine().
 			MaxWidth(tabTextWidth).TruncateMiddle()
 		close := ui.ButtonBase(c.Key(key+"-close")).Size(16, 16).Center().Shrink(0).
@@ -770,6 +788,19 @@ func (a *App) tabContextMenu(m *ui.Menu, paneIdx, i int) {
 		m.Separator()
 		if m.Item(locales.RevealInFileManager()).Chosen() {
 			a.revealDocument(tab.doc)
+		}
+		if isMarkdownPath(tab.doc.Path) {
+			can := a.canPreviewTab(tab)
+			label := locales.PreviewMarkdown()
+			if tab.preview {
+				label = locales.BackToSource()
+			} else if !can {
+				label = locales.PreviewTooLarge()
+			}
+			if m.Item(label).Disabled(!can).Chosen() {
+				a.activateTab(paneIdx, i)
+				a.toggleTabPreview(tab)
+			}
 		}
 		if isHTMLPath(tab.doc.Path) && m.Item(locales.OpenInBrowser()).Chosen() {
 			a.openTabInBrowser(tab)
@@ -934,6 +965,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 				a.revealButton(c, t, doc)
 			}
 			ui.Text(c, languageLabel(doc)).FontSize(11).TextColor(t.TextMuted)
+			a.previewButton(c, t, tab)
 			a.browserButton(c, t, tab)
 			if doc.ReadOnly {
 				ui.Text(c, locales.ReadOnly()).FontSize(11).TextColor(t.Warning)
@@ -970,9 +1002,13 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 			}, menuButtonCursorOptions()).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer)
 
 			ui.Spacer(c)
-			ui.Text(c, cursorLabel(tab)).FontSize(11).TextColor(t.TextMuted)
-			if sel := selectionLabel(tab); sel != "" {
-				ui.Text(c, sel).FontSize(11).TextColor(t.TextMuted)
+			if tab.preview {
+				ui.Text(c, locales.PreviewMode()).FontSize(11).TextColor(t.Accent)
+			} else {
+				ui.Text(c, cursorLabel(tab)).FontSize(11).TextColor(t.TextMuted)
+				if sel := selectionLabel(tab); sel != "" {
+					ui.Text(c, sel).FontSize(11).TextColor(t.TextMuted)
+				}
 			}
 			ui.Text(c, formatSize(doc.Size)).FontSize(11).TextColor(t.TextMuted)
 			if doc.Buffer.Modified() {

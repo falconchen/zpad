@@ -55,12 +55,12 @@ func (a *App) menuItems() []*mygo.MenuItem {
 		}},
 		{Label: locales.Refresh(), Click: func(*mygo.MenuItem, *mygo.Window) { a.refreshTree() }},
 		{Label: locales.FindEllipsis(), Click: func(*mygo.MenuItem, *mygo.Window) {
-			if tab := a.activeTab(); tab != nil {
+			if tab := a.activeTab(); tab != nil && !tab.preview {
 				tab.state.Run(editor.Find)
 			}
 		}},
 		{Label: locales.ReplaceEllipsis(), Click: func(*mygo.MenuItem, *mygo.Window) {
-			if tab := a.activeTab(); tab != nil {
+			if tab := a.activeTab(); tab != nil && !tab.preview {
 				tab.state.Run(editor.FindReplace)
 			}
 		}},

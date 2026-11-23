@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui/editor"
+	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helloxz/zpad/internal/atomicfile"
 	"github.com/helloxz/zpad/internal/encoding"
 	"github.com/helloxz/zpad/locales"
@@ -33,6 +34,15 @@ type Document struct {
 	// UntitledSeq is the number the document was created with, for the name
 	// its save dialog starts from; 0 for a document with a path.
 	UntitledSeq int
+
+	// md are the Markdown preview's options, shared by every preview of the
+	// document; nil until one shows. mdPath is the path their image base
+	// came from, and previewText caches the buffer at previewVersion.
+	md             *markdown.Options
+	mdPath         string
+	previewText    string
+	previewVersion uint64
+	previewLoaded  bool
 }
 
 // setLanguage gives the buffer the file's language, or none when the text

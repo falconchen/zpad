@@ -108,6 +108,7 @@ func (a *App) finishRename(old, newPath string) {
 			tab.doc.Path = rebasePath(tab.doc.Path, old, newPath)
 			tab.doc.ID = tab.doc.Path
 			tab.doc.setLanguage(tab.doc.Path)
+			a.clearPreviewIfNotMarkdown(tab.doc)
 			if a.revealDoc == oldID {
 				a.revealDoc = tab.doc.ID
 			}

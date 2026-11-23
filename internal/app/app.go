@@ -20,6 +20,10 @@ type Tab struct {
 	doc           *Document
 	state         *editor.State
 	pendingScroll *float64
+	// preview shows the document as rendered Markdown rather than in the
+	// editor; previewScroll keeps its place across that switch.
+	preview       bool
+	previewScroll ui.ScrollState
 }
 
 // Pane is one side of the window: its tabs and the one chosen.

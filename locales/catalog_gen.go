@@ -234,6 +234,56 @@ func (msgs Messages) OpenInBrowserFailed() string {
 	return Catalog.Format(msgs.locale, "openInBrowserFailed", nil)
 }
 
+// PreviewMarkdown says "Preview Markdown"
+// in the language the app shows.
+func PreviewMarkdown() string { return In(i18n.Locale()).PreviewMarkdown() }
+
+// PreviewMarkdown says "Preview Markdown"
+// in the language of msgs.
+func (msgs Messages) PreviewMarkdown() string {
+	return Catalog.Format(msgs.locale, "previewMarkdown", nil)
+}
+
+// BackToSource says "Back to Source"
+// in the language the app shows.
+func BackToSource() string { return In(i18n.Locale()).BackToSource() }
+
+// BackToSource says "Back to Source"
+// in the language of msgs.
+func (msgs Messages) BackToSource() string {
+	return Catalog.Format(msgs.locale, "backToSource", nil)
+}
+
+// PreviewMode says "Preview"
+// in the language the app shows.
+func PreviewMode() string { return In(i18n.Locale()).PreviewMode() }
+
+// PreviewMode says "Preview"
+// in the language of msgs.
+func (msgs Messages) PreviewMode() string {
+	return Catalog.Format(msgs.locale, "previewMode", nil)
+}
+
+// PreviewTooLarge says "File is too large to preview"
+// in the language the app shows.
+func PreviewTooLarge() string { return In(i18n.Locale()).PreviewTooLarge() }
+
+// PreviewTooLarge says "File is too large to preview"
+// in the language of msgs.
+func (msgs Messages) PreviewTooLarge() string {
+	return Catalog.Format(msgs.locale, "previewTooLarge", nil)
+}
+
+// OpenLinkFailed says "Could not open the link"
+// in the language the app shows.
+func OpenLinkFailed() string { return In(i18n.Locale()).OpenLinkFailed() }
+
+// OpenLinkFailed says "Could not open the link"
+// in the language of msgs.
+func (msgs Messages) OpenLinkFailed() string {
+	return Catalog.Format(msgs.locale, "openLinkFailed", nil)
+}
+
 // CloseTab says "Close Tab"
 // in the language the app shows.
 func CloseTab() string { return In(i18n.Locale()).CloseTab() }

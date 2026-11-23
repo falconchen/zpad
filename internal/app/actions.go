@@ -291,7 +291,7 @@ func (a *App) NewFile() {
 
 // Undo takes back the active buffer's last edit.
 func (a *App) Undo() {
-	if tab := a.activeTab(); tab != nil && !tab.doc.ReadOnly {
+	if tab := a.activeTab(); tab != nil && !tab.doc.ReadOnly && !tab.preview {
 		tab.doc.Buffer.Undo()
 		a.updateTitle()
 		a.update()
@@ -300,7 +300,7 @@ func (a *App) Undo() {
 
 // Redo makes the active buffer's last undone edit again.
 func (a *App) Redo() {
-	if tab := a.activeTab(); tab != nil && !tab.doc.ReadOnly {
+	if tab := a.activeTab(); tab != nil && !tab.doc.ReadOnly && !tab.preview {
 		tab.doc.Buffer.Redo()
 		a.updateTitle()
 		a.update()
@@ -438,7 +438,7 @@ func (a *App) SetLineEnding(eol string) {
 // ConvertCase changes the case of the active tab's selections.
 func (a *App) ConvertCase(mode caseconv.Mode) {
 	tab := a.activeTab()
-	if tab == nil || tab.doc.ReadOnly {
+	if tab == nil || tab.doc.ReadOnly || tab.preview {
 		return
 	}
 	applyCase(tab, mode)
@@ -595,6 +595,7 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 			tab.doc.Size = int64(len(data))
 			tab.doc.ModTime = modTime
 			tab.doc.setLanguage(path)
+			a.clearPreviewIfNotMarkdown(tab.doc)
 			tab.doc.Buffer.MarkSaved()
 			if saveAs {
 				a.setDocReadOnly(tab.doc, false)

@@ -1,0 +1,262 @@
+package app
+
+import (
+	"fmt"
+	"net/url"
+	"path/filepath"
+	"runtime"
+	"strings"
+
+	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui"
+	"github.com/egoist/mygo/ui/markdown"
+	"github.com/helloxz/zpad/internal/theme"
+	"github.com/helloxz/zpad/locales"
+)
+
+// openExternal opens a web or mail address with the system's handler. It is
+// a variable so tests can record the address without leaving the app.
+var openExternal = mygo.Shell.OpenExternal
+
+const (
+	// markdownPreviewWidth is the reading width of the rendered text, which
+	// stays centered in a wider pane.
+	markdownPreviewWidth float32 = 820
+	// markdownPreviewMaxBytes and markdownPreviewMaxLines keep the preview
+	// responsive: the Markdown view builds every block each frame, which is
+	// right for a README and too much for a whole book.
+	markdownPreviewMaxBytes = 1 << 20
+	markdownPreviewMaxLines = 10_000
+)
+
+// isMarkdownPath reports whether path is Markdown the preview renders. MDX
+// keeps the editor: its JSX would show as plain text.
+func isMarkdownPath(path string) bool {
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".md", ".markdown", ".mkd":
+		return true
+	}
+	return false
+}
+
+// canPreviewTab reports whether tab can show a preview now. A preview that
+// is already showing can always return to the source, even when the text
+// has grown past the limit.
+func (a *App) canPreviewTab(tab *Tab) bool {
+	if tab == nil || !isMarkdownPath(tab.doc.Path) {
+		return false
+	}
+	if tab.preview {
+		return true
+	}
+	return tab.doc.Buffer.Len() <= markdownPreviewMaxBytes &&
+		tab.doc.Buffer.LineCount() <= markdownPreviewMaxLines
+}
+
+// clearPreviewIfNotMarkdown returns tabs to the editor when a save-as or
+// rename stops their file being Markdown: there would be no preview control
+// left to switch them back.
+func (a *App) clearPreviewIfNotMarkdown(doc *Document) {
+	if doc == nil || isMarkdownPath(doc.Path) {
+		return
+	}
+	for _, p := range []*Pane{&a.left, &a.right} {
+		for _, tab := range p.tabs {
+			if tab.doc != doc || !tab.preview {
+				continue
+			}
+			tab.preview = false
+			if a.activeTab() == tab {
+				a.focusEditor = true
+			}
+		}
+	}
+}
+
+// ToggleMarkdownPreview shows the active Markdown tab as rendered Markdown,
+// or returns it to the editor.
+func (a *App) ToggleMarkdownPreview() {
+	tab := a.activeTab()
+	if tab == nil || !isMarkdownPath(tab.doc.Path) {
+		return
+	}
+	if !a.canPreviewTab(tab) {
+		a.SetToast(locales.PreviewTooLarge())
+		return
+	}
+	a.toggleTabPreview(tab)
+}
+
+// toggleTabPreview switches a tab between its editor and its preview.
+func (a *App) toggleTabPreview(tab *Tab) {
+	if !a.canPreviewTab(tab) {
+		return
+	}
+	tab.preview = !tab.preview
+	a.focusEditor = true
+	a.updateTitle()
+	a.update()
+}
+
+// PreviewText returns the buffer's text, copied only when it has changed.
+func (d *Document) PreviewText() string {
+	version := d.Buffer.Version()
+	if !d.previewLoaded || version != d.previewVersion {
+		d.previewText = d.Buffer.String()
+		d.previewVersion = version
+		d.previewLoaded = true
+	}
+	return d.previewText
+}
+
+// markdownOptions returns the document's preview options, creating them
+// when the document's path changes, and gives them the window's theme.
+func (a *App) markdownOptions(doc *Document, t *ui.Theme) *markdown.Options {
+	if doc.md == nil || doc.mdPath != doc.Path {
+		dir := a.root
+		if doc.Path != "" {
+			dir = filepath.Dir(doc.Path)
+		}
+		load := markdown.FileImages(dir)
+		opts := &markdown.Options{LoadImage: func(raw string) (ui.ImageSource, error) {
+			// Markdown written for GitHub often escapes spaces in image
+			// paths; decode those before looking the file up.
+			if !strings.HasPrefix(raw, "data:") &&
+				!strings.HasPrefix(raw, "http://") &&
+				!strings.HasPrefix(raw, "https://") {
+				if decoded, err := url.PathUnescape(raw); err == nil {
+					raw = decoded
+				}
+			}
+			return load(raw)
+		}}
+		opts.OnLink = func(raw string) { a.openMarkdownLink(doc, raw) }
+		doc.md = opts
+		doc.mdPath = doc.Path
+	}
+	previewTheme := markdown.DefaultTheme(t)
+	previewTheme.FontSize = a.Settings.FontSize + 2
+	previewTheme.LineHeight = 1.6
+	previewTheme.CodeFont = a.Settings.FontFamily
+	previewTheme.CodeColors = theme.EditorTheme(t)
+	doc.md.Theme = previewTheme
+	return doc.md
+}
+
+// markdownPreview builds the scrollable rendered document. focus takes the
+// keyboard once, after switching to the preview. pane keys the view, so the
+// same document previewed in both panes keeps two view states.
+func (a *App) markdownPreview(c *ui.Context, t *ui.Theme, tab *Tab, pane int, focus bool) ui.Element {
+	opts := a.markdownOptions(tab.doc, t)
+	sc := ui.Scroll(c).Key(fmt.Sprintf("markdown-preview-%s-%d", tab.doc.ID, pane)).
+		Grow(1).FillWidth().TrackScroll(&tab.previewScroll).Focusable()
+	sc.Children(func() {
+		ui.Column(c).FillWidth().MaxWidth(markdownPreviewWidth).
+			AlignSelf(ui.Center).AlignItems(ui.Stretch).Padding(28, 32).
+			Children(func() {
+				markdown.View(c, tab.doc.PreviewText(), opts)
+			})
+	})
+	if focus {
+		sc.AutoFocus()
+		a.focusEditor = false
+	}
+	return sc
+}
+
+// previewButton toggles the active Markdown tab's preview, beside the
+// language it belongs to. Other files have no such action, so the status
+// bar shows nothing for them.
+func (a *App) previewButton(c *ui.Context, t *ui.Theme, tab *Tab) {
+	if tab == nil || !isMarkdownPath(tab.doc.Path) {
+		return
+	}
+	can := a.canPreviewTab(tab)
+	label := locales.PreviewMarkdown()
+	tip := label + " (" + markdownPreviewShortcut() + ")"
+	if tab.preview {
+		label = locales.BackToSource()
+		tip = label + " (" + markdownPreviewShortcut() + ")"
+	} else if !can {
+		tip = locales.PreviewTooLarge()
+	}
+	b := ui.ButtonBase(c.Key("markdown-preview")).Size(20, 20).Center().Radius(4).
+		Label(label).Tooltip(tip).
+		KeyShortcuts(ui.Cmd|ui.Shift, ui.KeyV).
+		Cursor(ui.CursorPointer).Disabled(!can)
+	color := t.TextMuted
+	if tab.preview {
+		b.Background(t.SurfaceHover)
+		color = t.Accent
+	} else if b.Hovered() {
+		b.Background(t.SurfaceHover)
+		color = t.Text
+	}
+	b.Children(func() {
+		ui.Icon(c, iconPreview).FontSize(13).TextColor(color)
+	})
+	if b.Clicked() {
+		a.toggleTabPreview(tab)
+	}
+}
+
+// markdownPreviewShortcut is the shortcut that toggles the preview, as its
+// tooltip shows it.
+func markdownPreviewShortcut() string {
+	if runtime.GOOS == "darwin" {
+		return "⌘⇧V"
+	}
+	return "Ctrl+Shift+V"
+}
+
+// openMarkdownLink follows a link clicked in a preview: headings scroll
+// within it, web and mail addresses leave through the system, and files
+// open in ZPad.
+func (a *App) openMarkdownLink(doc *Document, raw string) {
+	if strings.HasPrefix(raw, "#") {
+		if doc.md != nil {
+			anchor := strings.TrimPrefix(raw, "#")
+			if decoded, err := url.PathUnescape(anchor); err == nil {
+				anchor = decoded
+			}
+			doc.md.Anchor = anchor
+			doc.md.AnchorVersion++
+			a.update()
+		}
+		return
+	}
+	if ui.SafeToOpen(raw) {
+		if err := openExternal(raw); err != nil {
+			a.SetErrorToast(locales.OpenLinkFailed(), err.Error())
+		}
+		return
+	}
+	if filepath.IsAbs(raw) {
+		a.OpenPaths([]string{raw})
+		return
+	}
+	u, err := url.Parse(raw)
+	if err != nil || (u.Scheme != "" && u.Scheme != "file") {
+		return
+	}
+	path := u.Path
+	if path == "" {
+		return
+	}
+	if decoded, err := url.PathUnescape(path); err == nil {
+		path = decoded
+	}
+	if u.Scheme == "file" {
+		if len(path) >= 3 && path[0] == '/' && path[2] == ':' {
+			path = path[1:] // Windows: /C:/dir/file
+		}
+		path = filepath.FromSlash(path)
+	} else {
+		base := a.root
+		if doc.Path != "" {
+			base = filepath.Dir(doc.Path)
+		}
+		path = filepath.Join(base, filepath.FromSlash(path))
+	}
+	a.OpenPaths([]string{path})
+}
