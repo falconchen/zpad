@@ -1,0 +1,100 @@
+{{ define "main" }}
+{{- $release := hugo.Data.release -}}
+<section class="section page-head">
+  <div class="wrap">
+    <h1>{{ .Params.heading | default .Title }}</h1>
+    <p class="lead">{{ .Params.lead }}</p>
+    {{- with $release }}
+    <p class="version-line">
+      {{ i18n "version" }} <strong>{{ .version }}</strong> · {{ i18n "released" }} <time datetime="{{ .published_at }}">{{ .date }}</time>
+      {{- with .url }} · <a class="link" href="{{ . }}">{{ i18n "all_releases" }}</a>{{ end }}
+    </p>
+    {{- end }}
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap platforms">
+    {{- with $release.assets }}
+    <article class="platform">
+      <div class="platform-head">
+        <span class="platform-icon">{{ partial "icon.html" "laptop" }}</span>
+        <div>
+          <h2>{{ $.Params.macos_title }}</h2>
+          <p>{{ $.Params.macos_lead }}</p>
+        </div>
+      </div>
+      <div class="platform-actions">
+        {{- with .macos_arm64 }}
+        <a class="btn btn-primary btn-block" href="{{ .url }}">
+          <span>{{ i18n "apple_silicon" }}</span><span class="btn-meta">{{ .size }}</span>
+        </a>
+        {{- end }}
+        {{- with .macos_amd64 }}
+        <a class="btn btn-block" href="{{ .url }}">
+          <span>{{ i18n "intel" }}</span><span class="btn-meta">{{ .size }}</span>
+        </a>
+        {{- end }}
+      </div>
+    </article>
+
+    <article class="platform">
+      <div class="platform-head">
+        <span class="platform-icon">{{ partial "icon.html" "grid" }}</span>
+        <div>
+          <h2>{{ $.Params.windows_title }}</h2>
+          <p>{{ $.Params.windows_lead }}</p>
+        </div>
+      </div>
+      <div class="platform-actions">
+        {{- with .windows_setup }}
+        <a class="btn btn-primary btn-block" href="{{ .url }}">
+          <span>{{ i18n "installer" }}</span><span class="btn-meta">{{ .size }}</span>
+        </a>
+        {{- end }}
+        {{- with .windows_portable }}
+        <a class="btn btn-block" href="{{ .url }}">
+          <span>{{ i18n "portable" }}</span><span class="btn-meta">{{ .size }}</span>
+        </a>
+        {{- end }}
+      </div>
+    </article>
+    {{- end }}
+
+    <article class="platform is-soon">
+      <div class="platform-head">
+        <span class="platform-icon">{{ partial "icon.html" "terminal" }}</span>
+        <div>
+          <h2>{{ .Params.linux_title }}</h2>
+          <p>{{ .Params.linux_lead }}</p>
+        </div>
+      </div>
+      <div class="platform-actions">
+        <span class="badge">{{ i18n "coming_soon" }}</span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap notes">
+    <h2>{{ .Params.notes_title }}</h2>
+    <ul class="install-notes">
+      {{- range .Params.notes }}
+      <li>
+        {{ .text }}
+        {{- with .code }}
+        <pre class="cmd"><code>{{ . }}</code></pre>
+        {{- end }}
+      </li>
+      {{- end }}
+    </ul>
+    <h2>{{ i18n "requirements_title" }}</h2>
+    <p>{{ i18n "requirements_text" }}</p>
+    {{- with $release.assets.checksums }}
+    <p><a class="link" href="{{ .url }}">{{ i18n "checksums" }}</a></p>
+    {{- end }}
+    <p class="muted">{{ .Params.license_note }}</p>
+  </div>
+</section>
+{{ end }}

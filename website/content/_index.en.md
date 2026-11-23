@@ -1,0 +1,68 @@
+---
+title: ZPad
+hero:
+  eyebrow: "v0.3.2 is out"
+  title: "A lightweight, native, focused text editor"
+  lead: "Split panes, multiple tabs, live Markdown preview. Drawn in Go — no WebView."
+  note: "macOS and Windows · Linux coming soon"
+  primary: "Download"
+  secondary: "GitHub"
+  shot: split-en
+  shot_dark: split-en-dark
+  alt: "ZPad with Markdown on the left and Go code on the right"
+features_title: "It does the editing, and only that"
+features_lead: "No plugins, no cloud sync, no Git, no AI, no WebView."
+features:
+  - icon: native
+    title: "Light on memory"
+    text: "Drawn natively: it starts fast and idles far below an Electron editor."
+  - icon: encoding
+    title: "Many formats"
+    text: "txt, md, json, go, html, css open with a double-click, highlighted by extension."
+  - icon: split
+    title: "Split panes"
+    text: "Two panes, each with its own tabs, one shared buffer."
+  - icon: markdown
+    title: "Markdown preview"
+    text: "Renders headings, lists, code blocks and local images natively."
+  - icon: sun
+    title: "Light and dark"
+    text: "Follows the system, or switch by hand — window and editor together."
+  - icon: grid
+    title: "Ready out of the box"
+    text: "No setup wizard, no plugin market. Drop a file in and write."
+features_more: "Also: encodings (UTF-8 / UTF-16 / GB18030), find and replace, session restore."
+gallery_title: "Screenshots"
+gallery:
+  - name: split-en
+    alt: "Split panes in the light theme"
+    caption: "Split panes: one file, scrolling on its own in each pane."
+  - name: split-en-dark
+    alt: "Split panes in the dark theme"
+    caption: "The dark theme, the whole window at once."
+  - name: settings-en
+    alt: "The settings sheet"
+    caption: "Theme, font, size and language, applied at once."
+  - name: settings-en-dark
+    alt: "The settings sheet in the dark theme"
+    caption: "The same sheet in the dark."
+faq_title: "Questions"
+faq:
+  - q: "Is ZPad free?"
+    a: "Yes. It is open source under AGPL-3.0; the source and every release are on GitHub."
+  - q: "Does it upload my files?"
+    a: "No. It works offline; the only network request is the update check against GitHub."
+  - q: "Any tracking or analytics?"
+    a: "None. The code is fully open source with no tracking and no anonymous usage data. The website only uses Cloudflare's cookieless visit counts."
+  - q: "Why does macOS or Windows warn about it?"
+    a: "The installers are not signed by Apple or Microsoft, so the system blocks them by default: right-click to open on macOS, or choose More info → Run anyway on Windows. You can check the source, or build it yourself."
+  - q: "Is the updater safe?"
+    a: "Update packages are verified with an Ed25519 signature and a mismatch is never installed. The app must live in a writable folder to update itself."
+  - q: "Which systems are supported?"
+    a: "macOS 12 or later and Windows 10 / 11 (64-bit). Linux is being ported."
+  - q: "Why no plugins, Git or AI?"
+    a: "ZPad is a plain text editor on purpose: fast to start, predictable to use. A heavier IDE fits those jobs better."
+changelog_title: "Latest release"
+changelog_lead: "Every release is written up on GitHub."
+changelog_link: "All releases"
+---

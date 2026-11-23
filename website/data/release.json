@@ -1,0 +1,40 @@
+{
+  "tag": "v0.3.2",
+  "version": "0.3.2",
+  "published_at": "2026-11-23T05:13:44Z",
+  "date": "2026-11-23",
+  "url": "https://github.com/helloxz/zpad/releases/tag/v0.3.2",
+  "notes": "* 优化：根据操作系统动态调整快捷键提示",
+  "assets": {
+    "checksums": {
+      "name": "SHA256SUMS",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/SHA256SUMS",
+      "size": "1 KB",
+      "bytes": 1030
+    },
+    "macos_amd64": {
+      "name": "zpad-0.3.2-amd64.dmg",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-0.3.2-amd64.dmg",
+      "size": "6.8 MB",
+      "bytes": 7159296
+    },
+    "macos_arm64": {
+      "name": "zpad-0.3.2-arm64.dmg",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-0.3.2-arm64.dmg",
+      "size": "5.8 MB",
+      "bytes": 6040064
+    },
+    "windows_portable": {
+      "name": "zpad-0.3.2-windows-amd64-portable.zip",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-0.3.2-windows-amd64-portable.zip",
+      "size": "8.3 MB",
+      "bytes": 8736482
+    },
+    "windows_setup": {
+      "name": "zpad-setup-0.3.2-amd64.exe",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.3.2/zpad-setup-0.3.2-amd64.exe",
+      "size": "6.4 MB",
+      "bytes": 6740024
+    }
+  }
+}

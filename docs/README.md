@@ -16,6 +16,7 @@ ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / �
 | [04-m3-appearance-settings.md](./04-m3-appearance-settings.md) | M3 视觉、设置、字体与中英双语 |
 | [05-m4-hardening-release.md](./05-m4-hardening-release.md) | M4 加固、文件关联与 macOS 发布 |
 | [06-auto-update.md](./06-auto-update.md) | 自动更新：签名、GitHub Releases、原生更新窗口 |
+| [07-website.md](./07-website.md) | 官网：Hugo、双语、发布数据、Cloudflare Pages |
 
 ## 里程碑总览
 

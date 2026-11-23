@@ -11,7 +11,7 @@ ZPad 是一个基于 **MyGo 原生 UI** 的轻量级文本 / 代码编辑器。�
 - 版本：`0.3.2`
 - 许可证：**AGPL-3.0**（对外分发前确认源码义务）
 - 平台顺序：**macOS 先跑通 → Windows（后续）→ Linux（最后）**
-- 当前状态：**0.3.1 已发布；0.3.2 待发布**
+- 当前状态：**0.3.2 已发布**；官网 <https://zpad.xphub.dev> 已上线
 
 ## 技术栈
 
@@ -32,6 +32,8 @@ go test ./...        # 单元测试 + ui.Tester 视图测试
 go vet ./...
 go tool mygo generate  # 改了 locales/*.json 后重新生成 catalog_gen.go
 go tool mygo build   # 打包 macOS .app / .dmg
+cd website && hugo server   # 官网，http://localhost:1313/
+ZPAD_SHOTS=/tmp/shots go test ./internal/app -run TestSiteScreenshots   # 重截官网截图
 ```
 
 产物沿用 `mygo build` 的默认命名：`build/darwin-arm64/ZPad.app`、`zpad-0.3.2-arm64.dmg`、`zpad-0.3.2-darwin-arm64.tar.gz`、`update-darwin-arm64.json`；Windows 为 `zpad-setup-0.3.2-amd64.exe`、`zpad-0.3.2-windows-amd64.tar.gz`、`update-windows-amd64.json`。CI 额外打一个 `zpad-0.3.2-windows-amd64-portable.zip`。不要重命名这些文件（见下）。
@@ -89,6 +91,7 @@ internal/session/          会话模型、原子读写
 internal/theme/            UI 调色板 + 编辑器 token 主题
 internal/atomicfile/       原子写文件
 docs/                      需求、里程碑、实现记录与签收
+website/                   官网（Hugo）：首页、下载页、双语、发布数据
 ```
 
 关键实现约定：
@@ -113,6 +116,7 @@ docs/                      需求、里程碑、实现记录与签收
 - 菜单项手型光标在 `PopoverMenuOptions` / `PopoverMenuButtonOptions` 的 `Item` 中设置；MyGo 内部的编辑器右键与输入框编辑菜单无法从应用层设置，仍是箭头。
 - 内存：`main` 开头 `debug.SetGCPercent(50)`，把 Go 堆高水位从 24–28 MB 压到 14 MB；About 图标按需解码。不要再加 `FreeOSMemory` 定时器或 `SetMemoryLimit`：实测前者在 macOS 上只多释放约 3 MB 且 Activity Monitor 不变，后者在 20 MB 大文件下可能触发连续 GC。新增内存相关改动时同时量一遍 Activity Monitor 的物理占用。
 - 文件树行同时承担拖拽与单击打开；整行（缩进、箭头、文件名、左右空白）都由 `treeRow` 自己绘制，`ui.OutlineState.Prefix` 置空以去掉 Outline 自带的缩进和箭头，因此行内任意位置都能命中同一个 Row。点击处理用 `Clicked()` 并手动 `selectTreePath`：整行是应用自己的元素，Outline 的行收不到点击，选中必须自己同步。
+- 官网是独立静态站：源码在 `website/`，Hugo 生成，CF Pages 构建（`root=website`、`output=public`、`HUGO_VERSION=0.170.1`）。`website/data/release.json` 和 `website/static/_redirects` 由 `website/scripts/release/main.go` 生成，`.github/workflows/website.yml` 在 release 发布时更新并提交，不要手改这两个文件。官网截图由 `internal/app/site_shots_test.go` 的 headless 渲染生成（`ZPAD_SHOTS` 打开），原图在 `website/assets/screenshots`；换应用图标时同时更新 `website/assets/icon.png`（`sips -c 824 824 resources/icon.png`）。
 - 不引入 WebView。
 
 ## 当前进度
@@ -124,7 +128,8 @@ docs/                      需求、里程碑、实现记录与签收
 - **M4 加固、文件关联与 macOS 发布**：0.1.0 已发布。大文件只读、编码边界、外部修改检测、文件关联、正式图标、`.app` / `.dmg`。
 - **Markdown 原生预览（后续增补）**：已实现。标签内切换、状态栏 / 快捷键 / 右键菜单、分屏源码 + 预览、本地图片、链接、代码高亮；上限约 1 MB / 1 万行。
 - **自动更新（0.3.0 起）**：已实现。GitHub Releases + Ed25519 签名 + 原生更新窗口 + 增量包；菜单「检查更新…」；发布流程见 `docs/06-auto-update.md`。0.3.1 是第一个可自更新的版本，产物改用 `mygo` 默认命名。
-- **0.3.2**：首页空状态的快捷键提示按平台显示（macOS 为 `⌘`，Windows / Linux 为 `Ctrl+`），Markdown 预览与浏览器按钮的 tooltip 共用 `shortcutText`。
+- **0.3.2**：首页空状态的快捷键提示按平台显示（macOS 为 `⌘`，Windows / Linux 为 `Ctrl+`），Markdown 预览与浏览器按钮的 tooltip 共用 `shortcutText`。已发布。
+- **官网**：`website/` 的 Hugo 站点（首页、下载页、更新日志），中英双语、亮暗主题、下载链接随 release 自动更新；线上 <https://zpad.xphub.dev>。
 
 测试覆盖：编码、行尾、大小写、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、字体过滤、中英文案、编辑器 token 颜色、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸。
 

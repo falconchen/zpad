@@ -2,3 +2,11 @@
 /.mygo/
 mygo_windows_*.syso
 .DS_Store
+
+# The site's build output; Hugo regenerates it from website/.
+/website/public/
+/website/resources/
+/website/.hugo_build.lock
+
+# OpenChamber session output
+/.openchamber/

@@ -3,7 +3,9 @@
 基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器。
 单窗口、左右或上下双栏、每栏多标签，不启动 WebView，界面全部由 Go 绘制。
 
-当前进度：**0.3.2 平台快捷键提示**。功能、设置、双语、分屏、会话、打包与自动更新均已完成；0.3.1 已发布，0.3.2 待发布。
+官网：<https://zpad.xphub.dev> · 下载：[Releases](https://github.com/helloxz/zpad/releases/latest)
+
+当前进度：**0.3.2 平台快捷键提示**，已发布。功能、设置、双语、分屏、会话、打包、自动更新与官网均已完成。
 
 ## 截图
 
@@ -39,6 +41,7 @@ go tool mygo build   # 打包 macOS 应用
 ├── mygo.json               # 应用名称 / 标识 / 版本 / 文件关联
 ├── go.mod                  # Go 1.27.4 + MyGo v0.10.0
 ├── docs/                   # 需求、里程碑、截图
+├── website/                # 官网（Hugo）
 ├── locales/                # 中英文 catalogs + 生成代码
 ├── resources/              # 应用图标与字体许可
 └── internal/
@@ -62,6 +65,7 @@ go tool mygo build   # 打包 macOS 应用
 - [M3 视觉、设置、字体与中英双语](./docs/04-m3-appearance-settings.md)
 - [M4 加固、文件关联与 macOS 发布](./docs/05-m4-hardening-release.md)
 - [自动更新](./docs/06-auto-update.md)
+- [官网](./docs/07-website.md)
 - [CHANGELOG](./CHANGELOG.md)
 
 ## 快捷键

@@ -1,0 +1,39 @@
+baseURL = "https://zpad.xphub.dev/"
+title = "ZPad"
+defaultContentLanguage = "zh"
+defaultContentLanguageInSubdir = false
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term", "rss"]
+
+# The site is the app's shop window: three screenshots, a download page and the
+# latest release notes. No blog, no docs tree.
+[params]
+  github = "https://github.com/helloxz/zpad"
+  issues = "https://github.com/helloxz/zpad/issues/new"
+  mygo = "https://mygo.run/"
+  # Cloudflare Web Analytics: paste the token from the Pages project's
+  # Web Analytics page; the beacon is not rendered while this is empty.
+  cfAnalyticsToken = ""
+
+[languages]
+  [languages.zh]
+    label = "中文"
+    locale = "zh-Hans"
+    weight = 1
+    title = "ZPad · 轻量级原生文本编辑器"
+    [languages.zh.params]
+      description = "ZPad 是一个基于 MyGo 原生 UI 的轻量级文本 / 代码编辑器：左右分屏、多标签、Markdown 即时预览，界面由 Go 直接绘制，不启动 WebView。"
+  [languages.en]
+    label = "English"
+    locale = "en"
+    weight = 2
+    title = "ZPad · a lightweight native text editor"
+    [languages.en.params]
+      description = "ZPad is a lightweight text and code editor built on MyGo's native UI: split panes, multiple tabs and live Markdown preview, drawn in Go with no WebView."
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true
+
+[minify]
+  minifyOutput = true

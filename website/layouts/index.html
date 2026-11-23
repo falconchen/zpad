@@ -1,0 +1,91 @@
+{{ define "main" }}
+{{- $h := .Params.hero -}}
+<section class="hero">
+  <div class="wrap hero-inner">
+    <p class="eyebrow">{{ $h.eyebrow }}</p>
+    <h1>{{ $h.title }}</h1>
+    <p class="lead">{{ $h.lead }}</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="{{ "download/" | relLangURL }}">
+        {{ partial "icon.html" "download" }}{{ $h.primary }}
+      </a>
+      <a class="btn" href="{{ site.Params.github }}" rel="noopener">
+        {{ partial "icon.html" "github" }}{{ $h.secondary }}
+      </a>
+    </div>
+    <p class="hero-note">{{ $h.note }}</p>
+  </div>
+  <div class="wrap">
+    {{ partial "shot.html" (dict "name" $h.shot "dark" $h.shot_dark "alt" $h.alt "class" "hero-shot" "eager" true "zoom" false) }}
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="wrap">
+    <header class="section-head">
+      <h2>{{ .Params.features_title }}</h2>
+      <p>{{ .Params.features_lead }}</p>
+    </header>
+    <ul class="features">
+      {{- range .Params.features }}
+      <li class="feature">
+        <span class="feature-icon">{{ partial "icon.html" .icon }}</span>
+        <h3>{{ .title }}</h3>
+        <p>{{ .text }}</p>
+      </li>
+      {{- end }}
+    </ul>
+    {{- with .Params.features_more }}
+    <p class="features-more">{{ . }}</p>
+    {{- end }}
+  </div>
+</section>
+
+<section class="section" id="screenshots">
+  <div class="wrap">
+    <header class="section-head">
+      <h2>{{ .Params.gallery_title }}</h2>
+    </header>
+    <div class="gallery">
+      {{- range .Params.gallery }}
+      {{ partial "shot.html" (dict "name" .name "alt" .alt "caption" .caption) }}
+      {{- end }}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="faq">
+      <h2>{{ .Params.faq_title }}</h2>
+      {{- range .Params.faq }}
+      <details>
+        <summary>{{ .q }}</summary>
+        <div class="faq-a">{{ .a | markdownify }}</div>
+      </details>
+      {{- end }}
+    </div>
+  </div>
+</section>
+
+{{- with hugo.Data.release }}
+<section class="section" id="changelog">
+  <div class="wrap">
+    <div class="changelog-head">
+      <div>
+        <h2>{{ $.Params.changelog_title }}</h2>
+        <p>{{ $.Params.changelog_lead }}</p>
+      </div>
+      <a class="link" href="{{ site.Params.github }}/releases">{{ $.Params.changelog_link }}{{ partial "icon.html" "arrow" }}</a>
+    </div>
+    <article class="release">
+      <div class="release-head">
+        <span class="version">{{ .version }}</span>
+        <time datetime="{{ .published_at }}">{{ .date }}</time>
+      </div>
+      <div class="release-notes">{{ .notes | markdownify }}</div>
+    </article>
+  </div>
+</section>
+{{- end }}
+{{ end }}

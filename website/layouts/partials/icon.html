@@ -1,0 +1,23 @@
+{{- $name := . -}}
+{{- if eq $name "github" -}}
+<svg class="icon icon-github" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+{{- else -}}
+{{- $icons := dict
+  "native" `<rect x="5" y="5" width="14" height="14" rx="2.5"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/>`
+  "split" `<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M12 4v16"/>`
+  "markdown" `<path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8"/>`
+  "encoding" `<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="m10 13-2 2 2 2M15 13l2 2-2 2"/>`
+  "find" `<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>`
+  "session" `<path d="M3.2 12a8.8 8.8 0 1 0 2.6-6.3"/><path d="M3 4.5V9h4.5"/><path d="M12 8.4V12l2.8 1.8"/>`
+  "sun" `<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>`
+  "moon" `<path d="M20.5 13.4A8.6 8.6 0 0 1 10.6 3.5 8.6 8.6 0 1 0 20.5 13.4Z"/>`
+  "laptop" `<rect x="4" y="5" width="16" height="11" rx="1.6"/><path d="M2 19h20"/>`
+  "grid" `<rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.2"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.2"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.2"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.2"/>`
+  "terminal" `<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7.5 9.5 3 2.5-3 2.5M13.5 15H17"/>`
+  "arrow" `<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>`
+  "download" `<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 20h16"/>`
+  "arrow-left" `<path d="M19 12H5"/><path d="m11 18-6-6 6-6"/>`
+  "close" `<path d="M18 6 6 18"/><path d="m6 6 12 12"/>`
+-}}
+{{- with index $icons $name }}<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{{ . | safeHTML }}</svg>{{ end -}}
+{{- end -}}

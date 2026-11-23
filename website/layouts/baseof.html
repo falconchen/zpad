@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="{{ site.Language.Locale | default site.Language.Lang }}" data-theme="light">
+<head>
+  {{ partial "head.html" . }}
+</head>
+<body>
+  <a class="skip" href="#main">{{ i18n "skip_to_content" }}</a>
+  {{ partial "header.html" . }}
+  <main id="main">
+    {{ block "main" . }}{{ end }}
+  </main>
+  {{ partial "footer.html" . }}
+
+  <dialog class="lightbox" id="lightbox" tabindex="-1">
+    <img alt="">
+    <div class="lb-bar">
+      <button type="button" class="lb-btn" data-lb="prev" aria-label="{{ i18n "lightbox_prev" }}">{{ partial "icon.html" "arrow-left" }}</button>
+      <span class="lb-count" aria-hidden="true"></span>
+      <button type="button" class="lb-btn" data-lb="next" aria-label="{{ i18n "lightbox_next" }}">{{ partial "icon.html" "arrow" }}</button>
+      <button type="button" class="lb-btn lb-close" data-lb="close" aria-label="{{ i18n "lightbox_close" }}">{{ partial "icon.html" "close" }}</button>
+    </div>
+    <p class="lb-caption" hidden></p>
+  </dialog>
+
+  {{- $js := resources.Get "js/site.js" | minify | fingerprint }}
+  <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" defer></script>
+</body>
+</html>

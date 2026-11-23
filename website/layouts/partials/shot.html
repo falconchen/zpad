@@ -1,0 +1,40 @@
+{{- /*
+  One screenshot: the WebP Hugo generates from assets/screenshots, linked to
+  the same file so the lightbox can show it whole. With .dark, the image
+  follows the site's theme.
+
+  Arguments: name, dark, alt, caption, class, eager.
+*/ -}}
+{{- $img := resources.Get (printf "screenshots/%s.png" .name) -}}
+{{- if not $img }}{{ errorf "shot.html: no screenshot named %q" .name }}{{ end -}}
+{{- $out := $img.Process "webp q84" -}}
+{{- $dark := "" -}}
+{{- with .dark -}}
+  {{- $dark = (resources.Get (printf "screenshots/%s.png" .)).Process "webp q84" -}}
+{{- end -}}
+{{- $class := "shot" -}}
+{{- with .class }}{{ $class = printf "shot %s" . }}{{ end -}}
+{{- $loading := "lazy" -}}
+{{- if .eager }}{{ $loading = "eager" }}{{ end -}}
+{{- $zoom := true -}}
+{{- if eq .zoom false }}{{ $zoom = false }}{{ end -}}
+<figure class="{{ $class }}">
+  {{- if $zoom }}
+  <a class="shot-link" href="{{ $out.RelPermalink }}"
+    {{- if $dark }} data-light-href="{{ $out.RelPermalink }}" data-dark-href="{{ $dark.RelPermalink }}"{{ end }}>
+  {{- end }}
+    {{- if $dark }}
+    <img data-light="{{ $out.RelPermalink }}" data-dark="{{ $dark.RelPermalink }}" src="{{ $dark.RelPermalink }}"
+      width="{{ $out.Width }}" height="{{ $out.Height }}" alt="{{ .alt }}" loading="{{ $loading }}"
+      {{- if .eager }} fetchpriority="high"{{ end }} decoding="async">
+    {{- else }}
+    <img src="{{ $out.RelPermalink }}" width="{{ $out.Width }}" height="{{ $out.Height }}" alt="{{ .alt }}"
+      loading="{{ $loading }}" decoding="async">
+    {{- end }}
+  {{- if $zoom }}
+  </a>
+  {{- end }}
+  {{- with .caption }}
+  <figcaption>{{ . }}</figcaption>
+  {{- end }}
+</figure>

@@ -1,0 +1,30 @@
+<header class="site-header">
+  <div class="wrap header-inner">
+    {{- $logo := (resources.Get "icon.png").Resize "56x56 png" }}
+    <a class="brand" href="{{ site.Home.RelPermalink }}">
+      <img class="brand-mark" src="{{ $logo.RelPermalink }}" width="28" height="28" alt="">
+      <span class="brand-name">ZPad</span>
+    </a>
+    <nav class="nav">
+      <a class="hide-sm" href="{{ site.Home.RelPermalink }}#features">{{ i18n "nav_features" }}</a>
+      <a href="{{ "download/" | relLangURL }}">{{ i18n "nav_download" }}</a>
+      <a class="hide-sm" href="{{ site.Home.RelPermalink }}#changelog">{{ i18n "nav_changelog" }}</a>
+      <a href="{{ site.Params.issues }}" rel="noopener">{{ i18n "nav_feedback" }}</a>
+      <a href="{{ site.Params.github }}" rel="noopener">
+        {{ partial "icon.html" "github" }}
+        <span class="hide-sm">GitHub</span>
+      </a>
+    </nav>
+    <div class="actions">
+      <button class="icon-btn theme-toggle" id="theme-toggle" type="button" aria-label="{{ i18n "toggle_theme" }}" title="{{ i18n "toggle_theme" }}">
+        <span class="only-light">{{ partial "icon.html" "moon" }}</span>
+        <span class="only-dark">{{ partial "icon.html" "sun" }}</span>
+      </button>
+      {{- range .AllTranslations }}
+      {{- if ne .Language.Lang site.Language.Lang }}
+      <a class="lang" href="{{ .RelPermalink }}" hreflang="{{ .Language.Locale | default .Language.Lang }}">{{ i18n "language_switch" }}</a>
+      {{- end }}
+      {{- end }}
+    </div>
+  </div>
+</header>
