@@ -151,8 +151,8 @@ func TestThemeSelectKeyboardReachesLastTheme(t *testing.T) {
 	tt.Key(0, ui.KeyEnd)
 	tt.Frame()
 	tt.Key(0, ui.KeyEnter)
-	if a.Settings.Theme != "ayu-light" {
-		t.Fatalf("theme %q after End and Enter, want ayu-light", a.Settings.Theme)
+	if a.Settings.Theme != "ink-wash" {
+		t.Fatalf("theme %q after End and Enter, want ink-wash", a.Settings.Theme)
 	}
 }
 

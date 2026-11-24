@@ -147,7 +147,7 @@ BOM 作为独立选项处理：选择 UTF-8 时保存不带 BOM，选择 UTF-8 B
 - ZPad 暗色
 - 跟随系统
 
-另有 14 套命名主题（One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light），细节见 [08-themes.md](./08-themes.md)。
+另有 18 套命名主题（One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、Ink Night、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light、Everforest Light、Celadon、Ink Wash），细节见 [08-themes.md](./08-themes.md)。
 
 实现要点：
 
@@ -202,7 +202,7 @@ BOM 作为独立选项处理：选择 UTF-8 时保存不带 BOM，选择 UTF-8 B
 模态面板，卡片分组；每行左侧标题与说明，右侧控件，窄窗口下控件换到标题下方。设置内的下拉均为自绘，选项悬停显示小手。
 
 **外观**
-- 主题：ZPad 亮色 / ZPad 暗色 / 跟随系统，以及 14 套命名主题的下拉选择（浅色 / 深色标注右对齐）
+- 主题：ZPad 亮色 / ZPad 暗色 / 跟随系统，以及 18 套命名主题的下拉选择（浅色 / 深色标注右对齐）
 - 界面语言：跟随系统 / 简体中文 / English
 
 **编辑器**

@@ -79,7 +79,7 @@ ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / �
 | 2026-11-23 | 0.3.2：首页空状态的快捷键提示按平台显示，macOS 为 `⌘O` / `⌘⇧O` / `⌘N`，Windows 与 Linux 为 `Ctrl+O` / `Ctrl+Shift+O` / `Ctrl+N`；快捷键文案统一由 `internal/app/shortcut.go` 的 `shortcutText` 渲染，Markdown 预览与浏览器按钮的 tooltip 也走它。 |
 | 2026-11-23 | 跨文件搜索：`⌘⇧F` 打开居中浮层，搜索两个分栏里所有已打开标签的文本（含未保存内容与未命名文件）。输入时不自动搜索，按 `↵` 或点击右侧搜索按钮才扫描；结果按文件分组，`↑`/`↓` 选择，`↵` 打开选中项；输入框末尾的 X 清空输入与结果，`Esc` 只关闭，关闭后保留关键词和结果，方便接着点另一个结果。支持区分大小写、全词、正则，扫描在后台读取 `Buffer` 快照，结果上限每文件 200、全局 2000。 |
 | 2026-11-23 | macOS 补上「窗口」菜单与「最小化」（`⌘M`）：应用自带菜单栏原先没有 Window 菜单，`⌘M` 按下去没有反应；现在菜单栏为「文件 / 编辑 / 显示 / 编码 / 窗口」，「⌘W」仍只关闭标签，关窗行为不变。 |
-| 2026-11-24 | 命名主题：ZPad 亮色 / ZPad 暗色不变，新增 One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light；设置 → 外观用下拉选择，按默认 / 深色 / 浅色分组，命名主题的浅色 / 深色标注右对齐；设置面板改为 700×640 卡片分组，下拉选项悬停显示小手；主题同时覆盖界面与编辑器。 |
+| 2026-11-24 | 命名主题：ZPad 亮色 / ZPad 暗色不变，新增 One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、Ink Night、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light、Everforest Light、Celadon、Ink Wash；设置 → 外观用下拉选择，按默认 / 深色 / 浅色分组，命名主题的浅色 / 深色标注右对齐；设置面板改为 700×640 卡片分组，下拉选项悬停显示小手；主题同时覆盖界面与编辑器。 |
 
 ## 环境
 
