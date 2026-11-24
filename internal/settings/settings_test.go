@@ -29,6 +29,16 @@ func TestKeepUnsavedDefaultsOff(t *testing.T) {
 	}
 }
 
+func TestSystemIntegrationDefaultsOff(t *testing.T) {
+	d := Default()
+	if d.EnableCLI || d.FinderFolderMenu || d.FinderFileMenu || d.DefaultAppEnabled {
+		t.Fatalf("system integration toggles must default off: %+v", d)
+	}
+	if len(d.DefaultAppExts) != 0 || len(d.PreviousDefaultApps) != 0 {
+		t.Fatalf("default app lists must default empty: %+v", d)
+	}
+}
+
 func TestRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	want := Default()

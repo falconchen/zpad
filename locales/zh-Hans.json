@@ -280,5 +280,53 @@
   "reload": "重新加载",
   "keepMine": "保留我的修改",
   "fileMissingQuestion": "文件已不存在，是否重新创建？",
-  "recreate": "重新创建"
+  "recreate": "重新创建",
+  "integrationSection": "系统集成",
+  "cliCommand": "终端命令（zpad）",
+  "cliCommandDescription": "安装 zpad 命令到 PATH，可在终端执行 zpad . 或 zpad 文件路径打开。",
+  "cliCommandInstalledDescription": "已安装到 {path}，可在终端执行 zpad . 或 zpad <文件>。",
+  "@cliCommandInstalledDescription": {
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "/opt/homebrew/bin/zpad"
+      }
+    }
+  },
+  "cliCommandEnabled": "已开启终端 zpad 命令",
+  "cliCommandDisabled": "已关闭终端 zpad 命令",
+  "finderFolderMenu": "Finder 文件夹右键菜单",
+  "finderFolderMenuDescription": "在访达文件夹空白处或文件夹上右键时，直接显示「使用 ZPad 打开当前目录 / 打开目录」。",
+  "finderOpenCurrentFolderAction": "使用 ZPad 打开当前目录",
+  "finderOpenFolderAction": "使用 ZPad 打开目录",
+  "finderFolderMenuEnabled": "已开启 Finder 文件夹右键菜单",
+  "finderFolderMenuDisabled": "已关闭 Finder 文件夹右键菜单",
+  "finderFileMenu": "Finder 文档右键菜单",
+  "finderFileMenuDescription": "在访达中右键文档时，直接在一级右键菜单显示「使用 ZPad 打开」。",
+  "finderOpenFileAction": "使用 ZPad 打开",
+  "finderFileMenuEnabled": "已开启 Finder 文档右键菜单",
+  "finderFileMenuDisabled": "已关闭 Finder 文档右键菜单",
+  "defaultAppAssoc": "设为特定后缀默认打开方式",
+  "defaultAppAssocDescription": "像 Notepad++ 一样将勾选的文件后缀默认用 ZPad 打开；取消勾选或关闭时自动恢复原默认应用。",
+  "extGroupText": "纯文本与文档",
+  "extGroupConfig": "配置与数据",
+  "extGroupWeb": "Web 前端",
+  "extGroupCode": "代码与脚本",
+  "extGroupCustom": "自定义后缀",
+  "customExtPlaceholder": "输入后缀，如 cfg、env（支持逗号分隔）",
+  "add": "添加",
+  "selectAll": "全选",
+  "clearAll": "清空",
+  "defaultAppCount": "已关联 {count} 个后缀",
+  "@defaultAppCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "defaultAppsRestored": "已恢复原默认打开方式",
+  "invalidExtension": "后缀格式无效（仅支持字母、数字、_、-、+）",
+  "integrationFailed": "系统集成操作失败"
 }

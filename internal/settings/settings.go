@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/helloxz/zpad/internal/atomicfile"
 )
@@ -45,6 +46,14 @@ type Settings struct {
 	// the user data directory and restores it on the next launch, instead
 	// of asking to save it when the window closes or the app quits.
 	KeepUnsaved bool `json:"keepUnsaved"`
+
+	// System integration preferences (all disabled by default).
+	EnableCLI           bool              `json:"enableCLI"`
+	FinderFolderMenu    bool              `json:"finderFolderMenu"`
+	FinderFileMenu      bool              `json:"finderFileMenu"`
+	DefaultAppEnabled   bool              `json:"defaultAppEnabled"`
+	DefaultAppExts      []string          `json:"defaultAppExts,omitempty"`
+	PreviousDefaultApps map[string]string `json:"previousDefaultApps,omitempty"`
 }
 
 // Default returns the settings of a first launch.
@@ -165,5 +174,27 @@ func (s *Settings) normalize() {
 	}
 	if s.SidebarWidth < 160 || s.SidebarWidth > 480 {
 		s.SidebarWidth = 240
+	}
+	if len(s.DefaultAppExts) > 0 {
+		seen := make(map[string]bool, len(s.DefaultAppExts))
+		cleaned := make([]string, 0, len(s.DefaultAppExts))
+		for _, raw := range s.DefaultAppExts {
+			ext := strings.ToLower(strings.TrimLeft(strings.TrimSpace(raw), "."))
+			if ext == "" || seen[ext] {
+				continue
+			}
+			seen[ext] = true
+			cleaned = append(cleaned, ext)
+		}
+		if len(cleaned) == 0 {
+			s.DefaultAppExts = nil
+		} else {
+			s.DefaultAppExts = cleaned
+		}
+	} else {
+		s.DefaultAppExts = nil
+	}
+	if len(s.PreviousDefaultApps) == 0 {
+		s.PreviousDefaultApps = nil
 	}
 }

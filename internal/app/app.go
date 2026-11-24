@@ -3,6 +3,7 @@ package app
 
 import (
 	"log"
+	"net/url"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -16,6 +17,7 @@ import (
 	"github.com/helloxz/zpad/internal/draft"
 	"github.com/helloxz/zpad/internal/files"
 	"github.com/helloxz/zpad/internal/settings"
+	"github.com/helloxz/zpad/internal/sysint"
 	"github.com/helloxz/zpad/internal/theme"
 	"github.com/helloxz/zpad/locales"
 )
@@ -173,6 +175,11 @@ type App struct {
 	fontSize     float64
 	lineHeight   float64
 	fontFamilies []string
+	// System integration manager and Settings UI state.
+	sysint         *sysint.Manager
+	sysintStatus   sysint.Status
+	customExtInput string
+	customExtErr   string
 	// pendingToasts are the toasts the next frame shows, in order.
 	pendingToasts []ui.Toast
 
@@ -242,6 +249,7 @@ func New(s settings.Settings, settingsDir string) *App {
 		lineHeight:   float64(s.LineHeight),
 		loadingPaths: map[string]bool{},
 		checkUpdates: updater.CheckForUpdates,
+		sysint:       sysint.DefaultManager(),
 	}
 }
 
@@ -323,6 +331,33 @@ func (a *App) HandleOpenFile(path string) {
 		return
 	}
 	a.OpenPaths([]string{path})
+}
+
+// HandleOpenURL handles zpad://open?path=... URLs delivered by macOS (e.g.
+// from ZPadFinderSync.appex when opening folders or arbitrary files).
+func (a *App) HandleOpenURL(raw string) {
+	u, err := url.Parse(raw)
+	if err != nil || u.Scheme != "zpad" {
+		return
+	}
+	var paths []string
+	for _, p := range u.Query()["path"] {
+		if p != "" {
+			paths = append(paths, p)
+		}
+	}
+	if a.win != nil {
+		a.win.Restore()
+		a.win.Focus()
+	}
+	if len(paths) == 0 {
+		return
+	}
+	if a.win == nil {
+		a.pendingOpen = append(a.pendingOpen, paths...)
+		return
+	}
+	a.OpenPaths(paths)
 }
 
 // SetError shows an error in the status bar, for a failure that has no
@@ -873,6 +908,7 @@ func (a *App) setWorkspace(root string) {
 	a.treeGeneration++
 	a.sidebarTab = sidebarWorkspace
 	a.Settings.SidebarOpen = true
+	a.updateTitle()
 	a.saveSettings()
 	a.saveSession()
 	a.update()

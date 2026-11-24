@@ -17,6 +17,8 @@ func (a *App) openSettings() {
 	a.aboutOpen = false
 	a.fontSize = float64(a.Settings.FontSize)
 	a.lineHeight = float64(a.Settings.LineHeight)
+	a.customExtErr = ""
+	a.refreshIntegrationStatus()
 	a.showSettings = true
 	a.update()
 }
@@ -73,6 +75,7 @@ func (a *App) settingsModal(c *ui.Context, t *ui.Theme) {
 					a.settingsEditor(c, t)
 					a.settingsFiles(c, t)
 					a.settingsWorkspace(c, t)
+					a.settingsIntegration(c, t)
 				})
 			})
 			ui.Row(c).AlignItems(ui.Center).Gap(8).Children(func() {
@@ -482,6 +485,7 @@ func (a *App) setLanguage(tag string) {
 	a.saveSettings()
 	mygo.App.SetLocale(tag)
 	a.InstallMenu()
+	a.syncFinderMenuTitles()
 	a.updateTitle()
 	a.update()
 }
@@ -503,8 +507,12 @@ func (a *App) confirmRestoreDefaults() {
 }
 
 func (a *App) restoreDefaults() {
+	a.disableAllIntegrations()
 	a.Settings = settings.Default()
 	a.keepUnsavedChanged()
+	a.customExtInput = ""
+	a.customExtErr = ""
+	a.refreshIntegrationStatus()
 	a.fontSize = float64(a.Settings.FontSize)
 	a.lineHeight = float64(a.Settings.LineHeight)
 	if a.tree != nil {
@@ -512,14 +520,14 @@ func (a *App) restoreDefaults() {
 		a.treeGeneration++
 	}
 	a.saveSettings()
-	SetThemeSource(theme.SystemID)
 	if a.running {
+		SetThemeSource(theme.SystemID)
 		a.Dark = mygo.Theme.IsDark()
+		mygo.App.SetLocale("")
+		a.InstallMenu()
 	} else {
 		a.Dark = false
 	}
-	mygo.App.SetLocale("")
-	a.InstallMenu()
 	a.updateTitle()
 	a.SetToast(locales.SettingsReset())
 	a.update()

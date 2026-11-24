@@ -72,6 +72,7 @@ func main() {
 	// Open files the system asks for, from Finder, Explorer or the command
 	// line.
 	mygo.App.OnOpenFile(a.HandleOpenFile)
+	mygo.App.OnOpenURL(a.HandleOpenURL)
 	mygo.App.OnSecondInstance(a.HandleSecondInstance)
 	mygo.App.OnBeforeQuit(a.BeforeQuit)
 

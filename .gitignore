@@ -10,3 +10,4 @@ mygo_windows_*.syso
 
 # OpenChamber session output
 /.openchamber/
+/.anti-claude/

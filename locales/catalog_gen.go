@@ -2613,3 +2613,325 @@ func Recreate() string { return In(i18n.Locale()).Recreate() }
 func (msgs Messages) Recreate() string {
 	return Catalog.Format(msgs.locale, "recreate", nil)
 }
+
+// IntegrationSection says "System Integration"
+// in the language the app shows.
+func IntegrationSection() string { return In(i18n.Locale()).IntegrationSection() }
+
+// IntegrationSection says "System Integration"
+// in the language of msgs.
+func (msgs Messages) IntegrationSection() string {
+	return Catalog.Format(msgs.locale, "integrationSection", nil)
+}
+
+// CliCommand says "Terminal Command (zpad)"
+// in the language the app shows.
+func CliCommand() string { return In(i18n.Locale()).CliCommand() }
+
+// CliCommand says "Terminal Command (zpad)"
+// in the language of msgs.
+func (msgs Messages) CliCommand() string {
+	return Catalog.Format(msgs.locale, "cliCommand", nil)
+}
+
+// CliCommandDescription says "Install the zpad command into PATH to open folders or files from the terminal."
+// in the language the app shows.
+func CliCommandDescription() string { return In(i18n.Locale()).CliCommandDescription() }
+
+// CliCommandDescription says "Install the zpad command into PATH to open folders or files from the terminal."
+// in the language of msgs.
+func (msgs Messages) CliCommandDescription() string {
+	return Catalog.Format(msgs.locale, "cliCommandDescription", nil)
+}
+
+// CliCommandInstalledDescription says "Installed at {path}. Run zpad . or zpad <file> in the terminal."
+// in the language the app shows.
+func CliCommandInstalledDescription(path string) string {
+	return In(i18n.Locale()).CliCommandInstalledDescription(path)
+}
+
+// CliCommandInstalledDescription says "Installed at {path}. Run zpad . or zpad <file> in the terminal."
+// in the language of msgs.
+func (msgs Messages) CliCommandInstalledDescription(path string) string {
+	return Catalog.Format(msgs.locale, "cliCommandInstalledDescription", map[string]any{"path": path})
+}
+
+// CliCommandEnabled says "Installed zpad command"
+// in the language the app shows.
+func CliCommandEnabled() string { return In(i18n.Locale()).CliCommandEnabled() }
+
+// CliCommandEnabled says "Installed zpad command"
+// in the language of msgs.
+func (msgs Messages) CliCommandEnabled() string {
+	return Catalog.Format(msgs.locale, "cliCommandEnabled", nil)
+}
+
+// CliCommandDisabled says "Removed zpad command"
+// in the language the app shows.
+func CliCommandDisabled() string { return In(i18n.Locale()).CliCommandDisabled() }
+
+// CliCommandDisabled says "Removed zpad command"
+// in the language of msgs.
+func (msgs Messages) CliCommandDisabled() string {
+	return Catalog.Format(msgs.locale, "cliCommandDisabled", nil)
+}
+
+// FinderFolderMenu says "Finder Folder Context Menu"
+// in the language the app shows.
+func FinderFolderMenu() string { return In(i18n.Locale()).FinderFolderMenu() }
+
+// FinderFolderMenu says "Finder Folder Context Menu"
+// in the language of msgs.
+func (msgs Messages) FinderFolderMenu() string {
+	return Catalog.Format(msgs.locale, "finderFolderMenu", nil)
+}
+
+// FinderFolderMenuDescription says "Show “Open Current Folder in ZPad” when right-clicking blank space or folders in Finder."
+// in the language the app shows.
+func FinderFolderMenuDescription() string { return In(i18n.Locale()).FinderFolderMenuDescription() }
+
+// FinderFolderMenuDescription says "Show “Open Current Folder in ZPad” when right-clicking blank space or folders in Finder."
+// in the language of msgs.
+func (msgs Messages) FinderFolderMenuDescription() string {
+	return Catalog.Format(msgs.locale, "finderFolderMenuDescription", nil)
+}
+
+// FinderOpenCurrentFolderAction says "Open Current Folder in ZPad"
+// in the language the app shows.
+func FinderOpenCurrentFolderAction() string { return In(i18n.Locale()).FinderOpenCurrentFolderAction() }
+
+// FinderOpenCurrentFolderAction says "Open Current Folder in ZPad"
+// in the language of msgs.
+func (msgs Messages) FinderOpenCurrentFolderAction() string {
+	return Catalog.Format(msgs.locale, "finderOpenCurrentFolderAction", nil)
+}
+
+// FinderOpenFolderAction says "Open Folder in ZPad"
+// in the language the app shows.
+func FinderOpenFolderAction() string { return In(i18n.Locale()).FinderOpenFolderAction() }
+
+// FinderOpenFolderAction says "Open Folder in ZPad"
+// in the language of msgs.
+func (msgs Messages) FinderOpenFolderAction() string {
+	return Catalog.Format(msgs.locale, "finderOpenFolderAction", nil)
+}
+
+// FinderFolderMenuEnabled says "Enabled Finder folder menu"
+// in the language the app shows.
+func FinderFolderMenuEnabled() string { return In(i18n.Locale()).FinderFolderMenuEnabled() }
+
+// FinderFolderMenuEnabled says "Enabled Finder folder menu"
+// in the language of msgs.
+func (msgs Messages) FinderFolderMenuEnabled() string {
+	return Catalog.Format(msgs.locale, "finderFolderMenuEnabled", nil)
+}
+
+// FinderFolderMenuDisabled says "Disabled Finder folder menu"
+// in the language the app shows.
+func FinderFolderMenuDisabled() string { return In(i18n.Locale()).FinderFolderMenuDisabled() }
+
+// FinderFolderMenuDisabled says "Disabled Finder folder menu"
+// in the language of msgs.
+func (msgs Messages) FinderFolderMenuDisabled() string {
+	return Catalog.Format(msgs.locale, "finderFolderMenuDisabled", nil)
+}
+
+// FinderFileMenu says "Finder Document Context Menu"
+// in the language the app shows.
+func FinderFileMenu() string { return In(i18n.Locale()).FinderFileMenu() }
+
+// FinderFileMenu says "Finder Document Context Menu"
+// in the language of msgs.
+func (msgs Messages) FinderFileMenu() string {
+	return Catalog.Format(msgs.locale, "finderFileMenu", nil)
+}
+
+// FinderFileMenuDescription says "Show “Open with ZPad” directly in the Finder right-click menu for documents."
+// in the language the app shows.
+func FinderFileMenuDescription() string { return In(i18n.Locale()).FinderFileMenuDescription() }
+
+// FinderFileMenuDescription says "Show “Open with ZPad” directly in the Finder right-click menu for documents."
+// in the language of msgs.
+func (msgs Messages) FinderFileMenuDescription() string {
+	return Catalog.Format(msgs.locale, "finderFileMenuDescription", nil)
+}
+
+// FinderOpenFileAction says "Open with ZPad"
+// in the language the app shows.
+func FinderOpenFileAction() string { return In(i18n.Locale()).FinderOpenFileAction() }
+
+// FinderOpenFileAction says "Open with ZPad"
+// in the language of msgs.
+func (msgs Messages) FinderOpenFileAction() string {
+	return Catalog.Format(msgs.locale, "finderOpenFileAction", nil)
+}
+
+// FinderFileMenuEnabled says "Enabled Finder document menu"
+// in the language the app shows.
+func FinderFileMenuEnabled() string { return In(i18n.Locale()).FinderFileMenuEnabled() }
+
+// FinderFileMenuEnabled says "Enabled Finder document menu"
+// in the language of msgs.
+func (msgs Messages) FinderFileMenuEnabled() string {
+	return Catalog.Format(msgs.locale, "finderFileMenuEnabled", nil)
+}
+
+// FinderFileMenuDisabled says "Disabled Finder document menu"
+// in the language the app shows.
+func FinderFileMenuDisabled() string { return In(i18n.Locale()).FinderFileMenuDisabled() }
+
+// FinderFileMenuDisabled says "Disabled Finder document menu"
+// in the language of msgs.
+func (msgs Messages) FinderFileMenuDisabled() string {
+	return Catalog.Format(msgs.locale, "finderFileMenuDisabled", nil)
+}
+
+// DefaultAppAssoc says "Default App for File Extensions"
+// in the language the app shows.
+func DefaultAppAssoc() string { return In(i18n.Locale()).DefaultAppAssoc() }
+
+// DefaultAppAssoc says "Default App for File Extensions"
+// in the language of msgs.
+func (msgs Messages) DefaultAppAssoc() string {
+	return Catalog.Format(msgs.locale, "defaultAppAssoc", nil)
+}
+
+// DefaultAppAssocDescription says "Associate selected file extensions with ZPad like Notepad++. Turning off restores previous default apps."
+// in the language the app shows.
+func DefaultAppAssocDescription() string { return In(i18n.Locale()).DefaultAppAssocDescription() }
+
+// DefaultAppAssocDescription says "Associate selected file extensions with ZPad like Notepad++. Turning off restores previous default apps."
+// in the language of msgs.
+func (msgs Messages) DefaultAppAssocDescription() string {
+	return Catalog.Format(msgs.locale, "defaultAppAssocDescription", nil)
+}
+
+// ExtGroupText says "Text & Docs"
+// in the language the app shows.
+func ExtGroupText() string { return In(i18n.Locale()).ExtGroupText() }
+
+// ExtGroupText says "Text & Docs"
+// in the language of msgs.
+func (msgs Messages) ExtGroupText() string {
+	return Catalog.Format(msgs.locale, "extGroupText", nil)
+}
+
+// ExtGroupConfig says "Config & Data"
+// in the language the app shows.
+func ExtGroupConfig() string { return In(i18n.Locale()).ExtGroupConfig() }
+
+// ExtGroupConfig says "Config & Data"
+// in the language of msgs.
+func (msgs Messages) ExtGroupConfig() string {
+	return Catalog.Format(msgs.locale, "extGroupConfig", nil)
+}
+
+// ExtGroupWeb says "Web"
+// in the language the app shows.
+func ExtGroupWeb() string { return In(i18n.Locale()).ExtGroupWeb() }
+
+// ExtGroupWeb says "Web"
+// in the language of msgs.
+func (msgs Messages) ExtGroupWeb() string {
+	return Catalog.Format(msgs.locale, "extGroupWeb", nil)
+}
+
+// ExtGroupCode says "Code & Scripts"
+// in the language the app shows.
+func ExtGroupCode() string { return In(i18n.Locale()).ExtGroupCode() }
+
+// ExtGroupCode says "Code & Scripts"
+// in the language of msgs.
+func (msgs Messages) ExtGroupCode() string {
+	return Catalog.Format(msgs.locale, "extGroupCode", nil)
+}
+
+// ExtGroupCustom says "Custom Extensions"
+// in the language the app shows.
+func ExtGroupCustom() string { return In(i18n.Locale()).ExtGroupCustom() }
+
+// ExtGroupCustom says "Custom Extensions"
+// in the language of msgs.
+func (msgs Messages) ExtGroupCustom() string {
+	return Catalog.Format(msgs.locale, "extGroupCustom", nil)
+}
+
+// CustomExtPlaceholder says "Add extensions (e.g. cfg, conf, env)"
+// in the language the app shows.
+func CustomExtPlaceholder() string { return In(i18n.Locale()).CustomExtPlaceholder() }
+
+// CustomExtPlaceholder says "Add extensions (e.g. cfg, conf, env)"
+// in the language of msgs.
+func (msgs Messages) CustomExtPlaceholder() string {
+	return Catalog.Format(msgs.locale, "customExtPlaceholder", nil)
+}
+
+// Add says "Add"
+// in the language the app shows.
+func Add() string { return In(i18n.Locale()).Add() }
+
+// Add says "Add"
+// in the language of msgs.
+func (msgs Messages) Add() string {
+	return Catalog.Format(msgs.locale, "add", nil)
+}
+
+// SelectAll says "Select All"
+// in the language the app shows.
+func SelectAll() string { return In(i18n.Locale()).SelectAll() }
+
+// SelectAll says "Select All"
+// in the language of msgs.
+func (msgs Messages) SelectAll() string {
+	return Catalog.Format(msgs.locale, "selectAll", nil)
+}
+
+// ClearAll says "Clear"
+// in the language the app shows.
+func ClearAll() string { return In(i18n.Locale()).ClearAll() }
+
+// ClearAll says "Clear"
+// in the language of msgs.
+func (msgs Messages) ClearAll() string {
+	return Catalog.Format(msgs.locale, "clearAll", nil)
+}
+
+// DefaultAppCount says "{count} associated"
+// in the language the app shows.
+func DefaultAppCount(count int) string { return In(i18n.Locale()).DefaultAppCount(count) }
+
+// DefaultAppCount says "{count} associated"
+// in the language of msgs.
+func (msgs Messages) DefaultAppCount(count int) string {
+	return Catalog.Format(msgs.locale, "defaultAppCount", map[string]any{"count": count})
+}
+
+// DefaultAppsRestored says "Restored previous default apps"
+// in the language the app shows.
+func DefaultAppsRestored() string { return In(i18n.Locale()).DefaultAppsRestored() }
+
+// DefaultAppsRestored says "Restored previous default apps"
+// in the language of msgs.
+func (msgs Messages) DefaultAppsRestored() string {
+	return Catalog.Format(msgs.locale, "defaultAppsRestored", nil)
+}
+
+// InvalidExtension says "Invalid extension (letters, digits, _, -, + only)"
+// in the language the app shows.
+func InvalidExtension() string { return In(i18n.Locale()).InvalidExtension() }
+
+// InvalidExtension says "Invalid extension (letters, digits, _, -, + only)"
+// in the language of msgs.
+func (msgs Messages) InvalidExtension() string {
+	return Catalog.Format(msgs.locale, "invalidExtension", nil)
+}
+
+// IntegrationFailed says "System integration failed"
+// in the language the app shows.
+func IntegrationFailed() string { return In(i18n.Locale()).IntegrationFailed() }
+
+// IntegrationFailed says "System integration failed"
+// in the language of msgs.
+func (msgs Messages) IntegrationFailed() string {
+	return Catalog.Format(msgs.locale, "integrationFailed", nil)
+}

@@ -439,5 +439,53 @@
   "reload": "Reload",
   "keepMine": "Keep Mine",
   "fileMissingQuestion": "The file no longer exists. Recreate it?",
-  "recreate": "Recreate"
+  "recreate": "Recreate",
+  "integrationSection": "System Integration",
+  "cliCommand": "Terminal Command (zpad)",
+  "cliCommandDescription": "Install the zpad command into PATH to open folders or files from the terminal.",
+  "cliCommandInstalledDescription": "Installed at {path}. Run zpad . or zpad <file> in the terminal.",
+  "@cliCommandInstalledDescription": {
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "/opt/homebrew/bin/zpad"
+      }
+    }
+  },
+  "cliCommandEnabled": "Installed zpad command",
+  "cliCommandDisabled": "Removed zpad command",
+  "finderFolderMenu": "Finder Folder Context Menu",
+  "finderFolderMenuDescription": "Show “Open Current Folder in ZPad” when right-clicking blank space or folders in Finder.",
+  "finderOpenCurrentFolderAction": "Open Current Folder in ZPad",
+  "finderOpenFolderAction": "Open Folder in ZPad",
+  "finderFolderMenuEnabled": "Enabled Finder folder menu",
+  "finderFolderMenuDisabled": "Disabled Finder folder menu",
+  "finderFileMenu": "Finder Document Context Menu",
+  "finderFileMenuDescription": "Show “Open with ZPad” directly in the Finder right-click menu for documents.",
+  "finderOpenFileAction": "Open with ZPad",
+  "finderFileMenuEnabled": "Enabled Finder document menu",
+  "finderFileMenuDisabled": "Disabled Finder document menu",
+  "defaultAppAssoc": "Default App for File Extensions",
+  "defaultAppAssocDescription": "Associate selected file extensions with ZPad like Notepad++. Turning off restores previous default apps.",
+  "extGroupText": "Text & Docs",
+  "extGroupConfig": "Config & Data",
+  "extGroupWeb": "Web",
+  "extGroupCode": "Code & Scripts",
+  "extGroupCustom": "Custom Extensions",
+  "customExtPlaceholder": "Add extensions (e.g. cfg, conf, env)",
+  "add": "Add",
+  "selectAll": "Select All",
+  "clearAll": "Clear",
+  "defaultAppCount": "{count} associated",
+  "@defaultAppCount": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "defaultAppsRestored": "Restored previous default apps",
+  "invalidExtension": "Invalid extension (letters, digits, _, -, + only)",
+  "integrationFailed": "System integration failed"
 }
