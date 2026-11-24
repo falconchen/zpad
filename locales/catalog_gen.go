@@ -1736,11 +1736,11 @@ func (msgs Messages) RestoreSessionDescription() string {
 	return Catalog.Format(msgs.locale, "restoreSessionDescription", nil)
 }
 
-// ConfirmClose says "Confirm Unsaved Files on Close"
+// ConfirmClose says "Prompt to Save on Close"
 // in the language the app shows.
 func ConfirmClose() string { return In(i18n.Locale()).ConfirmClose() }
 
-// ConfirmClose says "Confirm Unsaved Files on Close"
+// ConfirmClose says "Prompt to Save on Close"
 // in the language of msgs.
 func (msgs Messages) ConfirmClose() string {
 	return Catalog.Format(msgs.locale, "confirmClose", nil)
@@ -1768,11 +1768,11 @@ func (msgs Messages) ConfirmCloseDisabledDescription() string {
 	return Catalog.Format(msgs.locale, "confirmCloseDisabledDescription", nil)
 }
 
-// KeepUnsaved says "Keep Unsaved Content"
+// KeepUnsaved says "Keep Changes on Quit"
 // in the language the app shows.
 func KeepUnsaved() string { return In(i18n.Locale()).KeepUnsaved() }
 
-// KeepUnsaved says "Keep Unsaved Content"
+// KeepUnsaved says "Keep Changes on Quit"
 // in the language of msgs.
 func (msgs Messages) KeepUnsaved() string {
 	return Catalog.Format(msgs.locale, "keepUnsaved", nil)
