@@ -1,58 +1,58 @@
 {
-  "tag": "v0.4.1",
-  "version": "0.4.1",
-  "published_at": "2026-11-23T12:41:19Z",
-  "date": "2026-11-23",
-  "url": "https://github.com/helloxz/zpad/releases/tag/v0.4.1",
-  "notes": "* 新增：官网增加软件对比\r\n* 新增：新建 tab 自动加上序号\r\n* 新增：Linux 版本构建\r\n* 修复：⌘ + M 快捷键最小化无效\r\n* 修复：⌘ + N 不取消时无法新建 tab\r\n* 修复：新建 tab 无法自动获取焦点",
+  "tag": "v0.5.0",
+  "version": "0.5.0",
+  "published_at": "2026-11-24T05:09:04Z",
+  "date": "2026-11-24",
+  "url": "https://github.com/helloxz/zpad/releases/tag/v0.5.0",
+  "notes": "- 新增：自动保留未存储内容\r\n- 新增：内置更多主题可选，支持 10 余种主题\r\n- 新增：顶部工具栏新增信息和更新按钮\r\n- 新增：工作区文件树空白处右键菜单可以新建文件与文件夹\r\n- 优化：设置面板\r\n- 优化：合并 macOS 工具栏\r\n- 优化：工作区文件树排序\r\n- 其它优化和BUG修复",
   "assets": {
     "checksums": {
       "name": "SHA256SUMS",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/SHA256SUMS",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/SHA256SUMS",
       "size": "2 KB",
-      "bytes": 1935
+      "bytes": 2039
     },
     "linux_deb": {
-      "name": "zpad_0.4.1_amd64.deb",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad_0.4.1_amd64.deb",
+      "name": "zpad_0.5.0_amd64.deb",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad_0.5.0_amd64.deb",
       "size": "8.2 MB",
-      "bytes": 8562634
+      "bytes": 8625334
     },
     "linux_rpm": {
-      "name": "zpad-0.4.1-1.x86_64.rpm",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-1.x86_64.rpm",
+      "name": "zpad-0.5.0-1.x86_64.rpm",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-1.x86_64.rpm",
       "size": "8.2 MB",
-      "bytes": 8564044
+      "bytes": 8626545
     },
     "linux_tar": {
-      "name": "zpad-0.4.1-linux-amd64.tar.gz",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-linux-amd64.tar.gz",
-      "size": "8.2 MB",
-      "bytes": 8603978
+      "name": "zpad-0.5.0-linux-amd64.tar.gz",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-linux-amd64.tar.gz",
+      "size": "8.3 MB",
+      "bytes": 8666540
     },
     "macos_amd64": {
-      "name": "zpad-0.4.1-amd64.dmg",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-amd64.dmg",
+      "name": "zpad-0.5.0-amd64.dmg",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-amd64.dmg",
       "size": "6.8 MB",
-      "bytes": 7143424
+      "bytes": 7179264
     },
     "macos_arm64": {
-      "name": "zpad-0.4.1-arm64.dmg",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-arm64.dmg",
+      "name": "zpad-0.5.0-arm64.dmg",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-arm64.dmg",
       "size": "5.8 MB",
-      "bytes": 6064128
+      "bytes": 6081024
     },
     "windows_portable": {
-      "name": "zpad-0.4.1-windows-amd64-portable.zip",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-0.4.1-windows-amd64-portable.zip",
+      "name": "zpad-0.5.0-windows-amd64-portable.zip",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-windows-amd64-portable.zip",
       "size": "8.4 MB",
-      "bytes": 8792782
+      "bytes": 8854234
     },
     "windows_setup": {
-      "name": "zpad-setup-0.4.1-amd64.exe",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.4.1/zpad-setup-0.4.1-amd64.exe",
+      "name": "zpad-setup-0.5.0-amd64.exe",
+      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-setup-0.5.0-amd64.exe",
       "size": "6.5 MB",
-      "bytes": 6779714
+      "bytes": 6823631
     }
   }
 }
