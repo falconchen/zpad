@@ -1938,6 +1938,26 @@ func (msgs Messages) PlainText() string {
 	return Catalog.Format(msgs.locale, "plainText", nil)
 }
 
+// ChooseLanguage says "Choose Language"
+// in the language the app shows.
+func ChooseLanguage() string { return In(i18n.Locale()).ChooseLanguage() }
+
+// ChooseLanguage says "Choose Language"
+// in the language of msgs.
+func (msgs Messages) ChooseLanguage() string {
+	return Catalog.Format(msgs.locale, "chooseLanguage", nil)
+}
+
+// LanguageFromExtension says "Language follows the file extension; rename the file to change it"
+// in the language the app shows.
+func LanguageFromExtension() string { return In(i18n.Locale()).LanguageFromExtension() }
+
+// LanguageFromExtension says "Language follows the file extension; rename the file to change it"
+// in the language of msgs.
+func (msgs Messages) LanguageFromExtension() string {
+	return Catalog.Format(msgs.locale, "languageFromExtension", nil)
+}
+
 // LanguageNoHighlight says "{language} · Not highlighted"
 // in the language the app shows.
 func LanguageNoHighlight(language string) string {

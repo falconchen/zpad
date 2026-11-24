@@ -98,6 +98,12 @@ func (a *App) restoreSession(st session.State) {
 			if !a.Settings.KeepUnsaved {
 				return nil
 			}
+			// An untitled tab is back with the language the status bar was
+			// given for it.
+			var lang *editor.Language
+			if l := editor.LanguageNamed(ts.Language); l != nil {
+				lang = l
+			}
 			if e, ok := a.draftForTab(ts); ok {
 				text, err := a.drafts.Text(e.ID)
 				if err != nil {
@@ -112,7 +118,11 @@ func (a *App) restoreSession(st session.State) {
 					}
 					a.draftUsed[e.ID] = true
 					restored++
-					return newDraftDocument(e, text)
+					doc := newDraftDocument(e, text)
+					if lang != nil {
+						doc.selectLanguage(lang)
+					}
+					return doc
 				}
 			}
 			seq := ts.Untitled
@@ -125,6 +135,9 @@ func (a *App) restoreSession(st session.State) {
 			}
 			doc := newUntitled(seq, a.Settings.DefaultEncoding)
 			doc.Buffer.SetLineEnding(a.Settings.DefaultEOL)
+			if lang != nil {
+				doc.selectLanguage(lang)
+			}
 			return doc
 		}
 		if doc := docs[ts.Path]; doc != nil {
@@ -258,6 +271,9 @@ func (a *App) paneState(p Pane) session.PaneState {
 		if a.Settings.KeepUnsaved {
 			ts.Draft = tab.doc.DraftID
 			ts.Untitled = tab.doc.UntitledSeq
+			if tab.doc.Path == "" && tab.doc.Language != nil {
+				ts.Language = tab.doc.Language.Name
+			}
 		}
 		if ts.Path == "" && !a.Settings.KeepUnsaved {
 			continue

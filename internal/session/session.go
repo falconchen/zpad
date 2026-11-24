@@ -22,6 +22,10 @@ type TabState struct {
 	// without a file.
 	Draft    string `json:"draft,omitempty"`
 	Untitled int    `json:"untitled,omitempty"`
+	// Language is the language an untitled document was given in the status
+	// bar, by name; "" for none. A tab with a path takes its language from
+	// the file name.
+	Language string `json:"language,omitempty"`
 }
 
 // PaneState is the tabs of one pane and the one chosen.

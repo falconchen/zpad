@@ -228,8 +228,15 @@ func (a *App) saveDocsForClose(docs []*Document, then func()) {
 	}
 	a.busy = true
 	defaults := make([]string, len(docs))
+	// The extension of the language each untitled document was given, read
+	// here on the main thread; another stays empty, and the typed name is
+	// kept as it is.
+	exts := make([]string, len(docs))
 	for i, doc := range docs {
 		defaults[i] = a.saveDialogPath(doc)
+		if doc.Path == "" && doc.Language != nil {
+			exts[i] = doc.languageExtension()
+		}
 	}
 	go func() {
 		type saved struct {
@@ -258,7 +265,7 @@ func (a *App) saveDocsForClose(docs []*Document, then func()) {
 					a.onUI(func() { a.busy = false })
 					return
 				}
-				path = p
+				path = withExtension(p, exts[i])
 			}
 			data, err := writeDocument(doc, path)
 			if err != nil {

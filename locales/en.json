@@ -294,6 +294,8 @@
   "topPane": "Top",
   "bottomPane": "Bottom",
   "plainText": "Plain Text",
+  "chooseLanguage": "Choose Language",
+  "languageFromExtension": "Language follows the file extension; rename the file to change it",
   "languageNoHighlight": "{language} · Not highlighted",
   "@languageNoHighlight": {
     "placeholders": {

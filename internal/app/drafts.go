@@ -251,6 +251,9 @@ func (a *App) draftEntry(doc *Document) draft.Entry {
 		Encoding: string(doc.Encoding),
 		SavedAt:  time.Now().UnixNano(),
 	}
+	if doc.Path == "" && doc.Language != nil {
+		e.Language = doc.Language.Name
+	}
 	if doc.Path != "" {
 		e.Size = doc.Size
 		if !doc.ModTime.IsZero() {
@@ -359,6 +362,23 @@ func (a *App) draftMoved(doc *Document) {
 	}
 }
 
+// draftLanguageChanged makes a document's copy due again after the language
+// an untitled document was given changed: the index names the language, and
+// the text did not change to say so.
+func (a *App) draftLanguageChanged(doc *Document) {
+	if a.drafts == nil || doc == nil || !a.draftNeeded(doc) {
+		return
+	}
+	// A copy on its way carries the old language: let its result be
+	// skipped, and write the index again from the state set here.
+	doc.draftEpoch.Add(1)
+	doc.draftBacked = 0
+	doc.draftEditAt = time.Now()
+	if doc.draftSince.IsZero() {
+		doc.draftSince = doc.draftEditAt
+	}
+}
+
 func (a *App) draftLog(err error) {
 	if err == nil {
 		return
@@ -431,6 +451,9 @@ func newDraftDocument(e draft.Entry, text string) *Document {
 		if e.ModTime != 0 {
 			doc.ModTime = time.Unix(0, e.ModTime)
 		}
+	} else if l := editor.LanguageNamed(e.Language); l != nil {
+		// The language the status bar was given before the copy was made.
+		doc.selectLanguage(l)
 	}
 	doc.draftBacked = doc.Buffer.Version()
 	return doc

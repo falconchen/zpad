@@ -206,6 +206,8 @@
   "topPane": "上栏",
   "bottomPane": "下栏",
   "plainText": "纯文本",
+  "chooseLanguage": "选择语言",
+  "languageFromExtension": "语言由扩展名决定，改名后自动生效",
   "languageNoHighlight": "{language} · 未高亮",
   "@languageNoHighlight": {
     "placeholders": {

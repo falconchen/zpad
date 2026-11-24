@@ -1107,7 +1107,7 @@ func (a *App) statusBar(c *ui.Context, t *ui.Theme) {
 					MaxWidth(320).SingleLine()
 				a.revealButton(c, t, doc)
 			}
-			ui.Text(c, languageLabel(doc)).FontSize(11).TextColor(t.TextMuted)
+			a.languageControl(c, t, doc)
 			a.previewButton(c, t, tab)
 			a.browserButton(c, t, tab)
 			if doc.ReadOnly {
@@ -1220,6 +1220,43 @@ func (a *App) paneLabel(i int) string {
 		return locales.RightPane()
 	}
 	return locales.LeftPane()
+}
+
+// languageControl shows the language of the document, and for an untitled
+// one lets it be chosen: the choice highlights the text and names the file
+// its save starts with. A file that has a path keeps the language its name
+// gives it, so the label is not a control there; renaming the file changes
+// the highlight.
+func (a *App) languageControl(c *ui.Context, t *ui.Theme, doc *Document) {
+	if doc.Path != "" {
+		ui.Text(c, languageLabel(doc)).FontSize(11).TextColor(t.TextMuted).
+			Tooltip(locales.LanguageFromExtension())
+		return
+	}
+	ui.PopoverMenuButton(c, languageLabel(doc), func(m *ui.Menu) {
+		if m.Item(locales.PlainText()).Checked(doc.Language == nil).Chosen() {
+			a.SelectLanguage(nil)
+		}
+		m.Separator()
+		for _, lang := range untitledLanguages() {
+			l := lang
+			if m.Item(l.Name).Checked(doc.Language == l).Chosen() {
+				a.SelectLanguage(l)
+			}
+		}
+	}, languageMenuOptions()).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer).
+		Tooltip(locales.ChooseLanguage())
+}
+
+// languageMenuOptions styles the language menu of the status bar: the
+// languages scroll in a popup no taller than the settings drop-downs, so the
+// long list covers a part of the window rather than all of it.
+func languageMenuOptions() ui.PopoverMenuButtonOptions {
+	o := menuButtonCursorOptions()
+	o.Panel = func(panel ui.Element) {
+		panel.MaxHeight(selectPopupHeight)
+	}
+	return o
 }
 
 // languageLabel names the document's language, noting the files too long to

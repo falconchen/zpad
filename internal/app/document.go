@@ -64,18 +64,33 @@ type Document struct {
 // setLanguage gives the buffer the file's language, or none when the text
 // is too long to highlight, and remembers the language for the status bar.
 // It runs after the text is in the buffer: both reloads replace the text
-// first.
+// first. A file's name is the only thing that says its language: an
+// untitled document's choice (selectLanguage) goes when it is saved.
 func (d *Document) setLanguage(path string) {
-	d.Language = editor.LanguageFor(path)
-	if d.Language != nil && d.Buffer.LineCount() > maxLines {
+	d.applyLanguage(editor.LanguageFor(path), filepath.Base(path))
+}
+
+// selectLanguage gives an untitled document the language chosen in the
+// status bar, which is what its save starts from; the extension it is saved
+// with decides the language from then on.
+func (d *Document) selectLanguage(lang *editor.Language) {
+	d.applyLanguage(lang, "untitled")
+}
+
+// applyLanguage gives the buffer lang, or none when the text is too long to
+// highlight, and remembers it for the status bar. name is what the log calls
+// the document.
+func (d *Document) applyLanguage(lang *editor.Language, name string) {
+	d.Language = lang
+	if lang != nil && d.Buffer.LineCount() > maxLines {
 		// A file that long is read-only anyway, and highlighting it would
 		// keep the highlighter busy for seconds as it scrolls.
-		log.Printf("no highlight: %s %d lines > %d (%s)", filepath.Base(path),
-			d.Buffer.LineCount(), maxLines, d.Language.Name)
+		log.Printf("no highlight: %s %d lines > %d (%s)", name,
+			d.Buffer.LineCount(), maxLines, lang.Name)
 		d.Buffer.SetLanguage(nil)
 		return
 	}
-	d.Buffer.SetLanguage(d.Language)
+	d.Buffer.SetLanguage(lang)
 }
 
 // loadDocument reads a file and detects its encoding.
@@ -204,7 +219,26 @@ func (d *Document) saveName() string {
 	if seq <= 0 {
 		seq = 1
 	}
-	return fmt.Sprintf("untitled-%d.txt", seq)
+	return fmt.Sprintf("untitled-%d%s", seq, d.languageExtension())
+}
+
+// languageExtension is the extension an untitled document is saved with: the
+// chosen language's first one, so that the saved file is found by the same
+// language, else plain text's.
+func (d *Document) languageExtension() string {
+	if d.Path == "" && d.Language != nil && len(d.Language.Extensions) > 0 {
+		return d.Language.Extensions[0]
+	}
+	return ".txt"
+}
+
+// withExtension gives path ext when its name has none, so that a file saved
+// under a name typed without one is still found by its language.
+func withExtension(path, ext string) string {
+	if ext == "" || filepath.Ext(path) != "" {
+		return path
+	}
+	return path + ext
 }
 
 // DisplayPath is the path relative to root when it is inside it.

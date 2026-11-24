@@ -36,6 +36,10 @@ type Entry struct {
 	// Encoding is what a save of the document writes; the copy itself is
 	// always UTF-8.
 	Encoding string `json:"encoding,omitempty"`
+	// Language is the language an untitled document was given in the status
+	// bar, by name; "" for none. A document with a path takes its language
+	// from the file name instead.
+	Language string `json:"language,omitempty"`
 	// Size and ModTime are the file's size and modification time when the
 	// copy was made, in Unix nanoseconds; zero for an untitled document. A
 	// file that changed since is in conflict with the copy.

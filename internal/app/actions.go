@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/caseconv"
 	"github.com/helloxz/zpad/internal/encoding"
 	"github.com/helloxz/zpad/locales"
@@ -438,6 +439,20 @@ func (a *App) SetLineEnding(eol string) {
 	a.update()
 }
 
+// SelectLanguage gives the active untitled document the language chosen in
+// the status bar, which changes its highlight and the name its save starts
+// from. A file that already has a path takes its language from that path, so
+// renaming it is how its highlight changes.
+func (a *App) SelectLanguage(lang *editor.Language) {
+	tab := a.activeTab()
+	if tab == nil || tab.doc.Path != "" {
+		return
+	}
+	tab.doc.selectLanguage(lang)
+	a.draftLanguageChanged(tab.doc)
+	a.update()
+}
+
 // ConvertCase changes the case of the active tab's selections.
 func (a *App) ConvertCase(mode caseconv.Mode) {
 	tab := a.activeTab()
@@ -539,6 +554,11 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 	}
 	a.busy = true
 	defaultPath := a.saveDialogPath(tab.doc)
+	// An untitled document's chosen language names the file it saves: the
+	// dialog starts with its extension, and a name typed without one gets
+	// it. Both are read here, on the main thread.
+	addExt := tab.doc.Path == "" && tab.doc.Language != nil
+	ext := tab.doc.languageExtension()
 	go func() {
 		defer a.onUI(func() { a.busy = false })
 
@@ -559,6 +579,9 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 				return
 			}
 			path = p
+			if addExt {
+				path = withExtension(path, ext)
+			}
 		}
 
 		if !saveAs && tab.doc.Path != "" {
