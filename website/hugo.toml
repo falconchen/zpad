@@ -37,3 +37,27 @@ disableKinds = ["taxonomy", "term", "rss"]
 
 [minify]
   minifyOutput = true
+
+# The release partial reads this only if a read-only token is set, to stay
+# clear of the unauthenticated 60-requests-per-hour limit on GitHub's API.
+[security.funcs]
+  getenv = ['^HUGO_', '^CI$', '^GITHUB_TOKEN$']
+
+# The short download links are generated from the release data at build time.
+# A media type with no suffix lets the file land at the site root as _redirects.
+[mediaTypes."text/redirects"]
+  suffixes = [""]
+  delimiter = ""
+
+[outputFormats.REDIRECTS]
+  mediaType = "text/redirects"
+  baseName = "_redirects"
+  isPlainText = true
+  notAlternative = true
+
+[outputs]
+  home = ["HTML", "REDIRECTS"]
+
+# English does not need a second copy of the root redirects file.
+[languages.en.outputs]
+  home = ["HTML"]

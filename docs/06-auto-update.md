@@ -75,9 +75,9 @@ GitHub Releases：`updates.github = "helloxz/zpad"`，默认 `tagPrefix` 为 `v`
 4. Windows 作业额外打 `zpad-<版本>-windows-amd64-portable.zip` 并上传。
 5. 在 GitHub 上检查 draft，**等 macOS、Windows 与 Linux 作业都变绿、资产齐全**再发布为 **latest**（不要勾选 pre-release）。
 
-   发布时机不能提前：release 一发布就是 `releases/latest`，应用会立刻检查到新版本；此时更新清单还没上传，`releases/latest/download/update-<target>.json` 会返回 404。官网那边已经不会再因此报错（见下），但自动更新会：所以仍然建议等各平台作业变绿、draft 里文件齐全再 Publish。
+   发布时机不能提前：release 一发布就是 `releases/latest`，应用会立刻检查到新版本；此时更新清单还没上传，`releases/latest/download/update-<target>.json` 会返回 404，所以等文件齐全再 Publish。
 
-   官网作业允许提前发布：`.github/workflows/website.yml` 由 `release: published` 触发时如果 release 还没有文件，脚本输出 `::warning::release vX.Y.Z has no files yet` 后跳过（不失败）；`release.yml` 末尾的 `site` 作业在 macOS / Windows / Linux 都上传完后会用 `gh workflow run website.yml -f tag=<tag>` 再跑一次，由它写数据。
+6. 发布后到 CF Pages → Deployments → **Retry deployment**（或 Create deployment，选 `main`）触发一次构建。官网构建时会从 GitHub API 取最新 release，版本号、下载地址、`_redirects` 短链和首页「最近更新」一起更新；仓库不会提交任何东西。
 
 本地构建需要签名时：
 
@@ -106,7 +106,7 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 - `internal/app/view.go`：左侧工具栏末尾加信息按钮（打开关于），右侧工具栏行首加检查更新按钮；图标为 `icons.go` 的 `iconInfo` / `iconUpdate`。两者与菜单共用 `App.checkUpdates`。
 - `locales/en.json`、`locales/zh-Hans.json`、`locales/catalog_gen.go`：`checkForUpdates`。
 - `mygo.json`：新增 `updates`（公钥 + `helloxz/zpad`）；0.3.1 起版本号随之更新。
-- `.github/workflows/release.yml`：构建带私钥并直接用 `-upload` 上传，不再重命名安装包；Windows 额外打绿色版并排除安装包与更新文件；末尾的 `site` 作业在 macOS / Windows 都上传完后 dispatch `website.yml -f tag=<tag>`（`permissions: actions: write`），保证先发布后上传也能补上官网数据。
+- `.github/workflows/release.yml`：构建带私钥并直接用 `-upload` 上传，不再重命名安装包；Windows 额外打绿色版并排除安装包与更新文件。官网不再由 release 工作流更新：构建时 Hugo 自己取最新 release，发布后到 CF Pages 手动重建。
 - `release_test.go`：公钥合法性、更新源与 CHANGELOG 版本小节。
 - `internal/app/menu_test.go`、`internal/app/about_ui_test.go`：菜单与工具栏的「检查更新」都可点击，并断言调用一次检查；点击通过 `App.checkUpdates` 注入的计数器，避免测试里未注册插件时 panic。工具栏的信息按钮断言打开关于对话框。
 - `CHANGELOG.md`：0.3.0、0.3.1 与 0.3.2 小节。

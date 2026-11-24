@@ -1,0 +1,36 @@
+{{- /*
+  The downloads of a release, keyed by what the site shows. Takes the release
+  object and returns a map of macos_arm64, macos_amd64, windows_setup,
+  windows_portable, linux_deb, linux_rpm, linux_tar and checksums; each holds
+  name, url and a human-readable size. Keys are absent for assets the release
+  does not carry, so a release whose uploads are still running renders only
+  what exists.
+*/ -}}
+{{- $assets := dict -}}
+{{- range .assets -}}
+  {{- $name := .name -}}
+  {{- $bytes := float .size -}}
+  {{- $human := printf "%.0f KB" (div $bytes 1024) -}}
+  {{- if ge $bytes 1048576 -}}
+    {{- $human = printf "%.1f MB" (div $bytes 1048576) -}}
+  {{- end -}}
+  {{- $item := dict "name" $name "url" .browser_download_url "size" $human -}}
+  {{- if strings.HasSuffix $name "-arm64.dmg" -}}
+    {{- $assets = merge $assets (dict "macos_arm64" $item) -}}
+  {{- else if strings.HasSuffix $name "-amd64.dmg" -}}
+    {{- $assets = merge $assets (dict "macos_amd64" $item) -}}
+  {{- else if and (strings.HasPrefix $name "zpad-setup-") (strings.HasSuffix $name "-amd64.exe") -}}
+    {{- $assets = merge $assets (dict "windows_setup" $item) -}}
+  {{- else if strings.HasSuffix $name "-windows-amd64-portable.zip" -}}
+    {{- $assets = merge $assets (dict "windows_portable" $item) -}}
+  {{- else if and (strings.HasPrefix $name "zpad_") (strings.HasSuffix $name "_amd64.deb") -}}
+    {{- $assets = merge $assets (dict "linux_deb" $item) -}}
+  {{- else if strings.HasSuffix $name ".x86_64.rpm" -}}
+    {{- $assets = merge $assets (dict "linux_rpm" $item) -}}
+  {{- else if strings.HasSuffix $name "-linux-amd64.tar.gz" -}}
+    {{- $assets = merge $assets (dict "linux_tar" $item) -}}
+  {{- else if eq $name "SHA256SUMS" -}}
+    {{- $assets = merge $assets (dict "checksums" $item) -}}
+  {{- end -}}
+{{- end -}}
+{{- return $assets -}}

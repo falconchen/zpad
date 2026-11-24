@@ -1,13 +1,19 @@
 {{ define "main" }}
-{{- $release := hugo.Data.release -}}
+{{- $release := partialCached "release.html" . "latest" -}}
+{{- $assets := dict -}}
+{{- $version := "" -}}
+{{- with $release -}}
+  {{- $assets = partial "release-assets.html" . -}}
+  {{- $version = strings.TrimPrefix "v" .tag_name -}}
+{{- end -}}
 <section class="section page-head">
   <div class="wrap">
     <h1>{{ .Params.heading | default .Title }}</h1>
     <p class="lead">{{ .Params.lead }}</p>
     {{- with $release }}
     <p class="version-line">
-      {{ i18n "version" }} <strong>{{ .version }}</strong> · {{ i18n "released" }} <time datetime="{{ .published_at }}">{{ .date }}</time>
-      {{- with .url }} · <a class="link" href="{{ . }}">{{ i18n "all_releases" }}</a>{{ end }}
+      {{ i18n "version" }} <strong>{{ $version }}</strong> · {{ i18n "released" }} <time datetime="{{ .published_at }}">{{ time.AsTime .published_at | time.Format "2006-01-02" }}</time>
+      {{- with .html_url }} · <a class="link" href="{{ . }}">{{ i18n "all_releases" }}</a>{{ end }}
     </p>
     {{- end }}
   </div>
@@ -15,21 +21,20 @@
 
 <section class="section">
   <div class="wrap platforms">
-    {{- with $release.assets }}
     <article class="platform">
       <div class="platform-head">
         <span class="platform-icon">{{ partial "icon.html" "laptop" }}</span>
         <div>
-          <h2>{{ $.Params.macos_title }}</h2>
+          <h2>{{ .Params.macos_title }}</h2>
         </div>
       </div>
       <div class="platform-actions">
-        {{- with .macos_arm64 }}
+        {{- with $assets.macos_arm64 }}
         <a class="btn btn-primary btn-block" href="{{ .url }}">
           <span>{{ i18n "apple_silicon" }}</span><span class="btn-meta">{{ .size }}</span>
         </a>
         {{- end }}
-        {{- with .macos_amd64 }}
+        {{- with $assets.macos_amd64 }}
         <a class="btn btn-block" href="{{ .url }}">
           <span>{{ i18n "intel" }}</span><span class="btn-meta">{{ .size }}</span>
         </a>
@@ -41,23 +46,22 @@
       <div class="platform-head">
         <span class="platform-icon">{{ partial "icon.html" "grid" }}</span>
         <div>
-          <h2>{{ $.Params.windows_title }}</h2>
+          <h2>{{ .Params.windows_title }}</h2>
         </div>
       </div>
       <div class="platform-actions">
-        {{- with .windows_setup }}
+        {{- with $assets.windows_setup }}
         <a class="btn btn-primary btn-block" href="{{ .url }}">
           <span>{{ i18n "installer" }}</span><span class="btn-meta">{{ .size }}</span>
         </a>
         {{- end }}
-        {{- with .windows_portable }}
+        {{- with $assets.windows_portable }}
         <a class="btn btn-block" href="{{ .url }}">
           <span>{{ i18n "portable" }}</span><span class="btn-meta">{{ .size }}</span>
         </a>
         {{- end }}
       </div>
     </article>
-    {{- end }}
 
     <article class="platform">
       <div class="platform-head">
@@ -67,18 +71,15 @@
         </div>
       </div>
       <div class="platform-actions">
-        {{- with $release.assets.linux_deb }}
+        {{- with $assets.linux_deb }}
         <a class="btn btn-primary btn-block" href="{{ .url }}">
           <span>{{ i18n "deb_package" }}</span><span class="btn-meta">{{ .size }}</span>
         </a>
         {{- end }}
-        {{- with $release.assets.linux_rpm }}
+        {{- with $assets.linux_rpm }}
         <a class="btn btn-block" href="{{ .url }}">
           <span>{{ i18n "rpm_package" }}</span><span class="btn-meta">{{ .size }}</span>
         </a>
-        {{- end }}
-        {{- if not (or $release.assets.linux_deb $release.assets.linux_rpm) }}
-        <span class="badge">{{ i18n "coming_soon" }}</span>
         {{- end }}
       </div>
     </article>
@@ -100,7 +101,7 @@
     </ul>
     <h2>{{ i18n "requirements_title" }}</h2>
     <p>{{ i18n "requirements_text" }}</p>
-    {{- with $release.assets.checksums }}
+    {{- with $assets.checksums }}
     <p><a class="link" href="{{ .url }}">{{ i18n "checksums" }}</a></p>
     {{- end }}
     <p class="muted">{{ .Params.license_note }}</p>

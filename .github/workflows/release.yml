@@ -125,21 +125,3 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
         run: go tool mygo build -platform linux/amd64 -upload
-
-  site:
-    name: Update the site data
-    # Publishing a release fires website.yml at once, before these apps have
-    # uploaded anything, and that run skips an empty release. This job is the
-    # one that actually points the site at the new version: it runs once the
-    # files are there, whatever order you published in.
-    needs: [macos, windows, linux]
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    steps:
-      - name: Run the website workflow for this tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-          # gh infers the repository from a checkout, and this job has none.
-          GH_REPO: ${{ github.repository }}
-        run: gh workflow run website.yml --ref main -f tag="$GITHUB_REF_NAME"

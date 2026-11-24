@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/helloxz/zpad/internal/app"
 )
@@ -167,11 +168,12 @@ func TestChangelogHasTheReleaseNotes(t *testing.T) {
 	}
 }
 
-// The site's version comes from website/data/release.json, which the website
-// workflow rewrites when a release is published. A version typed into the copy
-// goes stale on the next release: the hero badge still said v0.3.2 after 0.4.0
-// shipped. Templates build the badge from the data, and nothing under website/
-// names a version by hand.
+// The site's version comes from the latest GitHub release, which
+// layouts/partials/release.html fetches while the site builds; the committed
+// snapshot in website/data/release.json is the fallback and the local preview.
+// A version typed into the copy goes stale on the next release: the hero badge
+// still said v0.3.2 after 0.4.0 shipped. Templates build the badge from the
+// release data, and nothing under website/ names a version by hand.
 func TestWebsiteHasNoHardcodedVersion(t *testing.T) {
 	// The icon SVGs are full of numbers like 1.02.08, so a template only counts
 	// as naming a version when it carries the v prefix the site uses.
@@ -213,8 +215,48 @@ func TestWebsiteHasNoHardcodedVersion(t *testing.T) {
 		}
 		for i, line := range strings.Split(string(data), "\n") {
 			if m := pattern.FindString(line); m != "" {
-				t.Errorf("%s:%d names the version %q; derive it from website/data/release.json", path, i+1, m)
+				t.Errorf("%s:%d names the version %q; derive it from the release data", path, i+1, m)
 			}
+		}
+	}
+}
+
+// The snapshot is what the build falls back to when GitHub cannot be reached,
+// and what `hugo server` renders. Keep it a usable release object.
+func TestWebsiteReleaseSnapshot(t *testing.T) {
+	data, err := os.ReadFile("website/data/release.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var release struct {
+		TagName     string `json:"tag_name"`
+		PublishedAt string `json:"published_at"`
+		Body        string `json:"body"`
+		Assets      []struct {
+			Name string `json:"name"`
+			Size int64  `json:"size"`
+			URL  string `json:"browser_download_url"`
+		} `json:"assets"`
+	}
+	if err := json.Unmarshal(data, &release); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(release.TagName, "v") {
+		t.Errorf("tag_name %q has no v prefix", release.TagName)
+	}
+	if _, err := time.Parse(time.RFC3339, release.PublishedAt); err != nil {
+		t.Errorf("published_at %q is not RFC 3339: %v", release.PublishedAt, err)
+	}
+	if strings.TrimSpace(release.Body) == "" {
+		t.Error("the snapshot has no release notes")
+	}
+	if len(release.Assets) == 0 {
+		t.Fatal("the snapshot has no assets; refresh it from the release API")
+	}
+	const prefix = "https://github.com/helloxz/zpad/releases/download/"
+	for _, asset := range release.Assets {
+		if asset.Name == "" || asset.Size <= 0 || !strings.HasPrefix(asset.URL, prefix) {
+			t.Errorf("asset %+v is not a release download", asset)
 		}
 	}
 }

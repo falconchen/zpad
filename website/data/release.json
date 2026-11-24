@@ -1,58 +1,143 @@
 {
-  "tag": "v0.5.0",
-  "version": "0.5.0",
+  "tag_name": "v0.5.0",
   "published_at": "2026-11-24T05:09:04Z",
-  "date": "2026-11-24",
-  "url": "https://github.com/helloxz/zpad/releases/tag/v0.5.0",
-  "notes": "- 新增：自动保留未存储内容\r\n- 新增：内置更多主题可选，支持 10 余种主题\r\n- 新增：顶部工具栏新增信息和更新按钮\r\n- 新增：工作区文件树空白处右键菜单可以新建文件与文件夹\r\n- 优化：设置面板\r\n- 优化：合并 macOS 工具栏\r\n- 优化：工作区文件树排序\r\n- 其它优化和BUG修复",
-  "assets": {
-    "checksums": {
+  "html_url": "https://github.com/helloxz/zpad/releases/tag/v0.5.0",
+  "body": "- 新增：自动保留未存储内容\r\n- 新增：内置更多主题可选，支持 10 余种主题\r\n- 新增：顶部工具栏新增信息和更新按钮\r\n- 新增：工作区文件树空白处右键菜单可以新建文件与文件夹\r\n- 优化：设置面板\r\n- 优化：合并 macOS 工具栏\r\n- 优化：工作区文件树排序\r\n- 其它优化和BUG修复\r\n\r\n\r\n\r\n\r\n\r\n",
+  "assets": [
+    {
+      "name": "install.ps1",
+      "size": 6898,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/install.ps1"
+    },
+    {
+      "name": "install.sh",
+      "size": 21133,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/install.sh"
+    },
+    {
       "name": "SHA256SUMS",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/SHA256SUMS",
-      "size": "2 KB",
-      "bytes": 2039
+      "size": 2039,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/SHA256SUMS"
     },
-    "linux_deb": {
-      "name": "zpad_0.5.0_amd64.deb",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad_0.5.0_amd64.deb",
-      "size": "8.2 MB",
-      "bytes": 8625334
+    {
+      "name": "update-darwin-amd64.json",
+      "size": 2230,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/update-darwin-amd64.json"
     },
-    "linux_rpm": {
+    {
+      "name": "update-darwin-arm64.json",
+      "size": 2229,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/update-darwin-arm64.json"
+    },
+    {
+      "name": "update-linux-amd64.json",
+      "size": 1388,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/update-linux-amd64.json"
+    },
+    {
+      "name": "update-windows-amd64.json",
+      "size": 2234,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/update-windows-amd64.json"
+    },
+    {
+      "name": "zpad-0.3.3-to-0.5.0-darwin-amd64.delta",
+      "size": 1262846,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.3.3-to-0.5.0-darwin-amd64.delta"
+    },
+    {
+      "name": "zpad-0.3.3-to-0.5.0-darwin-arm64.delta",
+      "size": 1146470,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.3.3-to-0.5.0-darwin-arm64.delta"
+    },
+    {
+      "name": "zpad-0.3.3-to-0.5.0-windows-amd64.delta",
+      "size": 1099050,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.3.3-to-0.5.0-windows-amd64.delta"
+    },
+    {
+      "name": "zpad-0.4.0-to-0.5.0-darwin-amd64.delta",
+      "size": 1164714,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.4.0-to-0.5.0-darwin-amd64.delta"
+    },
+    {
+      "name": "zpad-0.4.0-to-0.5.0-darwin-arm64.delta",
+      "size": 983894,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.4.0-to-0.5.0-darwin-arm64.delta"
+    },
+    {
+      "name": "zpad-0.4.0-to-0.5.0-windows-amd64.delta",
+      "size": 909040,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.4.0-to-0.5.0-windows-amd64.delta"
+    },
+    {
+      "name": "zpad-0.4.1-to-0.5.0-darwin-amd64.delta",
+      "size": 1159987,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.4.1-to-0.5.0-darwin-amd64.delta"
+    },
+    {
+      "name": "zpad-0.4.1-to-0.5.0-darwin-arm64.delta",
+      "size": 1034489,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.4.1-to-0.5.0-darwin-arm64.delta"
+    },
+    {
+      "name": "zpad-0.4.1-to-0.5.0-linux-amd64.delta",
+      "size": 851924,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.4.1-to-0.5.0-linux-amd64.delta"
+    },
+    {
+      "name": "zpad-0.4.1-to-0.5.0-windows-amd64.delta",
+      "size": 993695,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.4.1-to-0.5.0-windows-amd64.delta"
+    },
+    {
       "name": "zpad-0.5.0-1.x86_64.rpm",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-1.x86_64.rpm",
-      "size": "8.2 MB",
-      "bytes": 8626545
+      "size": 8626545,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-1.x86_64.rpm"
     },
-    "linux_tar": {
-      "name": "zpad-0.5.0-linux-amd64.tar.gz",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-linux-amd64.tar.gz",
-      "size": "8.3 MB",
-      "bytes": 8666540
-    },
-    "macos_amd64": {
+    {
       "name": "zpad-0.5.0-amd64.dmg",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-amd64.dmg",
-      "size": "6.8 MB",
-      "bytes": 7179264
+      "size": 7179264,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-amd64.dmg"
     },
-    "macos_arm64": {
+    {
       "name": "zpad-0.5.0-arm64.dmg",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-arm64.dmg",
-      "size": "5.8 MB",
-      "bytes": 6081024
+      "size": 6081024,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-arm64.dmg"
     },
-    "windows_portable": {
+    {
+      "name": "zpad-0.5.0-darwin-amd64.tar.gz",
+      "size": 9218296,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-darwin-amd64.tar.gz"
+    },
+    {
+      "name": "zpad-0.5.0-darwin-arm64.tar.gz",
+      "size": 8339416,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-darwin-arm64.tar.gz"
+    },
+    {
+      "name": "zpad-0.5.0-linux-amd64.tar.gz",
+      "size": 8666540,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-linux-amd64.tar.gz"
+    },
+    {
       "name": "zpad-0.5.0-windows-amd64-portable.zip",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-windows-amd64-portable.zip",
-      "size": "8.4 MB",
-      "bytes": 8854234
+      "size": 8854234,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-windows-amd64-portable.zip"
     },
-    "windows_setup": {
+    {
+      "name": "zpad-0.5.0-windows-amd64.tar.gz",
+      "size": 8976923,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-0.5.0-windows-amd64.tar.gz"
+    },
+    {
       "name": "zpad-setup-0.5.0-amd64.exe",
-      "url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-setup-0.5.0-amd64.exe",
-      "size": "6.5 MB",
-      "bytes": 6823631
+      "size": 6823631,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad-setup-0.5.0-amd64.exe"
+    },
+    {
+      "name": "zpad_0.5.0_amd64.deb",
+      "size": 8625334,
+      "browser_download_url": "https://github.com/helloxz/zpad/releases/download/v0.5.0/zpad_0.5.0_amd64.deb"
     }
-  }
+  ]
 }

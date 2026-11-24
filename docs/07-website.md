@@ -38,16 +38,15 @@ website/
 ├── layouts/
 │   ├── baseof.html            # 含截图灯箱 <dialog>
 │   ├── index.html             # 首页
+│   ├── index.redirects        # 由版本数据生成 _redirects
 │   ├── _default/download.html # 下载页（layout: download）
 │   ├── robots.txt
-│   └── partials/{head,header,footer,icon,shot}.html
+│   └── partials/{head,header,footer,icon,shot,release,release-assets}.html
 ├── assets/
 │   ├── css/ js/
 │   ├── icon.png               # resources/icon.png 裁掉留白的副本
 │   └── screenshots/*.png      # 截图原图，Hugo 构建时转 WebP
-├── static/_redirects          # 由脚本生成，勿手改
-├── data/release.json          # 由脚本生成，勿手改
-└── scripts/release/main.go    # 生成上面两个文件
+└── data/release.json          # 最新 release 快照：构建失败时回退，也供本地预览
 ```
 
 ## 多语言
@@ -97,43 +96,26 @@ README 的截图直接引用 `website/assets/screenshots/` 下的 `split`、`spl
 
 ## 下载数据
 
-首屏胶囊（`v0.4.0 已发布`）与首页「最近更新」都从 `data/release.json` 生成，`i18n` 里只有 `is_out` 这个词。不要在 `content/*.md` 的 front matter 里写版本号：0.3.2 那版就是手写在 `hero.eyebrow` 里，0.4.0 发布后官网还挂着旧版本号；`release_test.go` 的 `TestWebsiteHasNoHardcodedVersion` 现在会拦住这种写法。
+版本号、下载地址、文件大小和首页「最近更新」都不再手写，也没有 CI 提交：
 
-`data/release.json` 的结构：
+- `layouts/partials/release.html` 在**生产构建**时向 `https://api.github.com/repos/helloxz/zpad/releases/latest` 取最新 release，`transform.Unmarshal` 后直接给模板使用；`partialCached` 保证一次构建只请求一次。
+- 缓存键带 `now.Unix`，所以 CF 重建不会从 Hugo 的远程缓存拿到上一版；每次构建都是当下最新。
+- `hugo server` 是 development 环境，不请求 GitHub，直接读 `website/data/release.json` 快照；`hugo --minify` 是 production，会真实请求。
+- 请求失败（断网、限流、GitHub 不可达）输出 `WARN latest release: ...` 并回退到同一份快照，构建继续。只有快照也没有数据时，胶囊、最近更新和下载按钮才不渲染，导航「更新」也会隐藏。
 
-```json
-{
-  "tag": "v0.3.2",
-  "version": "0.3.2",
-  "published_at": "2026-11-23T05:13:44Z",
-  "date": "2026-11-23",
-  "url": "https://github.com/helloxz/zpad/releases/tag/v0.3.2",
-  "notes": "* 优化：根据操作系统动态调整快捷键提示",
-  "assets": {
-    "macos_arm64":      { "name": "…", "url": "…", "size": "5.8 MB", "bytes": 6040064 },
-    "macos_amd64":      { … },
-    "windows_setup":    { … },
-    "windows_portable": { … },
-    "linux_deb":        { … },
-    "linux_rpm":        { … },
-    "linux_tar":        { … },
-    "checksums":        { … }
-  }
-}
+发布后到 CF Pages → Deployments → **Retry deployment**（或 Create deployment，选 `main`）。构建时取最新 release，官网跟着更新。这一步是手动的；忘了官网就停在上一版。仓库里不会出现 bot commit。
+
+`website/data/release.json` 是快照，模板只用到 GitHub API 的 `tag_name`、`published_at`、`html_url`、`body` 和 `assets[].{name,size,browser_download_url}`；快照可以保留整份 API 响应，也可以只留这些字段。平时不用手改，本地要预览最新版本时刷新一次：
+
+```sh
+curl -fsSL -H 'Accept: application/vnd.github+json' \
+  https://api.github.com/repos/helloxz/zpad/releases/latest \
+  > website/data/release.json
 ```
 
-Linux 的三个 key 分别是 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`。下载页只给 deb / rpm 两个按钮（各平台都两个，排版对齐）；tar.gz 不进按钮，一条 `/download/linux-tar` 短链和安装说明里的 `install.sh` 一行命令都靠它。
+下载地址和大小从 `assets` 里按文件名分类（`release-assets.html`），所以 `.delta`、`update-*.json`、`install.*` 不会出现在下载页。下载页只给 deb / rpm 两个按钮（各平台都两个，排版对齐）；tar.gz 不进按钮，一条 `/download/linux-tar` 短链和安装说明里的 `install.sh` 一行命令都靠它。
 
-`.github/workflows/website.yml` 在 `release: published` 时调用 GitHub API 拿到 release，跑 `website/scripts/release/main.go` 重写 `data/release.json` 和 `static/_redirects`，然后提交。CF Pages 的 Git 集成看到这次提交就重新构建，所以：
-
-- 发版流程：打 tag 推送 → 等 CI 把 draft 的产物传完 → 发布为 latest（顺序反了也不会出错，见下面的发布时机）
-- 官网 1 分钟内自动跟上新版本
-- 构建期不访问 GitHub API，不需要在 CF 里放 token
-- 手动补数据：Actions 里跑一次 `Website`（`workflow_dispatch`，默认取 latest）
-
-**发布时机**：作业由 `release: published` 触发，而那一刻 release 可能还没有文件——draft 的文件是 macOS / Windows / Linux 构建期间陆续上传的，要几分钟。这种情况不算失败：脚本输出 `::warning::release vX.Y.Z has no files yet` 后跳过，`release.yml` 末尾的 `site` 作业在三个平台都上传完之后用 `gh workflow run website.yml -f tag=<tag>` 再跑一次，由它写数据。所以先发布还是后发布都不影响最终结果，也不会再出现假红叉。
-
-固定短链（生成到 `_redirects`，可写进 README 或别人的博客）：
+固定短链由 `layouts/index.redirects` 在构建时写进 `public/_redirects`（`hugo.toml` 里自定义的无后缀 `text/redirects` 输出格式），不再放 `static/`：
 
 ```
 /download/mac-arm64    → 最新 Apple Silicon dmg
@@ -145,7 +127,7 @@ Linux 的三个 key 分别是 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_6
 /download/linux-tar    → 最新 Linux tar.gz
 ```
 
-`.delta` 和 `update-*.json` 是更新器的产物，脚本按文件名过滤，不会出现在下载页。发布但没勾选 latest、或者发成 pre-release 时，脚本会跳过（`draft`/`prerelease` 直接退出），避免官网指向更新器不提供的版本。
+GitHub API 匿名限额是每 IP 每小时 60 次，每次构建只请求一次；CF 的构建 IP 可能共享，真被限流时可以在 CF Pages 的环境变量里放一个只读 `GITHUB_TOKEN`，`release.html` 会自动加上 `Authorization`（`hugo.toml` 的 `security.funcs.getenv` 已放行）。发布成 draft 或 pre-release 时 `/releases/latest` 不会返回它，构建会继续用上一版，所以仍要发布为 latest 并等产物传完。
 
 ## 部署（Cloudflare Pages）
 
@@ -163,6 +145,7 @@ Linux 的三个 key 分别是 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_6
 3. 环境变量 `HUGO_VERSION=0.170.1`。CF 的默认 Hugo 版本会漂，锁住才能和本地一致。
 4. Custom domains → 填 `zpad.xphub.dev`，DNS 加一条 CNAME 指向 `<project>.pages.dev`。
 5. 部署后确认 `/download/mac-arm64` 会 302 到当前版本的 dmg。
+6. 每次发布后在 Deployments → Retry deployment 触发构建；构建时取最新 release，仓库里不会产生提交。
 
 `website/public` 不进 Git，CF 自己构建。
 
@@ -181,11 +164,11 @@ Pages 项目 → Metrics → Web Analytics → 开启，拿到 token 后填到 `
 
 ```sh
 brew install hugo                  # 0.170.1
-cd website && hugo server          # http://localhost:1313/
-hugo --minify                      # 产出 website/public
+cd website && hugo server          # http://localhost:1313/，development，用 data/release.json 快照
+hugo --minify                      # production，会请求 GitHub 取最新 release，产出 website/public
 ```
 
-只在 `website/` 下改，`go test ./...` 不会碰它。
+`hugo server` 不请求 GitHub，避免边改边触发 API 限额；要看最新版本先执行上面的 `curl` 刷新快照。只在 `website/` 下改，`go test ./...` 不会碰它；`release_test.go` 会检查快照结构。
 
 ## 验收清单
 
@@ -199,8 +182,10 @@ hugo --minify                      # 产出 website/public
 - [ ] 导航的「反馈」打开 GitHub 新建 issue 页面
 - [ ] 下载页每个平台两个按钮（Linux 为 deb / rpm）指向当前版本，安装说明含 sudo 与 `install.sh` 命令
 - [ ] `/download/mac-arm64` 302 到当前版本 dmg，`/download/linux` 302 到当前版本 deb
-- [ ] 新版本发布后 5 分钟内，官网版本号与下载链接更新
-- [ ] 无 JS 时页面仍可读、按钮仍可用（首屏固定 GitHub Light，悬停只靠 CSS；截图链接直接开原图）
+- [ ] 构建时取到最新 release：首屏胶囊、下载页版本 / 地址 / 大小、首页最近更新都来自它
+- [ ] GitHub API 不可用时构建回退到 `data/release.json` 快照并有 warning，站点仍能部署
+- [ ] 发布后在 CF Pages 点 Retry deployment，官网随构建更新；`main` 上没有 bot commit
+- [ ] 无 JS 时页面仍可读、按钮仍可用（首屏固定 GitHub Light，悬停只靠 CSS；最近更新由构建生成；截图链接直接开原图）
 
 ## 实现记录
 
@@ -210,4 +195,5 @@ hugo --minify                      # 产出 website/public
 - 2026-11-23：首页新增「对比」段（ZPad / Sublime Text / Notepad++，8 行），行数据写在首页 front matter 的 `compare_rows`，`index.html` 只负责渲染，样式在 `site.css` 的 `.compare*`；窄屏（≤720px）thead 隐藏、每人一列改成同一张卡片里按 `data-col` 标注；导航加「对比」。ZPad 列那层 `--accent-soft` 底色上普通 `--border` 分隔线几乎看不见，所以该列的分隔线走新增的 `--accent-line`（亮暗各一档）。脚注不写具体版本号：`TestWebsiteHasNoHardcodedVersion` 会拦住 `x.y.z` 文案，版本用「2026 年 11 月的稳定版本」表述。
 - 2026-11-23：下载页补上 Linux：生成脚本认领 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`，新增 `/download/linux`、`/download/linux-rpm`、`/download/linux-tar` 短链并重新生成现有版本的数据；Linux 卡片给 deb（主按钮）与 rpm 两个按钮，与另外两个平台对齐，tar.gz 只在安装说明里通过 `install.sh` 一行命令出现。说明里写清 deb / rpm 由包管理器更新、只有装进 `~/.local` 的实例能自更新；首页首屏与常见问题同步去掉「即将上线」。
 - 2026-11-24：0.5.0 界面截图更新。截图场景扩到 4 组：分屏与设置保持 ZPad 亮 / 暗色，设置展开主题下拉；新增 Markdown 预览（GitHub Light）与跨文件搜索（One Dark），图库从 4 张变 6 张。功能卡「亮 / 暗主题」改为「20 套内置主题」。首屏换成 `hero`（GitHub Light），鼠标悬停淡入 One Dark 版本，不再跟站点主题切换；`shot.html` 与 `site.js` 里原来的首屏亮暗切换逻辑一并删掉。
+- 2026-11-24：版本数据改为构建时从 GitHub API 取。新增 `partials/release.html`（生产构建取 `releases/latest`，失败回退 `data/release.json` 快照，缓存键带构建时间）和 `partials/release-assets.html`（按文件名分类并格式化大小）；首页、下载页、JSON-LD 都用它。`_redirects` 改由 `layouts/index.redirects` 生成，删除 `static/_redirects`。删除 `.github/workflows/website.yml`、`release.yml` 的 `site` 作业和 `website/scripts/release/main.go`：仓库不再有 bot commit；发布后手动在 CF Pages 点 Retry deployment。`hugo.toml` 放行只读 `GITHUB_TOKEN`（可选）。
 - 未接入统计：`cfAnalyticsToken` 留空，拿到 token 填入即生效。

@@ -1,4 +1,4 @@
-{{- $release := hugo.Data.release -}}
+{{- $release := partialCached "release.html" . "latest" -}}
 {{- $icon := resources.Get "icon.png" -}}
 {{- $icon32 := $icon.Resize "32x32 png" -}}
 {{- $icon180 := $icon.Resize "180x180 png" -}}
@@ -53,9 +53,9 @@
   "name" "ZPad"
   "applicationCategory" "DeveloperApplication"
   "operatingSystem" "macOS, Windows"
-  "softwareVersion" (index $release "version" | default "")
+  "softwareVersion" (strings.TrimPrefix "v" (index $release "tag_name" | default ""))
   "url" site.BaseURL
-  "downloadUrl" (index $release "url" | default "")
+  "downloadUrl" (index $release "html_url" | default "")
   "license" "https://www.gnu.org/licenses/agpl-3.0.html"
   "offers" (dict "@type" "Offer" "price" "0" "priceCurrency" "USD")
 }}

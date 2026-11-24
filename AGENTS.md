@@ -128,7 +128,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 标签栏本身是拖拽的放置目标：`ScrollHorizontal` 的 `ui.DragOver` / `ui.Drop` 接住 `paneDrag`，用 `area.PointerPosition()`（拖拽期间照样更新）加各标签上一帧的 `Bounds()` 算出插入索引与竖线位置，再交给 `moveTabAt`。落在同一栏即重排（活动标签跟着原标签走，不跟着指针换），落在另一栏的标签栏按位置插入，落在编辑区仍追加到末尾。分屏分隔线有一圈抓取区域盖在两侧栏上，落在抓取区里的拖拽没有目标，属既有行为。
 - macOS 的工具栏就是标题栏：窗口用 `TitleBarHidden`，`toolbar()` 从 `Context.TitleBar()` 取红绿灯占位，左右用 `10+Left` / `10+Right` 留白，空白处 `DragWindow`；全屏时 `TitleBar` 为零。改工具栏高度（45）或字号时同步调 `main.go` 的 `TrafficLightPosition`，否则红绿灯会歪、或占位超出工具栏。
 - 会话保存标签顺序，标签重排后必须 `saveSession()`，否则重启按旧顺序恢复。
-- 官网是独立静态站：源码在 `website/`，Hugo 生成，CF Pages 构建（`root=website`、`output=public`、`HUGO_VERSION=0.170.1`）。`website/data/release.json` 和 `website/static/_redirects` 由 `website/scripts/release/main.go` 生成，`.github/workflows/website.yml` 在 release 发布时更新并提交（release 还没有文件时只警告跳过，`release.yml` 的 `site` 作业会补跑），不要手改这两个文件。官网截图由 `internal/app/site_shots_test.go` 的 headless 渲染生成（`ZPAD_SHOTS` 打开），原图在 `website/assets/screenshots`；换应用图标时同时更新 `website/assets/icon.png`（`sips -c 824 824 resources/icon.png`）。
+- 官网是独立静态站：源码在 `website/`，Hugo 生成，CF Pages 构建（`root=website`、`output=public`、`HUGO_VERSION=0.170.1`）。版本数据在构建时由 `layouts/partials/release.html` 从 GitHub 最新 release 取（`resources.GetRemote`；失败回退 `website/data/release.json` 快照并 warning），下载页、首屏胶囊、首页「最近更新」和 `_redirects` 都由它生成；发布后在 CF Pages 点 Retry deployment 触发构建，仓库里不再有 bot commit。官网截图由 `internal/app/site_shots_test.go` 的 headless 渲染生成（`ZPAD_SHOTS` 打开），原图在 `website/assets/screenshots`；换应用图标时同时更新 `website/assets/icon.png`（`sips -c 824 824 resources/icon.png`）。
 - 不引入 WebView。
 
 ## 当前进度
@@ -151,7 +151,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - **命名主题（后续增补）**：已实现。ZPad 亮色 / ZPad 暗色的色值与 token 保持不变，新增 One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、Ink Night、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light、Everforest Light、Celadon、Ink Wash。设置 → 外观用下拉选择，按「默认主题 → 深色主题 → 浅色主题」分组（默认组含跟随系统与 ZPad 亮 / 暗色），命名主题的浅色 / 深色标注在行右侧对齐，下拉超过约 320px 后内部滚动并立即生效；设置面板为 700×640 的卡片分组，所有设置下拉选项悬停显示小手；主题同时覆盖侧栏、标签栏、状态栏、弹窗与编辑器 token。命名主题固定明暗，原生标题栏 / 菜单 / 对话框跟随其基准；「跟随系统」只在 ZPad 亮色 / ZPad 暗色之间切换。原生菜单保留三档 +「更多主题…」，工具栏不设主题按钮。未发布。
 - **macOS 标题栏合并（后续增补）**：已实现。窗口在 macOS 上用 `TitleBarHidden` 隐藏原生标题栏、保留红绿灯，并用 `TrafficLightPosition{20,14}` 把它们放进 45 DIP 工具栏左侧；`toolbar` 按 `Context.TitleBar()` 的 `Left` / `Right` 留白，空白处 `DragWindow` 拖动窗口、双击缩放。全屏时 `TitleBar` 归零、留白回到 10，不设拖动。Windows / Linux 分支不变，仍是原生标题栏。未发布。
 - **保留未保存内容（后续增补）**：已实现。设置 → 工作区新增开关，默认关闭；开启后窗口关闭 / 退出不弹保存提示，未保存的标签（含未命名文件）写到 `<用户数据目录>/drafts/`（`index.json` + 每文档一个 UTF-8 文件，目录 0700），停止输入 1 秒后写、连续输入最多 5 秒一次；启动时按草稿 id / 路径并入会话，没有对应标签的草稿追加到左栏，恢复后仍带未保存标记；文件已保存则丢弃旧草稿，崩溃期间文件被改则保留草稿里的 stamp 交给外部修改检查；保存、变干净、关闭最后一个标签、删除文件即删草稿，重命名只改草稿路径；关闭开关清空草稿。断电 / 强杀最多丢约 5 秒输入；不恢复光标、选区和撤销栈。未发布。
-- **官网**：`website/` 的 Hugo 站点（首页、下载页、更新日志），中英双语、亮暗主题、下载链接随 release 自动更新；线上 <https://zpad.xphub.dev>。
+- **官网**：`website/` 的 Hugo 站点（首页、下载页、更新日志），中英双语、亮暗主题；构建时从 GitHub 最新 release 取版本数据，发布后手动重建 CF；线上 <https://zpad.xphub.dev>。
 - **官网截图（0.5.0）**：已更新。图库 6 张：分屏与设置（含主题下拉）各亮暗一张，Markdown 预览用 GitHub Light、跨文件搜索用 One Dark；首屏 `hero` 默认 GitHub Light，鼠标悬停由 CSS 淡入 One Dark，不再跟随站点亮暗切换。
 
 测试覆盖：编码、行尾、大小写、跨文件搜索的匹配规则与跳转、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、设置下拉光标、字体过滤、中英文案、编辑器 token 颜色、主题注册表与对比度、主题切换持久化、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸、标签拖拽重排与跨栏按位置插入、文件树自然排序、工作区空白处与文件夹行的新建菜单、侧栏菜单按 tab 裁剪、草稿写入 / 恢复 / 生命周期（保存、变干净、关闭最后一个标签、重命名、切换开关）、未命名文件跨重启恢复、只读跳过、草稿写入节奏、标题栏占位与工具栏留白。
@@ -190,4 +190,4 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 主题 id 由 `theme.Normalize` / `theme.Resolve` 校验：`Settings.Theme` 是唯一真源，`App.Dark` 只表示当前基准；命名主题固定明暗，「跟随系统」只在 ZPad 亮色 / ZPad 暗色之间切换。
 - 文件关联写在 `mygo.json` 的 `fileAssociations`；构建后检查 Info.plist 的 `CFBundleDocumentTypes`。`internal/app/textExtensions`（打开对话框筛选器）必须与关联列表一致，`release_test.go` 会校验。
 - 发布构建用 `go tool mygo build`，产物在 `build/darwin-arm64/`；当前未签名，正式分发另行处理公证。
-- 发布顺序建议但不再强求：打 tag 推送后等 CI 把 draft 的 macOS / Windows 产物传完再 Publish。提前发布只会让 `releases/latest/download/update-<target>.json` 短暂 404（自动更新报错）；官网作业已经能自愈——读到没有文件的 release 只输出 `::warning::` 并跳过，`release.yml` 的 `site` 作业在上传完成后会 dispatch `website.yml -f tag=<tag>` 补写数据。
+- 发布顺序：打 tag 推送后等 CI 把 draft 的 macOS / Windows / Linux 产物传完再 Publish。提前发布会让 `releases/latest/download/update-<target>.json` 短暂 404（自动更新报错）。发布后到 CF Pages → Deployments → Retry deployment 触发一次构建，官网构建时取最新 release；没有 website bot commit，不会和本地冲突。

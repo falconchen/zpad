@@ -1,0 +1,35 @@
+{{- /*
+  The latest published release from GitHub, fetched while the site builds.
+  Cloudflare Pages builds in production, so the deploy reads the release that
+  is current at build time; `hugo server` runs in development and reads the
+  committed snapshot in data/release.json instead.
+
+  A failed request logs a warning and falls back to that snapshot, so a GitHub
+  outage never fails the build. The cache key carries the build time, so a
+  rebuild does not reuse an older response from Hugo's remote cache.
+
+  Returns the GitHub release object: tag_name, published_at, html_url, body,
+  assets (name, size, browser_download_url).
+*/ -}}
+{{- $release := hugo.Data.release -}}
+{{- if hugo.IsProduction -}}
+  {{- $url := "https://api.github.com/repos/helloxz/zpad/releases/latest" -}}
+  {{- $headers := dict
+    "Accept" "application/vnd.github+json"
+    "X-GitHub-Api-Version" "2022-11-28"
+    "User-Agent" "zpad-site" -}}
+  {{- with os.Getenv "GITHUB_TOKEN" -}}
+    {{- $headers = merge $headers (dict "Authorization" (printf "Bearer %s" .)) -}}
+  {{- end -}}
+  {{- $opts := dict
+    "headers" $headers
+    "key" (printf "zpad-release-%d" now.Unix) -}}
+  {{- with try (resources.GetRemote $url $opts) -}}
+    {{- with .Err -}}
+      {{- warnf "latest release: %v; using the committed snapshot in website/data/release.json" . -}}
+    {{- else -}}
+      {{- $release = .Value | transform.Unmarshal -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $release -}}
