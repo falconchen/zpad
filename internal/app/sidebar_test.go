@@ -3,6 +3,7 @@ package app
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -324,5 +325,40 @@ func TestOpenFilesShowNamesOnly(t *testing.T) {
 	hover(row.Y + row.H*3/2)
 	if _, ok := tt.Find(themePath); !ok {
 		t.Fatalf("the second row's tip does not name its path; texts %q", tt.Texts())
+	}
+}
+
+// TestSidebarMenuByTab keeps the workspace tree's actions on the workspace
+// tab: the open files tab has nothing to refresh and no tree to filter.
+func TestSidebarMenuByTab(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	a.sidebarTab = sidebarFiles
+	tt.Frame()
+	if err := tt.Click(locales.SidebarMenu()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if menu := tt.Menu(); len(menu) != 1 || menu[0] != locales.CloseSidebar() {
+		t.Fatalf("open files menu %q, want only %q", menu, locales.CloseSidebar())
+	}
+	tt.CloseMenu()
+
+	a.sidebarTab = sidebarWorkspace
+	tt.Frame()
+	if err := tt.Click(locales.SidebarMenu()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	want := []string{locales.Refresh(), locales.ShowHidden(), "-", locales.CloseSidebar()}
+	if menu := tt.Menu(); !slices.Equal(menu, want) {
+		t.Fatalf("workspace menu %q, want %q", menu, want)
 	}
 }

@@ -227,13 +227,15 @@ func (a *App) sidebarMenuButton(c *ui.Context, t *ui.Theme) {
 		ui.Text(c, "⋯").FontSize(14).TextColor(t.TextMuted)
 	})
 	menu.Menu(func(m *ui.Menu) {
-		if m.Item(locales.Refresh()).Disabled(a.tree == nil).Chosen() {
-			a.refreshTree()
+		if a.sidebarTab == sidebarWorkspace {
+			if m.Item(locales.Refresh()).Disabled(a.tree == nil).Chosen() {
+				a.refreshTree()
+			}
+			if m.Item(locales.ShowHidden()).Checked(a.Settings.ShowHidden).Chosen() {
+				a.toggleHidden()
+			}
+			m.Separator()
 		}
-		if m.Item(locales.ShowHidden()).Checked(a.Settings.ShowHidden).Chosen() {
-			a.toggleHidden()
-		}
-		m.Separator()
 		if m.Item(locales.CloseSidebar()).Chosen() {
 			a.toggleSidebar()
 		}
