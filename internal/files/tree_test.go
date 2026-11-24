@@ -38,6 +38,35 @@ func TestTreeListsDirsFirstAndSkipsNoise(t *testing.T) {
 	}
 }
 
+func TestTreeSortsNamesByNumberValue(t *testing.T) {
+	root := t.TempDir()
+	for _, name := range []string{"10月", "11月", "3月", "4月", "7月", "8月", "9月", "1月", "2月", "12月"} {
+		if err := os.Mkdir(filepath.Join(root, name), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	mustWrite(t, filepath.Join(root, "file10.txt"))
+	mustWrite(t, filepath.Join(root, "file2.txt"))
+
+	tr := New(root, false)
+	var got []string
+	for _, p := range tr.Roots() {
+		got = append(got, filepath.Base(p))
+	}
+	want := []string{
+		"1月", "2月", "3月", "4月", "7月", "8月", "9月", "10月", "11月", "12月",
+		"file2.txt", "file10.txt",
+	}
+	if len(got) != len(want) {
+		t.Fatalf("roots %q, want %q", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("roots %q, want %q", got, want)
+		}
+	}
+}
+
 func TestShowHidden(t *testing.T) {
 	root := t.TempDir()
 	mustWrite(t, filepath.Join(root, ".env"))

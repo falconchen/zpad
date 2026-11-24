@@ -105,7 +105,7 @@ func (t *Tree) load(dir string) []string {
 		if di != dj {
 			return di
 		}
-		return strings.ToLower(filepath.Base(items[i])) < strings.ToLower(filepath.Base(items[j]))
+		return compareNames(filepath.Base(items[i]), filepath.Base(items[j])) < 0
 	})
 	t.cache[dir] = items
 	return items
