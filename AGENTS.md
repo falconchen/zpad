@@ -8,7 +8,7 @@ ZPad 是一个基于 **MyGo 原生 UI** 的轻量级文本 / 代码编辑器。�
 - Module：`github.com/helloxz/zpad`
 - 应用名：**ZPad**
 - Bundle ID：**`com.xiaoz.zpad`**
-- 版本：`0.4.1`
+- 版本：`0.5.0`
 - 许可证：**AGPL-3.0**（对外分发前确认源码义务）
 - 平台：**macOS 与 Windows 已发布；Linux 自 0.4.1 起提供打包**（deb / rpm / tar.gz + `install.sh`）
 - 当前状态：**0.4.1 已发布**（macOS / Windows / Linux），官网 <https://zpad.xphub.dev> 已上线
@@ -36,7 +36,7 @@ cd website && hugo server   # 官网，http://localhost:1313/
 ZPAD_SHOTS=/tmp/shots go test ./internal/app -run TestSiteScreenshots   # 重截官网截图
 ```
 
-产物沿用 `mygo build` 的默认命名：`build/darwin-arm64/ZPad.app`、`zpad-0.4.1-arm64.dmg`、`zpad-0.4.1-darwin-arm64.tar.gz`、`update-darwin-arm64.json`；Windows 为 `zpad-setup-0.4.1-amd64.exe`、`zpad-0.4.1-windows-amd64.tar.gz`、`update-windows-amd64.json`，CI 额外打一个 `zpad-0.4.1-windows-amd64-portable.zip`；Linux 为 `zpad_0.4.1_amd64.deb`、`zpad-0.4.1-1.x86_64.rpm`、`zpad-0.4.1-linux-amd64.tar.gz`、`update-linux-amd64.json`、`install.sh`（`linux.formats` 里没有 `pkgbuild`，所以不生成 PKGBUILD）。不要重命名这些文件（见下）。
+产物沿用 `mygo build` 的默认命名：`build/darwin-arm64/ZPad.app`、`zpad-0.5.0-arm64.dmg`、`zpad-0.5.0-darwin-arm64.tar.gz`、`update-darwin-arm64.json`；Windows 为 `zpad-setup-0.5.0-amd64.exe`、`zpad-0.5.0-windows-amd64.tar.gz`、`update-windows-amd64.json`，CI 额外打一个 `zpad-0.5.0-windows-amd64-portable.zip`；Linux 为 `zpad_0.5.0_amd64.deb`、`zpad-0.5.0-1.x86_64.rpm`、`zpad-0.5.0-linux-amd64.tar.gz`、`update-linux-amd64.json`、`install.sh`（`linux.formats` 里没有 `pkgbuild`，所以不生成 PKGBUILD）。不要重命名这些文件（见下）。
 
 ## 产品需求（一期）
 

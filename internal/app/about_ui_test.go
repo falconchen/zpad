@@ -23,7 +23,7 @@ func TestAboutDialogShowsLicenseAndRepository(t *testing.T) {
 		"github.com/helloxz/zpad",
 		locales.AboutContactAuthor(),
 		"blog.xiaoz.org",
-		"x.com/xiaozblog",
+		"@xiaozblog",
 		"xphub.dev",
 	} {
 		if !tt.HasText(want) {
@@ -64,7 +64,7 @@ func TestAboutLinksOpenInBrowser(t *testing.T) {
 	for i, link := range []struct{ text, url string }{
 		{"github.com/helloxz/zpad", aboutRepoURL},
 		{"blog.xiaoz.org", aboutBlogURL},
-		{"x.com/xiaozblog", aboutXURL},
+		{"@xiaozblog", aboutXURL},
 		{"xphub.dev", aboutProductsURL},
 	} {
 		if err := tt.Click(link.text); err != nil {

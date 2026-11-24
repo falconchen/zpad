@@ -106,7 +106,7 @@ func (a *App) aboutModal(c *ui.Context, t *ui.Theme) {
 			ui.Divider(c)
 			ui.Text(c, locales.AboutContactAuthor()).FontSize(12).Bold()
 			a.aboutLink(c, t, locales.AboutBlog(), "blog.xiaoz.org", aboutBlogURL)
-			a.aboutLink(c, t, locales.AboutX(), "x.com/xiaozblog", aboutXURL)
+			a.aboutLink(c, t, locales.AboutX(), "@xiaozblog", aboutXURL)
 			a.aboutLink(c, t, locales.AboutProducts(), "xphub.dev", aboutProductsLink())
 			ui.Row(c).AlignItems(ui.Center).Children(func() {
 				ui.Spacer(c)
