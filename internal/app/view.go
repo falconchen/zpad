@@ -9,7 +9,6 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
-	"github.com/helloxz/zpad/internal/caseconv"
 	"github.com/helloxz/zpad/internal/encoding"
 	"github.com/helloxz/zpad/internal/theme"
 	"github.com/helloxz/zpad/locales"
@@ -111,20 +110,7 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 				tab.state.Run(editor.Find)
 			}
 		}).KeyShortcuts(ui.Cmd, ui.KeyF)
-		ui.PopoverMenuButton(c, "Aa", func(m *ui.Menu) {
-			if m.Item(locales.UpperCase()).Chosen() {
-				a.ConvertCase(caseconv.Upper)
-			}
-			if m.Item(locales.LowerCase()).Chosen() {
-				a.ConvertCase(caseconv.Lower)
-			}
-			if m.Item(locales.TitleCase()).Chosen() {
-				a.ConvertCase(caseconv.Title)
-			}
-			if m.Item(locales.InvertCase()).Chosen() {
-				a.ConvertCase(caseconv.Invert)
-			}
-		}, menuButtonCursorOptions()).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu()).Cursor(ui.CursorPointer)
+		a.toolButton(c, t)
 		a.iconButton(c, t, iconInfo, locales.AboutApp(), a.aboutOpen, a.openAbout)
 		ui.Spacer(c)
 		a.iconButton(c, t, iconUpdate, locales.CheckForUpdates(), false, a.checkUpdates)
@@ -136,6 +122,21 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 	if bar.Height > 0 {
 		tb = tb.DragWindow()
 	}
+}
+
+// toolButton opens the text tools: case conversion, Base64, MD5 and JSON.
+func (a *App) toolButton(c *ui.Context, t *ui.Theme) {
+	b := ui.ButtonBase(c).Size(28, 28).Center().Radius(6).
+		Label(locales.ToolsMenu()).Tooltip(locales.ToolsMenu()).Cursor(ui.CursorPointer)
+	if b.Hovered() {
+		b.Background(t.SurfaceHover)
+	}
+	b.Children(func() {
+		ui.Icon(c, iconTools).FontSize(16).TextColor(t.Text)
+	})
+	b.PopoverMenuButton(func(m *ui.Menu) {
+		a.toolMenu(m, a.activeTab())
+	}, menuButtonCursorOptions())
 }
 
 // splitButton shows the split's direction as its icon and opens the menu
@@ -1004,19 +1005,8 @@ func (a *App) editorContextMenu(tab *Tab, m *ui.Menu) {
 			a.toggleTabPreview(tab)
 		}
 	}
-	m.Submenu(locales.CaseMenu(), func(mm *ui.Menu) {
-		if mm.Item(locales.UpperCase()).Chosen() {
-			a.ConvertCase(caseconv.Upper)
-		}
-		if mm.Item(locales.LowerCase()).Chosen() {
-			a.ConvertCase(caseconv.Lower)
-		}
-		if mm.Item(locales.TitleCase()).Chosen() {
-			a.ConvertCase(caseconv.Title)
-		}
-		if mm.Item(locales.InvertCase()).Chosen() {
-			a.ConvertCase(caseconv.Invert)
-		}
+	m.Submenu(locales.ToolsMenu(), func(mm *ui.Menu) {
+		a.toolMenu(mm, tab)
 	})
 	m.Submenu(locales.LineEnding(), func(mm *ui.Menu) {
 		if mm.Item("LF").Chosen() {

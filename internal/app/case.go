@@ -1,7 +1,6 @@
 package app
 
 import (
-	"sort"
 	"unicode"
 	"unicode/utf8"
 
@@ -16,14 +15,11 @@ func applyCase(tab *Tab, mode caseconv.Mode) {
 		return
 	}
 
-	type change struct {
-		start, end int
-		text       string
-		forward    bool
-	}
-	var changes []change
+	var changes []selectionChange
 	for _, s := range sels {
 		start, end := s.Start(), s.End()
+		// An empty selection converts the word at the caret, as editors
+		// do: the caret alone should not make the command do nothing.
 		if start == end {
 			start, end = wordRange(buf, s.Head)
 		}
@@ -35,48 +31,14 @@ func applyCase(tab *Tab, mode caseconv.Mode) {
 		if converted == text {
 			continue
 		}
-		changes = append(changes, change{
+		changes = append(changes, selectionChange{
 			start:   start,
 			end:     end,
 			text:    converted,
 			forward: s.Anchor <= s.Head,
 		})
 	}
-	if len(changes) == 0 {
-		return
-	}
-
-	// Apply from the end so earlier offsets stay valid.
-	edits := append([]change(nil), changes...)
-	sort.Slice(edits, func(i, j int) bool { return edits[i].start > edits[j].start })
-	buf.Transact(func() {
-		for _, c := range edits {
-			buf.Edit(editor.Edit{Start: c.start, End: c.end, Text: c.text})
-		}
-	})
-
-	// Keep each changed selection pointing at its converted text. An
-	// earlier change may have changed the byte length, so shift the
-	// selections after it.
-	sorted := append([]change(nil), changes...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i].start < sorted[j].start })
-	shifts := make(map[int]int, len(sorted))
-	shift := 0
-	for _, c := range sorted {
-		shifts[c.start] = shift
-		shift += len(c.text) - (c.end - c.start)
-	}
-	sels2 := make([]editor.Selection, 0, len(changes))
-	for _, c := range changes {
-		start := c.start + shifts[c.start]
-		n := start + len(c.text)
-		if c.forward {
-			sels2 = append(sels2, editor.Selection{Anchor: start, Head: n})
-		} else {
-			sels2 = append(sels2, editor.Selection{Anchor: n, Head: start})
-		}
-	}
-	tab.state.SetSelections(sels2...)
+	writeSelectionChanges(tab, changes)
 }
 
 func wordRange(b *editor.Buffer, offset int) (int, int) {

@@ -17,21 +17,38 @@ func TestThemedMenusOpen(t *testing.T) {
 	tt := ui.NewTester(a.View, 900, 600)
 	tt.Frame()
 
-	if err := tt.Click(locales.CaseMenu()); err != nil {
+	if err := tt.Click(locales.ToolsMenu()); err != nil {
 		t.Fatal(err)
 	}
 	menu := tt.Menu()
 	if len(menu) == 0 {
-		t.Fatal("the case menu did not open")
+		t.Fatal("the tools menu did not open")
 	}
-	if r, ok := tt.Find(locales.UpperCase()); ok {
+	for _, label := range []string{locales.Base64Group(), locales.Md5Group(), locales.JsonGroup()} {
+		found := false
+		for _, item := range menu {
+			if item == label {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("tools menu %q has no %q group", menu, label)
+		}
+	}
+	for _, item := range menu {
+		if item == locales.CaseMenu() {
+			t.Fatalf("tools menu still has %q: the editor's Transform covers case", locales.CaseMenu())
+		}
+	}
+	if r, ok := tt.Find(locales.Base64Group()); ok {
 		tt.Move(r.X+r.W/2, r.Y+r.H/2)
 		tt.Frame()
 		if got := tt.Cursor(); got != ui.CursorPointer {
 			t.Fatalf("cursor over a menu item %v, want the pointing hand", got)
 		}
 	} else {
-		t.Fatalf("case menu has no %q item", locales.UpperCase())
+		t.Fatalf("tools menu has no %q item", locales.Base64Group())
 	}
 	tt.Key(0, ui.KeyEscape)
 

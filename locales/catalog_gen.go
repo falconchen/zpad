@@ -886,6 +886,206 @@ func (msgs Messages) InvertCase() string {
 	return Catalog.Format(msgs.locale, "invertCase", nil)
 }
 
+// ToolsMenu says "Tools"
+// in the language the app shows.
+func ToolsMenu() string { return In(i18n.Locale()).ToolsMenu() }
+
+// ToolsMenu says "Tools"
+// in the language of msgs.
+func (msgs Messages) ToolsMenu() string {
+	return Catalog.Format(msgs.locale, "toolsMenu", nil)
+}
+
+// Base64Group says "Base64"
+// in the language the app shows.
+func Base64Group() string { return In(i18n.Locale()).Base64Group() }
+
+// Base64Group says "Base64"
+// in the language of msgs.
+func (msgs Messages) Base64Group() string {
+	return Catalog.Format(msgs.locale, "base64Group", nil)
+}
+
+// Base64Encode says "Encode"
+// in the language the app shows.
+func Base64Encode() string { return In(i18n.Locale()).Base64Encode() }
+
+// Base64Encode says "Encode"
+// in the language of msgs.
+func (msgs Messages) Base64Encode() string {
+	return Catalog.Format(msgs.locale, "base64Encode", nil)
+}
+
+// Base64Decode says "Decode"
+// in the language the app shows.
+func Base64Decode() string { return In(i18n.Locale()).Base64Decode() }
+
+// Base64Decode says "Decode"
+// in the language of msgs.
+func (msgs Messages) Base64Decode() string {
+	return Catalog.Format(msgs.locale, "base64Decode", nil)
+}
+
+// Md5Group says "MD5"
+// in the language the app shows.
+func Md5Group() string { return In(i18n.Locale()).Md5Group() }
+
+// Md5Group says "MD5"
+// in the language of msgs.
+func (msgs Messages) Md5Group() string {
+	return Catalog.Format(msgs.locale, "md5Group", nil)
+}
+
+// Md5Lower32 says "32-bit lowercase"
+// in the language the app shows.
+func Md5Lower32() string { return In(i18n.Locale()).Md5Lower32() }
+
+// Md5Lower32 says "32-bit lowercase"
+// in the language of msgs.
+func (msgs Messages) Md5Lower32() string {
+	return Catalog.Format(msgs.locale, "md5Lower32", nil)
+}
+
+// Md5Upper32 says "32-bit uppercase"
+// in the language the app shows.
+func Md5Upper32() string { return In(i18n.Locale()).Md5Upper32() }
+
+// Md5Upper32 says "32-bit uppercase"
+// in the language of msgs.
+func (msgs Messages) Md5Upper32() string {
+	return Catalog.Format(msgs.locale, "md5Upper32", nil)
+}
+
+// Md5Lower16 says "16-bit lowercase"
+// in the language the app shows.
+func Md5Lower16() string { return In(i18n.Locale()).Md5Lower16() }
+
+// Md5Lower16 says "16-bit lowercase"
+// in the language of msgs.
+func (msgs Messages) Md5Lower16() string {
+	return Catalog.Format(msgs.locale, "md5Lower16", nil)
+}
+
+// Md5Upper16 says "16-bit uppercase"
+// in the language the app shows.
+func Md5Upper16() string { return In(i18n.Locale()).Md5Upper16() }
+
+// Md5Upper16 says "16-bit uppercase"
+// in the language of msgs.
+func (msgs Messages) Md5Upper16() string {
+	return Catalog.Format(msgs.locale, "md5Upper16", nil)
+}
+
+// JsonGroup says "JSON"
+// in the language the app shows.
+func JsonGroup() string { return In(i18n.Locale()).JsonGroup() }
+
+// JsonGroup says "JSON"
+// in the language of msgs.
+func (msgs Messages) JsonGroup() string {
+	return Catalog.Format(msgs.locale, "jsonGroup", nil)
+}
+
+// JsonFormat says "Format"
+// in the language the app shows.
+func JsonFormat() string { return In(i18n.Locale()).JsonFormat() }
+
+// JsonFormat says "Format"
+// in the language of msgs.
+func (msgs Messages) JsonFormat() string {
+	return Catalog.Format(msgs.locale, "jsonFormat", nil)
+}
+
+// JsonMinify says "Minify"
+// in the language the app shows.
+func JsonMinify() string { return In(i18n.Locale()).JsonMinify() }
+
+// JsonMinify says "Minify"
+// in the language of msgs.
+func (msgs Messages) JsonMinify() string {
+	return Catalog.Format(msgs.locale, "jsonMinify", nil)
+}
+
+// TextToolNoSelection says "Select the text to process first"
+// in the language the app shows.
+func TextToolNoSelection() string { return In(i18n.Locale()).TextToolNoSelection() }
+
+// TextToolNoSelection says "Select the text to process first"
+// in the language of msgs.
+func (msgs Messages) TextToolNoSelection() string {
+	return Catalog.Format(msgs.locale, "textToolNoSelection", nil)
+}
+
+// TextToolTooLarge says "The selection is too long"
+// in the language the app shows.
+func TextToolTooLarge() string { return In(i18n.Locale()).TextToolTooLarge() }
+
+// TextToolTooLarge says "The selection is too long"
+// in the language of msgs.
+func (msgs Messages) TextToolTooLarge() string {
+	return Catalog.Format(msgs.locale, "textToolTooLarge", nil)
+}
+
+// TextToolNotText says "The decoded data is not text"
+// in the language the app shows.
+func TextToolNotText() string { return In(i18n.Locale()).TextToolNotText() }
+
+// TextToolNotText says "The decoded data is not text"
+// in the language of msgs.
+func (msgs Messages) TextToolNotText() string {
+	return Catalog.Format(msgs.locale, "textToolNotText", nil)
+}
+
+// TextToolEmpty says "There is nothing to decode"
+// in the language the app shows.
+func TextToolEmpty() string { return In(i18n.Locale()).TextToolEmpty() }
+
+// TextToolEmpty says "There is nothing to decode"
+// in the language of msgs.
+func (msgs Messages) TextToolEmpty() string {
+	return Catalog.Format(msgs.locale, "textToolEmpty", nil)
+}
+
+// TextToolJSONInvalid says "Invalid JSON"
+// in the language the app shows.
+func TextToolJSONInvalid() string { return In(i18n.Locale()).TextToolJSONInvalid() }
+
+// TextToolJSONInvalid says "Invalid JSON"
+// in the language of msgs.
+func (msgs Messages) TextToolJSONInvalid() string {
+	return Catalog.Format(msgs.locale, "textToolJSONInvalid", nil)
+}
+
+// TextToolJSONDeep says "The JSON is nested too deeply"
+// in the language the app shows.
+func TextToolJSONDeep() string { return In(i18n.Locale()).TextToolJSONDeep() }
+
+// TextToolJSONDeep says "The JSON is nested too deeply"
+// in the language of msgs.
+func (msgs Messages) TextToolJSONDeep() string {
+	return Catalog.Format(msgs.locale, "textToolJSONDeep", nil)
+}
+
+// TextToolJSONLarge says "The formatted JSON is too large"
+// in the language the app shows.
+func TextToolJSONLarge() string { return In(i18n.Locale()).TextToolJSONLarge() }
+
+// TextToolJSONLarge says "The formatted JSON is too large"
+// in the language of msgs.
+func (msgs Messages) TextToolJSONLarge() string {
+	return Catalog.Format(msgs.locale, "textToolJSONLarge", nil)
+}
+
+// TextToolFailed says "The tool failed"
+// in the language the app shows.
+func TextToolFailed() string { return In(i18n.Locale()).TextToolFailed() }
+
+// TextToolFailed says "The tool failed"
+// in the language of msgs.
+func (msgs Messages) TextToolFailed() string {
+	return Catalog.Format(msgs.locale, "textToolFailed", nil)
+}
+
 // Theme says "Theme"
 // in the language the app shows.
 func Theme() string { return In(i18n.Locale()).Theme() }
