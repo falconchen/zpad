@@ -35,8 +35,8 @@ func TestDefaultThemesKeepTheirColors(t *testing.T) {
 
 func TestNamedThemesAreComplete(t *testing.T) {
 	named := Named()
-	if len(named) != 10 {
-		t.Fatalf("%d named themes, want 10", len(named))
+	if len(named) != 14 {
+		t.Fatalf("%d named themes, want 14", len(named))
 	}
 	seen := map[string]bool{}
 	darkCount := 0

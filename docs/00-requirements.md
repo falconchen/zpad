@@ -143,19 +143,19 @@ BOM 作为独立选项处理：选择 UTF-8 时保存不带 BOM，选择 UTF-8 B
 
 默认三档保持不变：
 
-- 亮色
-- 暗色
+- ZPad 亮色
+- ZPad 暗色
 - 跟随系统
 
-另有 10 套命名主题（One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light），细节见 [08-themes.md](./08-themes.md)。
+另有 14 套命名主题（One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light），细节见 [08-themes.md](./08-themes.md)。
 
 实现要点：
 
 - 使用 `mygo.Theme.SetSource(mygo.ThemeLight / ThemeDark / ThemeSystem)` 强制应用外观，使原生菜单、对话框、标题栏也跟随；命名主题按其亮 / 暗基准设置。
 - UI 主题：工具栏、侧栏、标签、状态栏、设置面板各自一套颜色；侧栏、标签栏与活动标签的背景由主题定义，不再按亮 / 暗写死。
 - 编辑器主题：基于 `editor.DefaultTheme(t)`，覆盖关键字、字符串、注释、数字、函数、类型等 token 颜色。
-- 跟随系统时，以 `c.Theme()` 为基底，按系统外观选择默认亮 / 暗调色板；命名主题固定明暗。
-- 主题选择在设置 → 外观的下拉选择中完成，命名主题的浅色 / 深色标注在行右侧对齐；原生菜单保留三档默认项并提供「更多主题…」，工具栏不设主题按钮。
+- 跟随系统时，以 `c.Theme()` 为基底，按系统外观选择 ZPad 亮色 / ZPad 暗色调色板；命名主题固定明暗。
+- 主题选择在设置 → 外观的下拉选择中完成，按默认主题 / 深色 / 浅色分组，命名主题的浅色 / 深色标注在行右侧对齐，长列表在弹层内滚动；原生菜单保留三档默认项并提供「更多主题…」，工具栏不设主题按钮。
 - 切换后立即生效并持久化；未知主题 id 回退「跟随系统」。
 
 ### 3.9 字体
@@ -202,7 +202,7 @@ BOM 作为独立选项处理：选择 UTF-8 时保存不带 BOM，选择 UTF-8 B
 模态面板，卡片分组；每行左侧标题与说明，右侧控件，窄窗口下控件换到标题下方。设置内的下拉均为自绘，选项悬停显示小手。
 
 **外观**
-- 主题：亮色 / 暗色 / 跟随系统，以及 10 套命名主题的下拉选择（浅色 / 深色标注右对齐）
+- 主题：ZPad 亮色 / ZPad 暗色 / 跟随系统，以及 14 套命名主题的下拉选择（浅色 / 深色标注右对齐）
 - 界面语言：跟随系统 / 简体中文 / English
 
 **编辑器**

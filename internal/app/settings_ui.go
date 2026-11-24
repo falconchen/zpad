@@ -149,9 +149,10 @@ func settingsNarrow(c *ui.Context) bool {
 func (a *App) settingsAppearance(c *ui.Context, t *ui.Theme) {
 	a.settingsSection(c, t, iconPalette, locales.Appearance(), func() {
 		a.settingRow(c, t, locales.Theme(), locales.ThemeDescription(), false, func() {
-			a.selectSetting(c, t, locales.Theme(), themeLabel(a.Settings.Theme), themeOptions(), func(label string) {
-				a.setThemeID(themeIDFromLabel(label))
-			}, themeOptionParts)
+			a.selectSettingGroups(c, t, locales.Theme(), themeLabel(a.Settings.Theme),
+				themeGroups(), func(label string) {
+					a.setThemeID(themeIDFromLabel(label))
+				}, themeOptionParts)
 		})
 		a.settingRow(c, t, locales.Language(), locales.LanguageDescription(), true, func() {
 			a.selectSetting(c, t, locales.Language(), a.languageLabel(a.Settings.Language), languageLabels(), func(label string) {
@@ -161,15 +162,33 @@ func (a *App) settingsAppearance(c *ui.Context, t *ui.Theme) {
 	})
 }
 
-// themeOptions lists every theme for the settings drop-down, naming each
-// palette's appearance after the theme's name because the names alone do
-// not say whether they are light or dark.
-func themeOptions() []string {
-	options := []string{locales.ThemeSystem(), locales.ThemeLight(), locales.ThemeDark()}
+// selectGroup is a titled block of options in a settings drop-down.
+type selectGroup struct {
+	label   string
+	options []string
+}
+
+// themeGroups lists the themes as the default trio first, then the named
+// dark palettes, then the named light ones, each named palette carrying its
+// light or dark tag on the right.
+func themeGroups() []selectGroup {
+	dark := make([]string, 0, 7)
+	light := make([]string, 0, 7)
 	for _, def := range theme.Named() {
-		options = append(options, themeOptionLabel(def))
+		if def.Dark {
+			dark = append(dark, themeOptionLabel(def))
+		} else {
+			light = append(light, themeOptionLabel(def))
+		}
 	}
-	return options
+	return []selectGroup{
+		{
+			label:   locales.ThemeGroupDefault(),
+			options: []string{locales.ThemeSystem(), locales.ThemeLight(), locales.ThemeDark()},
+		},
+		{label: locales.ThemeGroupDark(), options: dark},
+		{label: locales.ThemeGroupLight(), options: light},
+	}
 }
 
 func themeOptionLabel(def *theme.Definition) string {
@@ -340,6 +359,13 @@ func (a *App) settingsWorkspace(c *ui.Context, t *ui.Theme) {
 // selectSetting draws a drop-down whose options show the pointing hand,
 // which MyGo's Select does not style, and applies a new choice.
 func (a *App) selectSetting(c *ui.Context, t *ui.Theme, label, current string, options []string, apply func(string), parts ...func(string) (string, string)) {
+	a.selectSettingGroups(c, t, label, current, []selectGroup{{options: options}}, apply, parts...)
+}
+
+// selectSettingGroups is selectSetting with titled groups of options. The
+// options scroll inside a popup no taller than selectPopupHeight, so a long
+// list such as the themes' never covers the window.
+func (a *App) selectSettingGroups(c *ui.Context, t *ui.Theme, label, current string, groups []selectGroup, apply func(string), parts ...func(string) (string, string)) {
 	split := func(opt string) (left, right string) {
 		if len(parts) > 0 && parts[0] != nil {
 			return parts[0](opt)
@@ -364,31 +390,43 @@ func (a *App) selectSetting(c *ui.Context, t *ui.Theme, label, current string, o
 		ui.Icon(c, iconChevron).FontSize(12).TextColor(t.TextMuted).Rotate(90)
 	})
 	sel.Popup(func(panel ui.Element) {
-		panel.Margin(t.Space(1), 0, 0, 0).Padding(t.Space(1)).Gap(2).
+		panel.Margin(t.Space(1), 0, 0, 0).Padding(0).
 			Radius(t.Radius+2).Background(t.Background).Border(1, t.Border).
 			Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18))
-		for _, opt := range options {
-			item := sel.Item(opt).Padding(t.Space(2), t.Space(2.5)).
-				Radius(t.Radius).Cursor(ui.CursorPointer)
-			switch {
-			case item.Highlighted():
-				item.Background(t.Accent).TextColor(t.AccentText)
-			case opt == current:
-				item.Background(t.Surface)
-			}
-			item.Children(func() {
-				left, right := split(opt)
-				ui.Text(c, left).FontSize(13).SingleLine()
-				ui.Spacer(c)
-				if right != "" {
-					color := t.TextMuted
-					if item.Highlighted() {
-						color = t.AccentText
+		ui.Scroll(c).MaxHeight(selectPopupHeight).FillWidth().
+			ScrollbarAxes(false, true).Children(func() {
+			ui.Column(c).FillWidth().Gap(2).Padding(t.Space(1)).Children(func() {
+				for _, group := range groups {
+					if group.label != "" {
+						ui.Text(c, group.label).FontSize(11).Bold().
+							TextColor(t.TextMuted).
+							Padding(t.Space(1.5), t.Space(2.5))
 					}
-					ui.Text(c, right).FontSize(13).TextColor(color).SingleLine()
+					for _, opt := range group.options {
+						item := sel.Item(opt).Padding(t.Space(2), t.Space(2.5)).
+							Radius(t.Radius).Cursor(ui.CursorPointer)
+						switch {
+						case item.Highlighted():
+							item.Background(t.Accent).TextColor(t.AccentText)
+						case opt == current:
+							item.Background(t.Surface)
+						}
+						item.Children(func() {
+							left, right := split(opt)
+							ui.Text(c, left).FontSize(13).SingleLine()
+							ui.Spacer(c)
+							if right != "" {
+								color := t.TextMuted
+								if item.Highlighted() {
+									color = t.AccentText
+								}
+								ui.Text(c, right).FontSize(13).TextColor(color).SingleLine()
+							}
+						})
+					}
 				}
 			})
-		}
+		})
 	})
 	if trigger.Changed() {
 		apply(current)
@@ -396,6 +434,9 @@ func (a *App) selectSetting(c *ui.Context, t *ui.Theme, label, current string, o
 		a.update()
 	}
 }
+
+// selectPopupHeight caps the settings drop-down; longer lists scroll.
+const selectPopupHeight = 320
 
 // themeOptionParts splits a theme option into its name and its light or
 // dark tag, so the two line up on either side of the drop-down row.

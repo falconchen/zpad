@@ -896,21 +896,21 @@ func (msgs Messages) Theme() string {
 	return Catalog.Format(msgs.locale, "theme", nil)
 }
 
-// ThemeLight says "Light"
+// ThemeLight says "ZPad Light"
 // in the language the app shows.
 func ThemeLight() string { return In(i18n.Locale()).ThemeLight() }
 
-// ThemeLight says "Light"
+// ThemeLight says "ZPad Light"
 // in the language of msgs.
 func (msgs Messages) ThemeLight() string {
 	return Catalog.Format(msgs.locale, "themeLight", nil)
 }
 
-// ThemeDark says "Dark"
+// ThemeDark says "ZPad Dark"
 // in the language the app shows.
 func ThemeDark() string { return In(i18n.Locale()).ThemeDark() }
 
-// ThemeDark says "Dark"
+// ThemeDark says "ZPad Dark"
 // in the language of msgs.
 func (msgs Messages) ThemeDark() string {
 	return Catalog.Format(msgs.locale, "themeDark", nil)
@@ -944,6 +944,36 @@ func ThemeDarkTag() string { return In(i18n.Locale()).ThemeDarkTag() }
 // in the language of msgs.
 func (msgs Messages) ThemeDarkTag() string {
 	return Catalog.Format(msgs.locale, "themeDarkTag", nil)
+}
+
+// ThemeGroupDefault says "Default themes"
+// in the language the app shows.
+func ThemeGroupDefault() string { return In(i18n.Locale()).ThemeGroupDefault() }
+
+// ThemeGroupDefault says "Default themes"
+// in the language of msgs.
+func (msgs Messages) ThemeGroupDefault() string {
+	return Catalog.Format(msgs.locale, "themeGroupDefault", nil)
+}
+
+// ThemeGroupDark says "Dark themes"
+// in the language the app shows.
+func ThemeGroupDark() string { return In(i18n.Locale()).ThemeGroupDark() }
+
+// ThemeGroupDark says "Dark themes"
+// in the language of msgs.
+func (msgs Messages) ThemeGroupDark() string {
+	return Catalog.Format(msgs.locale, "themeGroupDark", nil)
+}
+
+// ThemeGroupLight says "Light themes"
+// in the language the app shows.
+func ThemeGroupLight() string { return In(i18n.Locale()).ThemeGroupLight() }
+
+// ThemeGroupLight says "Light themes"
+// in the language of msgs.
+func (msgs Messages) ThemeGroupLight() string {
+	return Catalog.Format(msgs.locale, "themeGroupLight", nil)
 }
 
 // ThemeDescription says "Changes the colors of the window and the editor."

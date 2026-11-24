@@ -111,6 +111,51 @@ func TestSelectOptionsShowHandCursor(t *testing.T) {
 	tt.Key(0, ui.KeyEscape)
 }
 
+func TestThemeSelectGroupsByAppearance(t *testing.T) {
+	i18n.SetLocaleFunc(func() string { return "en" })
+	defer i18n.SetLocaleFunc(func() string { return "en" })
+
+	a := New(settings.Default(), t.TempDir())
+	a.setThemeID("monokai")
+	a.showSettings = true
+	tt := ui.NewTester(a.View, 900, 760)
+	tt.Frame()
+
+	if err := tt.Click("Monokai"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	for _, want := range []string{locales.ThemeGroupDefault(), locales.ThemeGroupDark(), locales.ThemeGroupLight(), "ZPad Dark", "ZPad Light"} {
+		if !tt.HasText(want) {
+			t.Errorf("theme drop-down does not show %q", want)
+		}
+	}
+}
+
+func TestThemeSelectKeyboardReachesLastTheme(t *testing.T) {
+	i18n.SetLocaleFunc(func() string { return "en" })
+	defer i18n.SetLocaleFunc(func() string { return "en" })
+
+	a := New(settings.Default(), t.TempDir())
+	a.setThemeID("monokai")
+	a.showSettings = true
+	tt := ui.NewTester(a.View, 900, 760)
+	tt.Frame()
+
+	if err := tt.Click("Monokai"); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	// The last theme is below the capped popup; End must scroll to it and
+	// Enter must choose it.
+	tt.Key(0, ui.KeyEnd)
+	tt.Frame()
+	tt.Key(0, ui.KeyEnter)
+	if a.Settings.Theme != "ayu-light" {
+		t.Fatalf("theme %q after End and Enter, want ayu-light", a.Settings.Theme)
+	}
+}
+
 func TestThemeTagsAlignRight(t *testing.T) {
 	i18n.SetLocaleFunc(func() string { return "en" })
 	defer i18n.SetLocaleFunc(func() string { return "en" })

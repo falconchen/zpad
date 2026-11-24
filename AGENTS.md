@@ -49,7 +49,7 @@ ZPAD_SHOTS=/tmp/shots go test ./internal/app -run TestSiteScreenshots   # 重截
 - 跨文件搜索：`⌘⇧F` 在居中浮层中搜索两个分栏里所有已打开标签的文本（含未保存内容与未命名文件）。输入时不自动搜索，按 `↵` 或点击右侧搜索按钮才搜索；结果按文件分组，`↑`/`↓` 选择，`↵` 打开选中项。关闭面板保留关键词和结果，输入框末尾的 X 清空后才丢弃；`Esc` 只关闭面板。只搜内存中的标签，不读未打开的磁盘文件。
 - 编码：UTF-8、UTF-8 BOM、UTF-16 LE/BE、GB18030；自动检测 +「重新以编码打开 / 以编码保存」。
 - 换行符：LF / CRLF / CR，保存保留原行尾。
-- 主题：默认亮色 / 暗色 / 跟随系统保持不变，另有 10 套命名主题（One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light），设置外观里用下拉选择，名称后标注浅色 / 深色；中英双语（M3）；内置 JetBrains Mono + 系统等宽字体（M3）。
+- 主题：ZPad 亮色 / ZPad 暗色 / 跟随系统保持不变，另有 14 套命名主题（One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light），设置外观里用下拉选择，名称后标注浅色 / 深色；中英双语（M3）；内置 JetBrains Mono + 系统等宽字体（M3）。
 - 手动保存 + 未保存标记；关闭标签提示；关闭窗口 / 退出汇总提示「保存全部 / 不保存 / 取消」。
 - 会话恢复：工作区、分屏、标签、活动标签、滚动、侧栏；窗口位置由 MyGo `StateKey: "main"` 管理。
 - 侧栏「打开的文件」汇总两栏文档、去重，行内只显示文件名，悬停时在行右侧浮出完整路径来区分同名文件；「工作区」保留文件树。
@@ -139,7 +139,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - **Linux 打包（后续增补）**：已接入 `mygo build -platform linux/amd64`，产出 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`、`update-linux-amd64.json` 与 `install.sh`。`mygo.json` 的 `linux` 段：`webview: false`（不声明 WebKitGTK，只依赖 GTK3）、`formats` 只留 `deb` 与 `rpm`、命令名 `zpad`、维护者与分类。CI 新增 `Linux` 作业，`site` 作业改为等三个平台都上传完再补官网数据。0.4.1 起发布；官网下载页给 deb（主按钮）与 rpm 两个按钮，tar.gz 只在安装说明里通过 `install.sh` 一行命令出现。
 - **macOS 窗口最小化（后续增补）**：已实现。应用自带菜单栏原先没有 Window 菜单，`⌘M` 按下去没有反应；现在 macOS 的菜单栏多出「窗口 → 最小化」（`⌘M`），`⌘W` 仍只关闭标签，关窗行为不变。未发布。
 - **工具栏入口（后续增补）**：已实现。左侧工具栏末尾新增信息按钮，打开关于对话框；右侧工具栏行首新增检查更新按钮，与菜单里的「检查更新…」共用 `App.checkUpdates`。未发布。
-- **命名主题（后续增补）**：已实现。默认亮 / 暗的色值与 token 保持不变，新增 One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light。设置 → 外观用下拉选择，命名主题的浅色 / 深色标注在行右侧对齐并立即生效；设置面板为 700×640 的卡片分组，所有设置下拉选项悬停显示小手；主题同时覆盖侧栏、标签栏、状态栏、弹窗与编辑器 token。命名主题固定明暗，原生标题栏 / 菜单 / 对话框跟随其基准；「跟随系统」只在默认亮 / 暗之间切换。原生菜单保留三档 +「更多主题…」，工具栏不设主题按钮。未发布。
+- **命名主题（后续增补）**：已实现。ZPad 亮色 / ZPad 暗色的色值与 token 保持不变，新增 One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light。设置 → 外观用下拉选择，按「默认主题 → 深色主题 → 浅色主题」分组（默认组含跟随系统与 ZPad 亮 / 暗色），命名主题的浅色 / 深色标注在行右侧对齐，下拉超过约 320px 后内部滚动并立即生效；设置面板为 700×640 的卡片分组，所有设置下拉选项悬停显示小手；主题同时覆盖侧栏、标签栏、状态栏、弹窗与编辑器 token。命名主题固定明暗，原生标题栏 / 菜单 / 对话框跟随其基准；「跟随系统」只在 ZPad 亮色 / ZPad 暗色之间切换。原生菜单保留三档 +「更多主题…」，工具栏不设主题按钮。未发布。
 - **官网**：`website/` 的 Hugo 站点（首页、下载页、更新日志），中英双语、亮暗主题、下载链接随 release 自动更新；线上 <https://zpad.xphub.dev>。
 
 测试覆盖：编码、行尾、大小写、跨文件搜索的匹配规则与跳转、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、设置下拉光标、字体过滤、中英文案、编辑器 token 颜色、主题注册表与对比度、主题切换持久化、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸、标签拖拽重排与跨栏按位置插入。
@@ -151,7 +151,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 标签中键关闭未实现（跨栏拖拽与栏内拖拽排序均已支持）。
 - 文件树删除为永久删除，未接入废纸篓；重命名使用模态框，未做 Finder 式行内编辑。
 - 设置修改立即写盘，未做防抖。
-- 命名主题固定明暗，不支持导入自定义主题；「跟随系统」只在默认亮 / 暗之间切换，不做按主题的明暗配对。主题名保持英文。
+- 命名主题固定明暗，不支持导入自定义主题；「跟随系统」只在 ZPad 亮色 / ZPad 暗色之间切换，不做按主题的明暗配对。主题名保持英文。
 - 工作区（磁盘）全局搜索、完整文件监听、热退出在二期；已实现的跨文件搜索只覆盖当前打开的标签。
 - Markdown 预览上限约 1 MB / 1 万行；原始 HTML 块按源码显示，YAML frontmatter 按普通 Markdown 显示，`.mdx` 不启用预览，远程图片不加载（显示 alt），数学公式显示 TeX 源码、Mermaid 等按代码显示；预览内查找、滚动同步、目录 / TOC 未做；预览模式不写入会话，重启后按源码恢复；宽表格在窄栏内横向滚动（单列上限约 600px）。
 - 关闭 / 退出对话框仍需人工点选验证。
@@ -174,7 +174,7 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 新增字体必须确认 OFL / 商业许可，并把许可文件放进 `fonts/`；许可文本不随应用打包（`resources/` 只放构建期素材，用 `resourcesExclude` 排除，或直接不放进去）。
 - 主题颜色优先走 `internal/theme`，不要在 view 里散落硬编码色值。
 - 新增命名主题只在 `internal/theme/builtin.go` 加一组种子色，由派生规则补齐悬停、选区、滚动条与 token；不要在 view 里按亮 / 暗写分支。默认亮 / 暗的色值与 token 保持 0.4.1 原样，改动前先看 `theme_test.go` 的固定值。
-- 主题 id 由 `theme.Normalize` / `theme.Resolve` 校验：`Settings.Theme` 是唯一真源，`App.Dark` 只表示当前基准；命名主题固定明暗，「跟随系统」只在默认亮 / 暗之间切换。
+- 主题 id 由 `theme.Normalize` / `theme.Resolve` 校验：`Settings.Theme` 是唯一真源，`App.Dark` 只表示当前基准；命名主题固定明暗，「跟随系统」只在 ZPad 亮色 / ZPad 暗色之间切换。
 - 文件关联写在 `mygo.json` 的 `fileAssociations`；构建后检查 Info.plist 的 `CFBundleDocumentTypes`。`internal/app/textExtensions`（打开对话框筛选器）必须与关联列表一致，`release_test.go` 会校验。
 - 发布构建用 `go tool mygo build`，产物在 `build/darwin-arm64/`；当前未签名，正式分发另行处理公证。
 - 发布顺序建议但不再强求：打 tag 推送后等 CI 把 draft 的 macOS / Windows 产物传完再 Publish。提前发布只会让 `releases/latest/download/update-<target>.json` 短暂 404（自动更新报错）；官网作业已经能自愈——读到没有文件的 release 只输出 `::warning::` 并跳过，`release.yml` 的 `site` 作业在上传完成后会 dispatch `website.yml -f tag=<tag>` 补写数据。
