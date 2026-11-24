@@ -75,7 +75,12 @@ func (a *App) View(c *ui.Context) {
 }
 
 func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
-	ui.Toolbar(c, func() {
+	// A window with a hidden title bar draws its controls over the toolbar
+	// (macOS traffic lights): keep the buttons clear of them, and let the
+	// empty parts of the bar move the window as the title bar did. In full
+	// screen the controls are gone and TitleBar is zero.
+	bar := c.TitleBar()
+	tb := ui.Toolbar(c, func() {
 		a.iconButton(c, t, iconSidebar, locales.ToggleSidebar(), a.Settings.SidebarOpen, a.toggleSidebar).
 			KeyShortcuts(ui.Cmd, ui.KeyB)
 		a.iconButton(c, t, iconPlus, locales.NewFile(), false, a.NewFile).
@@ -116,8 +121,11 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 		a.splitButton(c, t)
 		a.iconButton(c, t, iconSettings, locales.Settings(), a.showSettings, a.openSettings).
 			KeyShortcuts(ui.Cmd, ui.KeyComma)
-	}).Padding(8, 10).Background(t.Surface).Height(toolbarHeight).
+	}).Padding(8, 10+bar.Right, 8, 10+bar.Left).Background(t.Surface).Height(toolbarHeight).
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border)
+	if bar.Height > 0 {
+		tb = tb.DragWindow()
+	}
 }
 
 // splitButton shows the split's direction as its icon and opens the menu

@@ -79,7 +79,7 @@ func main() {
 		a.Prepare()
 		mygo.App.SetLocale(s.Language)
 		a.RestoreSession()
-		win := mygo.NewWindow(mygo.WindowOptions{
+		opts := mygo.WindowOptions{
 			Title:     "ZPad",
 			Width:     1200,
 			Height:    800,
@@ -91,7 +91,16 @@ func main() {
 				a.View(c)
 				app.NoteFrame(time.Since(start))
 			}),
-		})
+		}
+		if runtime.GOOS == "darwin" {
+			// The toolbar doubles as the title bar: the traffic lights float
+			// over it, and the view keeps clear of them with
+			// ui.Context.TitleBar. Pinning them 14 DIPs from the top centers
+			// them in the 45 DIP toolbar of internal/app.
+			opts.TitleBarStyle = mygo.TitleBarHidden
+			opts.TrafficLightPosition = &mygo.Point{X: 20, Y: 14}
+		}
+		win := mygo.NewWindow(opts)
 		a.Attach(win)
 		a.OpenCommandLine(os.Args[1:])
 	})
