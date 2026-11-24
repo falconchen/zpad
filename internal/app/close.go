@@ -35,6 +35,13 @@ func (a *App) onWindowClose(e *mygo.CloseEvent) {
 		e.PreventDefault()
 		return
 	}
+	if a.Settings.KeepUnsaved {
+		// The unsaved text stays in the recovery copies, to open again on
+		// the next launch: nothing to ask.
+		a.flushDrafts()
+		a.saveSession()
+		return
+	}
 	if !a.Settings.ConfirmClose || !a.hasDirty() {
 		a.saveSession()
 		return
@@ -46,7 +53,11 @@ func (a *App) onWindowClose(e *mygo.CloseEvent) {
 // BeforeQuit asks to save before the application quits.
 func (a *App) BeforeQuit(e *mygo.QuitEvent) {
 	if e.SessionEnding {
-		a.saveDirtySync()
+		if a.Settings.KeepUnsaved {
+			a.flushDrafts()
+		} else {
+			a.saveDirtySync()
+		}
 		a.saveSession()
 		// The session end cannot be canceled, and OnClose must not ask.
 		a.allowClose = true
@@ -58,6 +69,11 @@ func (a *App) BeforeQuit(e *mygo.QuitEvent) {
 	}
 	if a.closePromptOpen {
 		e.PreventDefault()
+		return
+	}
+	if a.Settings.KeepUnsaved {
+		a.flushDrafts()
+		a.saveSession()
 		return
 	}
 	if !a.Settings.ConfirmClose || !a.hasDirty() {
@@ -262,6 +278,7 @@ func (a *App) saveDocsForClose(docs []*Document, then func()) {
 				r.doc.Size = int64(len(r.data))
 				r.doc.setLanguage(r.path)
 				r.doc.Buffer.MarkSaved()
+				a.forgetDraft(r.doc)
 			}
 			a.busy = false
 			a.updateTitle()
@@ -297,5 +314,6 @@ func (a *App) saveDirtySync() {
 			continue
 		}
 		doc.Buffer.MarkSaved()
+		a.forgetDraft(doc)
 	}
 }

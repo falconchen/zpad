@@ -351,8 +351,14 @@ func (a *App) settingsWorkspace(c *ui.Context, t *ui.Theme) {
 			&a.Settings.SidebarOpen, false)
 		a.switchSetting(c, t, locales.RestoreSession(), locales.RestoreSessionDescription(),
 			&a.Settings.RestoreSession, false)
-		a.switchSetting(c, t, locales.ConfirmClose(), locales.ConfirmCloseDescription(),
-			&a.Settings.ConfirmClose, true)
+		a.switchSettingAction(c, t, locales.KeepUnsaved(), locales.KeepUnsavedDescription(),
+			&a.Settings.KeepUnsaved, false, false, a.keepUnsavedChanged)
+		confirmDescription := locales.ConfirmCloseDescription()
+		if a.Settings.KeepUnsaved {
+			confirmDescription = locales.ConfirmCloseDisabledDescription()
+		}
+		a.switchSettingAction(c, t, locales.ConfirmClose(), confirmDescription,
+			&a.Settings.ConfirmClose, true, a.Settings.KeepUnsaved, nil)
 	})
 }
 
@@ -448,8 +454,23 @@ func themeOptionParts(label string) (name, tag string) {
 }
 
 func (a *App) switchSetting(c *ui.Context, t *ui.Theme, title, description string, v *bool, last bool) {
+	a.switchSettingAction(c, t, title, description, v, last, false, nil)
+}
+
+// switchSettingAction is switchSetting with a callback for when the switch
+// changes, and a disabled state for a setting another one makes moot.
+func (a *App) switchSettingAction(c *ui.Context, t *ui.Theme, title, description string, v *bool, last, disabled bool, onChange func()) {
 	a.settingRow(c, t, title, description, last, func() {
-		if ui.Switch(c, v).Cursor(ui.CursorPointer).Label(title).Changed() {
+		sw := ui.Switch(c, v).Label(title)
+		if disabled {
+			sw.Disabled(true).DimDisabled(true)
+		} else {
+			sw.Cursor(ui.CursorPointer)
+		}
+		if sw.Changed() && !disabled {
+			if onChange != nil {
+				onChange()
+			}
 			a.saveSettings()
 			a.update()
 		}
@@ -483,6 +504,7 @@ func (a *App) confirmRestoreDefaults() {
 
 func (a *App) restoreDefaults() {
 	a.Settings = settings.Default()
+	a.keepUnsavedChanged()
 	a.fontSize = float64(a.Settings.FontSize)
 	a.lineHeight = float64(a.Settings.LineHeight)
 	if a.tree != nil {

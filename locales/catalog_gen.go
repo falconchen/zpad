@@ -1556,6 +1556,38 @@ func (msgs Messages) ConfirmCloseDescription() string {
 	return Catalog.Format(msgs.locale, "confirmCloseDescription", nil)
 }
 
+// ConfirmCloseDisabledDescription says "Not used while unsaved content is kept: quitting keeps it instead."
+// in the language the app shows.
+func ConfirmCloseDisabledDescription() string {
+	return In(i18n.Locale()).ConfirmCloseDisabledDescription()
+}
+
+// ConfirmCloseDisabledDescription says "Not used while unsaved content is kept: quitting keeps it instead."
+// in the language of msgs.
+func (msgs Messages) ConfirmCloseDisabledDescription() string {
+	return Catalog.Format(msgs.locale, "confirmCloseDisabledDescription", nil)
+}
+
+// KeepUnsaved says "Keep Unsaved Content"
+// in the language the app shows.
+func KeepUnsaved() string { return In(i18n.Locale()).KeepUnsaved() }
+
+// KeepUnsaved says "Keep Unsaved Content"
+// in the language of msgs.
+func (msgs Messages) KeepUnsaved() string {
+	return Catalog.Format(msgs.locale, "keepUnsaved", nil)
+}
+
+// KeepUnsavedDescription says "Closing the window or quitting keeps unsaved tabs, including new files, and restores them on the next launch. Closing…"
+// in the language the app shows.
+func KeepUnsavedDescription() string { return In(i18n.Locale()).KeepUnsavedDescription() }
+
+// KeepUnsavedDescription says "Closing the window or quitting keeps unsaved tabs, including new files, and restores them on the next launch. Closing…"
+// in the language of msgs.
+func (msgs Messages) KeepUnsavedDescription() string {
+	return Catalog.Format(msgs.locale, "keepUnsavedDescription", nil)
+}
+
 // RestoreDefaults says "Restore Defaults"
 // in the language the app shows.
 func RestoreDefaults() string { return In(i18n.Locale()).RestoreDefaults() }
@@ -2082,6 +2114,16 @@ func (msgs Messages) LoadSettingsFailed() string {
 	return Catalog.Format(msgs.locale, "loadSettingsFailed", nil)
 }
 
+// KeepUnsavedFailed says "Could not keep unsaved content"
+// in the language the app shows.
+func KeepUnsavedFailed() string { return In(i18n.Locale()).KeepUnsavedFailed() }
+
+// KeepUnsavedFailed says "Could not keep unsaved content"
+// in the language of msgs.
+func (msgs Messages) KeepUnsavedFailed() string {
+	return Catalog.Format(msgs.locale, "keepUnsavedFailed", nil)
+}
+
 // MissingFiles says "{count, plural, one {# file could not be restored} other {# files could not be restored}}"
 // in the language the app shows.
 func MissingFiles(count int) string { return In(i18n.Locale()).MissingFiles(count) }
@@ -2090,6 +2132,16 @@ func MissingFiles(count int) string { return In(i18n.Locale()).MissingFiles(coun
 // in the language of msgs.
 func (msgs Messages) MissingFiles(count int) string {
 	return Catalog.Format(msgs.locale, "missingFiles", map[string]any{"count": count})
+}
+
+// RestoredDrafts says "{count, plural, one {# unsaved file restored} other {# unsaved files restored}}"
+// in the language the app shows.
+func RestoredDrafts(count int) string { return In(i18n.Locale()).RestoredDrafts(count) }
+
+// RestoredDrafts says "{count, plural, one {# unsaved file restored} other {# unsaved files restored}}"
+// in the language of msgs.
+func (msgs Messages) RestoredDrafts(count int) string {
+	return Catalog.Format(msgs.locale, "restoredDrafts", map[string]any{"count": count})
 }
 
 // FileTooLarge says "Files larger than {mb} MB open read-only"

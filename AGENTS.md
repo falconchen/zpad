@@ -51,6 +51,7 @@ ZPAD_SHOTS=/tmp/shots go test ./internal/app -run TestSiteScreenshots   # 重截
 - 换行符：LF / CRLF / CR，保存保留原行尾。
 - 主题：ZPad 亮色 / ZPad 暗色 / 跟随系统保持不变，另有 18 套命名主题（One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、Ink Night、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light、Everforest Light、Celadon、Ink Wash），设置外观里用下拉选择，名称后标注浅色 / 深色；中英双语（M3）；内置 JetBrains Mono + 系统等宽字体（M3）。
 - 手动保存 + 未保存标记；关闭标签提示；关闭窗口 / 退出汇总提示「保存全部 / 不保存 / 取消」。
+- 保留未保存内容（默认关闭）：设置 → 工作区开启后，窗口关闭 / 退出不再提示保存，未保存的标签（含未命名文件）写到用户数据目录的草稿区，下次启动恢复并仍带未保存标记；断电、崩溃、强杀同样可恢复，最多丢约 5 秒输入。关闭单个标签仍提示「保存 / 不保存 / 取消」，选不保存即删草稿。
 - 会话恢复：工作区、分屏、标签、活动标签、滚动、侧栏；窗口位置由 MyGo `StateKey: "main"` 管理。
 - 侧栏「打开的文件」汇总两栏文档、去重，行内只显示文件名，悬停时在行右侧浮出完整路径来区分同名文件；「工作区」保留文件树。两个 tab 共用的 ⋯ 菜单只在工作区 tab 显示「刷新 / 显示隐藏文件」，「打开的文件」tab 只剩「关闭侧栏」。
 - 文件树单击打开文件、单击展开/收起文件夹；标签可拖到另一栏，也可在栏内拖拽排序（拖动时标签栏显示插入位置），点击分屏按钮按内容区 50/50 拆分。
@@ -76,6 +77,7 @@ internal/app/
   actions.go               打开 / 保存 / 关闭标签 / 编码 / 换行 / 大小写
   close.go                 关闭 / 退出协调、脏文档、保存全部
   session.go               会话保存与恢复
+  drafts.go                未保存内容的草稿：写入节奏、恢复、生命周期
   fileops.go               文件树的新建 / 重命名 / 删除 / 在副窗口打开
   fileops_ui.go            新建与重命名对话框
   view.go                  工具栏、侧栏、双栏、标签、状态栏、查找栏样式
@@ -93,6 +95,7 @@ internal/settings/         设置模型、JSON 持久化
 internal/session/          会话模型、原子读写
 internal/theme/            主题注册表：默认亮 / 暗 + 命名主题（UI 与编辑器 token）
 internal/atomicfile/       原子写文件
+internal/draft/            未保存内容的草稿存储：索引、写入、删除、清空
 docs/                      需求、里程碑、实现记录与签收
 website/                   官网（Hugo）：首页、下载页、双语、发布数据
 ```
@@ -108,6 +111,9 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 脏文档按 `*Document` 去重；关闭协调器用 `closePromptOpen` / `allowClose` / `allowQuit` 防止重复弹窗。
 - 保存使用原子写；保留原文件权限、编码、BOM 和行尾。
 - 会话只保存有路径的文件；未命名文件不持久化。
+- 保留未保存内容（`KeepUnsaved`，默认关）用 `<用户数据目录>/drafts/`：`index.json` 加每个文档一个 UTF-8 文件（真实换行符），目录 0700、文件 0600。`session.json` 只存草稿 id 与未命名编号，正文不进会话。写盘必须走 `Buffer.Snapshot().WriteTo` + `atomicfile.WriteTo` 流式落盘，不要 `Buffer.String()` 或把全文塞进 JSON（会多一份拷贝、顶高堆水位）。节奏：停止输入 1 秒后写，连续输入最多 5 秒一次，每秒扫描一次（`mygo.RunOnMain`，不重绘）。草稿只在设置开启时写；关闭开关即清空 `drafts/`，退出回到原来的保存提示。
+- 草稿生命周期收口：`saveTab` / `saveDocsForClose` / `saveDirtySync` 写盘成功、文档变干净、关闭最后一个标签、删除文件时 `forgetDraft`；重命名走 `draftMoved`（只改索引路径）；启动恢复不删草稿，等重新写出或保存 / 丢弃后再删。每个文档有一个 epoch，保存 / 丢弃 / 重命名时递增，写盘 goroutine 在存储锁内检查，过期写入直接跳过，防止「保存后旧副本又被写回来」。
+- 启动恢复先按会话标签的草稿 id、再按路径匹配；没有对应标签的草稿追加到左栏。草稿文本与磁盘相同（崩溃前已保存）就丢弃；不同则覆盖为草稿并沿用草稿里的 size/modtime，让现有外部修改检查在聚焦时提示；文件已被删除时直接从草稿建文档，保存走「重新创建」提示。未命名编号接着最大编号继续。
 - 单实例用 `mygo.App.RequestSingleInstanceLock()`（`main` 开头）+ `mygo.App.OnSecondInstance(a.HandleSecondInstance)`：第二进程立即退出，第一个实例前置窗口后打开传来的文件 / 文件夹。参数由应用自己解析（MyGo 只转发 `fileAssociations` 里登记的扩展名），`openPaths` 用 `beginLoading` / `endLoading` 的「正在读取」集合保证同一路径只读一次。
 - 版本只在 `mygo.json`：`main` 里 `app.SetVersion(mygo.App.Version())` 注入，状态栏与关于对话框读 `app.Version`；不要在 Go 代码里再写一份版本号（`go test` / `go run` 下显示 `dev`）。
 - 自动更新用 MyGo 内置链路：`mygo.json` 的 `updates` 提供 Ed25519 公钥与 GitHub 仓库；`main` 调用 `mygo.Use(native.New(updater.Options{Icon: appIconPNG}))`，不要换成 WebView 版插件。菜单项用 `locales.CheckForUpdates()` + `updater.CheckForUpdates()`，不要用 `updater.MenuItem()`：后者在未注册插件的测试里会 panic，文案也不走本项目 catalogs。
@@ -144,9 +150,10 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - **工具栏入口（后续增补）**：已实现。左侧工具栏末尾新增信息按钮，打开关于对话框；右侧工具栏行首新增检查更新按钮，与菜单里的「检查更新…」共用 `App.checkUpdates`。未发布。
 - **命名主题（后续增补）**：已实现。ZPad 亮色 / ZPad 暗色的色值与 token 保持不变，新增 One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、Ink Night、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light、Everforest Light、Celadon、Ink Wash。设置 → 外观用下拉选择，按「默认主题 → 深色主题 → 浅色主题」分组（默认组含跟随系统与 ZPad 亮 / 暗色），命名主题的浅色 / 深色标注在行右侧对齐，下拉超过约 320px 后内部滚动并立即生效；设置面板为 700×640 的卡片分组，所有设置下拉选项悬停显示小手；主题同时覆盖侧栏、标签栏、状态栏、弹窗与编辑器 token。命名主题固定明暗，原生标题栏 / 菜单 / 对话框跟随其基准；「跟随系统」只在 ZPad 亮色 / ZPad 暗色之间切换。原生菜单保留三档 +「更多主题…」，工具栏不设主题按钮。未发布。
 - **macOS 标题栏合并（后续增补）**：已实现。窗口在 macOS 上用 `TitleBarHidden` 隐藏原生标题栏、保留红绿灯，并用 `TrafficLightPosition{20,14}` 把它们放进 45 DIP 工具栏左侧；`toolbar` 按 `Context.TitleBar()` 的 `Left` / `Right` 留白，空白处 `DragWindow` 拖动窗口、双击缩放。全屏时 `TitleBar` 归零、留白回到 10，不设拖动。Windows / Linux 分支不变，仍是原生标题栏。未发布。
+- **保留未保存内容（后续增补）**：已实现。设置 → 工作区新增开关，默认关闭；开启后窗口关闭 / 退出不弹保存提示，未保存的标签（含未命名文件）写到 `<用户数据目录>/drafts/`（`index.json` + 每文档一个 UTF-8 文件，目录 0700），停止输入 1 秒后写、连续输入最多 5 秒一次；启动时按草稿 id / 路径并入会话，没有对应标签的草稿追加到左栏，恢复后仍带未保存标记；文件已保存则丢弃旧草稿，崩溃期间文件被改则保留草稿里的 stamp 交给外部修改检查；保存、变干净、关闭最后一个标签、删除文件即删草稿，重命名只改草稿路径；关闭开关清空草稿。断电 / 强杀最多丢约 5 秒输入；不恢复光标、选区和撤销栈。未发布。
 - **官网**：`website/` 的 Hugo 站点（首页、下载页、更新日志），中英双语、亮暗主题、下载链接随 release 自动更新；线上 <https://zpad.xphub.dev>。
 
-测试覆盖：编码、行尾、大小写、跨文件搜索的匹配规则与跳转、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、设置下拉光标、字体过滤、中英文案、编辑器 token 颜色、主题注册表与对比度、主题切换持久化、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸、标签拖拽重排与跨栏按位置插入、文件树自然排序、工作区空白处与文件夹行的新建菜单、侧栏菜单按 tab 裁剪、标题栏占位与工具栏留白。
+测试覆盖：编码、行尾、大小写、跨文件搜索的匹配规则与跳转、文件树、文档读写、分屏合并、跨栏共享、脏文档去重、会话往返、缺失文件跳过、滚动恢复、无修改退出保存会话、设置面板渲染、设置下拉光标、字体过滤、中英文案、编辑器 token 颜色、主题注册表与对比度、主题切换持久化、大文件只读、只读目录保存失败、外部重载、文件关联配置、更新公钥与 CHANGELOG 版本小节、更新菜单项、图标尺寸、标签拖拽重排与跨栏按位置插入、文件树自然排序、工作区空白处与文件夹行的新建菜单、侧栏菜单按 tab 裁剪、草稿写入 / 恢复 / 生命周期（保存、变干净、关闭最后一个标签、重命名、切换开关）、未命名文件跨重启恢复、只读跳过、草稿写入节奏、标题栏占位与工具栏留白。
 
 ## 已知限制 / 后续
 
@@ -156,7 +163,8 @@ website/                   官网（Hugo）：首页、下载页、双语、发�
 - 文件树删除为永久删除，未接入废纸篓；重命名使用模态框，未做 Finder 式行内编辑。
 - 设置修改立即写盘，未做防抖。
 - 命名主题固定明暗，不支持导入自定义主题；「跟随系统」只在 ZPad 亮色 / ZPad 暗色之间切换，不做按主题的明暗配对。主题名保持英文。
-- 工作区（磁盘）全局搜索、完整文件监听、热退出在二期；已实现的跨文件搜索只覆盖当前打开的标签。
+- 工作区（磁盘）全局搜索、完整文件监听在二期；已实现的跨文件搜索只覆盖当前打开的标签。
+- 保留未保存内容（默认关闭）不恢复光标、选区和撤销栈；空白未命名标签不写草稿，只靠会话，崩溃时可能少一个空标签；断电瞬间可能丢最后一次副本（最多约 5 秒输入），上一份仍完整；开启后退出不再询问保存，关闭开关会清空草稿。
 - Markdown 预览上限约 1 MB / 1 万行；原始 HTML 块按源码显示，YAML frontmatter 按普通 Markdown 显示，`.mdx` 不启用预览，远程图片不加载（显示 alt），数学公式显示 TeX 源码、Mermaid 等按代码显示；预览内查找、滚动同步、目录 / TOC 未做；预览模式不写入会话，重启后按源码恢复；宽表格在窄栏内横向滚动（单列上限约 600px）。
 - 关闭 / 退出对话框仍需人工点选验证。
 - 分隔线宽度在切换分屏 / 关闭时保存，不在拖拽每一帧写盘。

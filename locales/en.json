@@ -200,6 +200,9 @@
   "restoreSessionDescription": "Restore the files, splits and scroll positions from the last launch.",
   "confirmClose": "Confirm Unsaved Files on Close",
   "confirmCloseDescription": "Ask before closing a file with unsaved changes.",
+  "confirmCloseDisabledDescription": "Not used while unsaved content is kept: quitting keeps it instead.",
+  "keepUnsaved": "Keep Unsaved Content",
+  "keepUnsavedDescription": "Closing the window or quitting keeps unsaved tabs, including new files, and restores them on the next launch. Closing a tab still asks to save it.",
   "restoreDefaults": "Restore Defaults",
   "restoreDefaultsQuestion": "Restore all settings to their defaults?",
   "settingsReset": "Settings restored to defaults",
@@ -363,8 +366,18 @@
   "closeFailed": "Could not close",
   "saveSettingsFailed": "Could not save settings",
   "loadSettingsFailed": "Could not load settings",
+  "keepUnsavedFailed": "Could not keep unsaved content",
   "missingFiles": "{count, plural, one {# file could not be restored} other {# files could not be restored}}",
   "@missingFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "restoredDrafts": "{count, plural, one {# unsaved file restored} other {# unsaved files restored}}",
+  "@restoredDrafts": {
     "placeholders": {
       "count": {
         "type": "int",

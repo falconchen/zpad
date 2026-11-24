@@ -41,6 +41,10 @@ type Settings struct {
 	ShowHidden     bool    `json:"showHidden"`
 	RestoreSession bool    `json:"restoreSession"`
 	ConfirmClose   bool    `json:"confirmClose"`
+	// KeepUnsaved keeps unsaved content, including untitled documents, in
+	// the user data directory and restores it on the next launch, instead
+	// of asking to save it when the window closes or the app quits.
+	KeepUnsaved bool `json:"keepUnsaved"`
 }
 
 // Default returns the settings of a first launch.
@@ -69,6 +73,7 @@ func Default() Settings {
 		ShowHidden:     false,
 		RestoreSession: false,
 		ConfirmClose:   true,
+		KeepUnsaved:    false,
 	}
 }
 

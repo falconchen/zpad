@@ -3,7 +3,7 @@
 ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / 代码编辑器：
 单窗口、左右双栏、每栏多标签，不启动 WebView，全部界面由 Go 绘制。
 
-当前阶段：**0.4.1 已发布；命名主题、macOS 标题栏合并待签收**。
+当前阶段：**0.4.1 已发布；命名主题、macOS 标题栏合并、保留未保存内容待签收**。
 
 ## 文档索引
 
@@ -18,6 +18,7 @@ ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / �
 | [06-auto-update.md](./06-auto-update.md) | 自动更新：签名、GitHub Releases、原生更新窗口 |
 | [07-website.md](./07-website.md) | 官网：Hugo、双语、发布数据、Cloudflare Pages |
 | [08-themes.md](./08-themes.md) | 命名主题：注册表、种子色与选择界面 |
+| [09-unsaved-recovery.md](./09-unsaved-recovery.md) | 保留未保存内容：草稿目录、写入节奏、恢复与生命周期 |
 
 ## 里程碑总览
 
@@ -81,6 +82,7 @@ ZPad 是一个基于 [MyGo](https://mygo.run/) 原生 UI 的轻量级文本 / �
 | 2026-11-23 | macOS 补上「窗口」菜单与「最小化」（`⌘M`）：应用自带菜单栏原先没有 Window 菜单，`⌘M` 按下去没有反应；现在菜单栏为「文件 / 编辑 / 显示 / 编码 / 窗口」，「⌘W」仍只关闭标签，关窗行为不变。 |
 | 2026-11-24 | 命名主题：ZPad 亮色 / ZPad 暗色不变，新增 One Dark、Dracula、Nord、Tokyo Night、Catppuccin Mocha、Monokai、Gruvbox Dark、Ink Night、GitHub Light、One Light、Solarized Light、Catppuccin Latte、Gruvbox Light、Rosé Pine Dawn、Ayu Light、Everforest Light、Celadon、Ink Wash；设置 → 外观用下拉选择，按默认 / 深色 / 浅色分组，命名主题的浅色 / 深色标注右对齐；设置面板改为 700×640 卡片分组，下拉选项悬停显示小手；主题同时覆盖界面与编辑器。 |
 | 2026-11-24 | macOS 标题栏与工具栏合并：窗口使用 `TitleBarHidden`，红绿灯嵌入 45 DIP 工具栏左侧；视图按 `Context.TitleBar` 预留左右空间，工具栏空白处拖动窗口、双击缩放；全屏时控件隐藏、留白归零，Windows / Linux 仍用原生标题栏。 |
+| 2026-11-24 | 保留未保存内容（默认关闭）：设置 → 工作区开启后，关闭窗口 / 退出不再询问保存，未保存的标签（含新建文件）写入用户数据目录的草稿区，下次启动恢复并仍带未保存标记；崩溃、强杀、断电同样可恢复，最多丢约 5 秒输入。关闭单个标签仍提示保存。详见 [09-unsaved-recovery.md](./09-unsaved-recovery.md)。 |
 
 ## 环境
 

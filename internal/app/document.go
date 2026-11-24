@@ -8,11 +8,13 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/egoist/mygo/ui/markdown"
 	"github.com/helloxz/zpad/internal/atomicfile"
+	"github.com/helloxz/zpad/internal/draft"
 	"github.com/helloxz/zpad/internal/encoding"
 	"github.com/helloxz/zpad/locales"
 )
@@ -34,6 +36,20 @@ type Document struct {
 	// UntitledSeq is the number the document was created with, for the name
 	// its save dialog starts from; 0 for a document with a path.
 	UntitledSeq int
+
+	// DraftID names the recovery copy of the document's unsaved text. It
+	// stays the same across renames and saves, so that a copy is dropped or
+	// rewritten rather than looked for by path.
+	DraftID string
+
+	// The recovery copy's state. draftEpoch is read by the goroutine that
+	// writes a copy, so it is atomic; the rest is the main thread's.
+	draftEpoch       atomic.Uint64
+	draftSeenVersion uint64
+	draftEditAt      time.Time
+	draftSince       time.Time
+	draftBacked      uint64
+	draftExists      bool
 
 	// md are the Markdown preview's options, shared by every preview of the
 	// document; nil until one shows. mdPath is the path their image base
@@ -141,6 +157,7 @@ func newDocument(path string, data []byte, kind encoding.Kind, size int64) (*Doc
 		Buffer:   editor.NewBuffer(text),
 		Encoding: kind,
 		Size:     size,
+		DraftID:  draft.NewID(),
 	}
 	doc.setLanguage(path)
 	return doc, nil
@@ -153,6 +170,7 @@ func newUntitled(seq int, defaultEncoding string) *Document {
 		Buffer:      buf,
 		Encoding:    encoding.Parse(defaultEncoding),
 		UntitledSeq: seq,
+		DraftID:     draft.NewID(),
 	}
 }
 

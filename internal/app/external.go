@@ -112,6 +112,7 @@ func (a *App) reloadExternal(doc *Document) {
 		doc.ModTime = loaded.ModTime
 		a.setDocReadOnly(doc, loaded.ReadOnly)
 		doc.Buffer.MarkSaved()
+		a.forgetDraft(doc)
 		a.updateTitle()
 		if doc.Path != a.LogPath {
 			a.SetToast(locales.Reloaded())

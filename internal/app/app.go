@@ -12,6 +12,7 @@ import (
 	"github.com/egoist/mygo/plugins/updater"
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
+	"github.com/helloxz/zpad/internal/draft"
 	"github.com/helloxz/zpad/internal/files"
 	"github.com/helloxz/zpad/internal/settings"
 	"github.com/helloxz/zpad/internal/theme"
@@ -145,6 +146,17 @@ type App struct {
 	lastDirty        bool
 	pendingOpen      []string
 
+	// The recovery copies of unsaved content, while KeepUnsaved is on: the
+	// store, the loop that writes it, and the copies found at launch.
+	drafts       *draft.Store
+	draftStop    chan struct{}
+	draftWriting bool
+	draftWrites  sync.WaitGroup
+	draftEntries map[string]draft.Entry
+	draftByPath  map[string]string
+	draftUsed    map[string]bool
+	draftLogged  string
+
 	showSettings bool
 	aboutOpen    bool
 	aboutIcon    *ui.Bitmap
@@ -276,6 +288,14 @@ func (a *App) Attach(win *mygo.Window) {
 	})
 	a.InstallMenu()
 	a.updateTitle()
+	if a.Settings.KeepUnsaved {
+		if a.drafts == nil {
+			if err := a.openDraftsStore(); err != nil {
+				a.draftLog(err)
+			}
+		}
+		a.startDraftLoop()
+	}
 	if len(a.pendingOpen) > 0 {
 		paths := a.pendingOpen
 		a.pendingOpen = nil
@@ -517,6 +537,10 @@ func (a *App) removeTab(paneIdx, i int) {
 		a.focusEditor = true
 	}
 	a.pruneSearchDocument(doc)
+	if a.findTab(doc) == nil {
+		// The last tab of the document: its recovery copy goes with it.
+		a.forgetDraft(doc)
+	}
 	a.updateTitle()
 }
 

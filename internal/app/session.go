@@ -11,17 +11,58 @@ import (
 )
 
 // RestoreSession loads the workspace of the last launch, when the user
-// asked for it.
+// asked for it, and the unsaved text kept for this launch, whether they asked
+// to restore the session or not.
 func (a *App) RestoreSession() {
-	if !a.Settings.RestoreSession || a.SettingsDir == "" || !session.Exists(a.SettingsDir) {
+	if a.SettingsDir == "" {
+		return
+	}
+	a.loadDraftsAtLaunch()
+
+	if !a.Settings.RestoreSession || !session.Exists(a.SettingsDir) {
+		if a.drafts != nil {
+			restored := 0
+			a.restoreLeftoverDrafts(&restored)
+			a.noteRestoredDrafts(restored)
+		}
 		return
 	}
 	st, err := session.Load(a.SettingsDir)
 	if err != nil {
 		log.Printf("load session: %v", err)
+		if a.drafts != nil {
+			restored := 0
+			a.restoreLeftoverDrafts(&restored)
+			a.noteRestoredDrafts(restored)
+		}
 		return
 	}
 	a.restoreSession(st)
+}
+
+// loadDraftsAtLaunch opens the recovery copies before the session is read, so
+// that its tabs can take their text. A store that cannot be opened turns the
+// setting off, as it would leave nothing to keep.
+func (a *App) loadDraftsAtLaunch() {
+	if !a.Settings.KeepUnsaved {
+		return
+	}
+	if err := a.openDraftsStore(); err != nil {
+		a.draftLog(err)
+		a.Settings.KeepUnsaved = false
+		a.saveSettings()
+		a.SetErrorToast(locales.KeepUnsavedFailed(), err.Error())
+		return
+	}
+	a.loadDraftRestoreIndex()
+}
+
+// noteRestoredDrafts tells how many documents came back with unsaved text.
+func (a *App) noteRestoredDrafts(restored int) {
+	if restored > 0 {
+		log.Printf("restored %d unsaved documents", restored)
+		a.SetToast(locales.RestoredDrafts(restored))
+	}
 }
 
 func (a *App) restoreSession(st session.State) {
@@ -48,18 +89,79 @@ func (a *App) restoreSession(st session.State) {
 
 	docs := map[string]*Document{}
 	missing := 0
+	restored := 0
+
+	// loadDoc opens the document a session tab shows, putting the text of its
+	// recovery copy over the file's when there is one.
+	loadDoc := func(ts session.TabState) *Document {
+		if ts.Path == "" {
+			if !a.Settings.KeepUnsaved {
+				return nil
+			}
+			if e, ok := a.draftForTab(ts); ok {
+				text, err := a.drafts.Text(e.ID)
+				if err != nil {
+					a.draftLog(err)
+				} else {
+					if e.Untitled <= 0 {
+						a.untitledSeq++
+						e.Untitled = a.untitledSeq
+					}
+					if e.Untitled > a.untitledSeq {
+						a.untitledSeq = e.Untitled
+					}
+					a.draftUsed[e.ID] = true
+					restored++
+					return newDraftDocument(e, text)
+				}
+			}
+			seq := ts.Untitled
+			if seq <= 0 {
+				a.untitledSeq++
+				seq = a.untitledSeq
+			}
+			if seq > a.untitledSeq {
+				a.untitledSeq = seq
+			}
+			doc := newUntitled(seq, a.Settings.DefaultEncoding)
+			doc.Buffer.SetLineEnding(a.Settings.DefaultEOL)
+			return doc
+		}
+		if doc := docs[ts.Path]; doc != nil {
+			return doc
+		}
+		doc, err := loadDocument(ts.Path, a.Settings.LargeFileMB)
+		if err != nil {
+			e, ok := a.draftForTab(ts)
+			if !ok {
+				missing++
+				return nil
+			}
+			text, terr := a.drafts.Text(e.ID)
+			if terr != nil {
+				a.draftLog(terr)
+				missing++
+				return nil
+			}
+			restored++
+			a.draftUsed[e.ID] = true
+			doc = newDraftDocument(e, text)
+		} else if e, ok := a.draftForTab(ts); ok {
+			if a.attachDraft(doc, e) {
+				restored++
+			}
+			a.draftUsed[e.ID] = true
+		}
+		docs[ts.Path] = doc
+		return doc
+	}
+
 	loadPane := func(ps session.PaneState) Pane {
 		p := Pane{active: -1}
 		for _, ts := range ps.Tabs {
-			doc := docs[ts.Path]
+			doc := loadDoc(ts)
 			if doc == nil {
-				d, err := loadDocument(ts.Path, a.Settings.LargeFileMB)
-				if err != nil {
-					missing++
-					continue
-				}
-				doc = d
-				docs[ts.Path] = doc
+				continue
 			}
 			// Do not show one document twice in one pane.
 			duplicate := false
@@ -112,12 +214,16 @@ func (a *App) restoreSession(st session.State) {
 		a.sidebarTab = sidebarWorkspace
 	}
 	a.focusEditor = len(a.left.tabs)+len(a.right.tabs) > 0
+
+	a.restoreLeftoverDrafts(&restored)
+
 	if tab := a.pane(a.activePane).activeTab(); tab != nil {
 		a.revealPane, a.revealDoc = a.activePane, tab.doc.ID
 	}
 	if missing > 0 {
 		a.SetToast(locales.MissingFiles(missing))
 	}
+	a.noteRestoredDrafts(restored)
 }
 
 // saveSession stores the workspace for the next launch.
@@ -145,13 +251,18 @@ func (a *App) saveSession() {
 func (a *App) paneState(p Pane) session.PaneState {
 	ps := session.PaneState{Active: p.active}
 	for _, tab := range p.tabs {
-		if tab.doc.Path == "" {
-			continue
-		}
-		ps.Tabs = append(ps.Tabs, session.TabState{
+		ts := session.TabState{
 			Path:    tab.doc.Path,
 			ScrollY: float32(tab.state.ScrollY()),
-		})
+		}
+		if a.Settings.KeepUnsaved {
+			ts.Draft = tab.doc.DraftID
+			ts.Untitled = tab.doc.UntitledSeq
+		}
+		if ts.Path == "" && !a.Settings.KeepUnsaved {
+			continue
+		}
+		ps.Tabs = append(ps.Tabs, ts)
 	}
 	return ps
 }

@@ -4,6 +4,7 @@
 package atomicfile
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -16,6 +17,16 @@ func Write(dir, name string, data []byte) error {
 
 // WriteMode writes data to dir/name with mode.
 func WriteMode(dir, name string, data []byte, mode os.FileMode) error {
+	return WriteTo(dir, name, mode, func(w io.Writer) error {
+		_, err := w.Write(data)
+		return err
+	})
+}
+
+// WriteTo writes what fn writes to dir/name with mode, a chunk at a time
+// through a temporary file, so that a large text is written without a copy
+// of it in memory.
+func WriteTo(dir, name string, mode os.FileMode, fn func(io.Writer) error) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
@@ -30,7 +41,7 @@ func WriteMode(dir, name string, data []byte, mode os.FileMode) error {
 		}
 	}()
 
-	if _, err := tmp.Write(data); err != nil {
+	if err := fn(tmp); err != nil {
 		_ = tmp.Close()
 		return err
 	}

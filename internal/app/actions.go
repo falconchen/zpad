@@ -421,6 +421,7 @@ func (a *App) reloadAs(tab *Tab, kind encoding.Kind) {
 			tab.doc.ModTime = doc.ModTime
 			a.setDocReadOnly(tab.doc, doc.ReadOnly)
 			tab.doc.Buffer.MarkSaved()
+			a.forgetDraft(tab.doc)
 			a.updateTitle()
 		})
 	}()
@@ -599,6 +600,7 @@ func (a *App) saveTab(tab *Tab, saveAs bool, then func()) {
 			tab.doc.setLanguage(path)
 			a.clearPreviewIfNotMarkdown(tab.doc)
 			tab.doc.Buffer.MarkSaved()
+			a.forgetDraft(tab.doc)
 			if saveAs {
 				a.setDocReadOnly(tab.doc, false)
 			}

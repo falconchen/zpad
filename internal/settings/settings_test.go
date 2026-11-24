@@ -23,6 +23,12 @@ func TestRestoreSessionDefaultsOff(t *testing.T) {
 	}
 }
 
+func TestKeepUnsavedDefaultsOff(t *testing.T) {
+	if Default().KeepUnsaved {
+		t.Fatal("keeping unsaved content is on by default")
+	}
+}
+
 func TestRoundTrip(t *testing.T) {
 	dir := t.TempDir()
 	want := Default()
@@ -44,6 +50,7 @@ func TestRoundTrip(t *testing.T) {
 	want.ShowHidden = true
 	want.RestoreSession = false
 	want.ConfirmClose = false
+	want.KeepUnsaved = true
 
 	if err := Save(dir, want); err != nil {
 		t.Fatal(err)

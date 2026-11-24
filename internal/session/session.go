@@ -17,6 +17,11 @@ const fileName = "session.json"
 type TabState struct {
 	Path    string  `json:"path"`
 	ScrollY float32 `json:"scrollY"`
+	// Draft names the recovery copy of the document's unsaved text, when
+	// keeping unsaved content is on; Untitled is its number for a document
+	// without a file.
+	Draft    string `json:"draft,omitempty"`
+	Untitled int    `json:"untitled,omitempty"`
 }
 
 // PaneState is the tabs of one pane and the one chosen.
