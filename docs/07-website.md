@@ -9,7 +9,7 @@ ZPad 的产品官网：首屏、功能、截图、常见问题、下载。源码
 
 ## 范围
 
-首页六段：首屏（截图 + 下载 / GitHub 按钮）、六个功能点、与 Notepad++ / Sublime Text 的对比表、四张截图（两列，点击放大）、常见问题、最近更新。导航是 功能 / 对比 / 下载 / 更新 / 反馈 / GitHub（窄屏只留 下载 / 更新 / 反馈 / GitHub），反馈直接进 GitHub 新建 issue。下载页按平台列安装包，macOS / Windows / Linux 各两个按钮。不做的：博客、文档站、评论区、账号体系。
+首页六段：首屏（截图 + 下载 / GitHub 按钮）、六个功能点、与 Notepad++ / Sublime Text 的对比表、六张截图（两列，点击放大）、常见问题、最近更新。导航是 功能 / 对比 / 下载 / 更新 / 反馈 / GitHub（窄屏只留 下载 / 更新 / 反馈 / GitHub），反馈直接进 GitHub 新建 issue。下载页按平台列安装包，macOS / Windows / Linux 各两个按钮。不做的：博客、文档站、评论区、账号体系。
 
 `docs/` 下的开发文档不对外，官网只链到 GitHub。
 
@@ -21,8 +21,8 @@ ZPad 的产品官网：首屏、功能、截图、常见问题、下载。源码
 | 样式 | 手写 CSS（`assets/css/site.css`） | 页面不多，用不上 UI 框架；色板直接沿用 `internal/theme` |
 | 字体 | 系统字体 | 首屏不下载字体文件 |
 | 图标 | 内联 SVG（`layouts/partials/icon.html`）+ 应用图标 PNG | 不引外部图标库；favicon 和页头 logo 用应用自己的 icon |
-| 主题 | 亮 / 暗，跟随系统，可手动切换 | 和 App 一致；首屏截图跟着主题换 |
-| 截图 | `go test` 里的 headless 渲染 | 不需要屏幕录制权限，中英 / 亮暗各一套，可复现 |
+| 主题 | 亮 / 暗，跟随系统，可手动切换 | 和 App 一致；首屏固定 GitHub Light，悬停一层切 One Dark |
+| 截图 | `go test` 里的 headless 渲染 | 不需要屏幕录制权限，中英各一套，可复现 |
 
 配色取自 `internal/theme`：亮色 `#4F46E5` 主色、`#F7F8FA` 表面色；暗色 `#0F1115` 背景、`#7C8CFF` 主色。
 
@@ -56,7 +56,7 @@ website/
 - 页面翻译按文件名：`content/_index.md`（中）+ `content/_index.en.md`（英）
 - 模板里的固定文案走 `i18n`，页面文案走各自语言 front matter
 - `head.html` 输出 `hreflang`（含 `x-default` 指中文），语言切换链接指向当前页面的对应译文
-- 截图按语言分两套：中文 `split.png`，英文 `split-en.png`，由 front matter 里的名字决定
+- 截图按语言分两套：中文 `split.png`，英文 `split-en.png`，由 front matter 里的名字决定；首屏的 `hero` 与悬停用的 `hero-dark` 同理
 
 ## 图标与 favicon
 
@@ -77,20 +77,23 @@ ZPAD_SHOTS=/tmp/shots go test ./internal/app -run TestSiteScreenshots
 cp /tmp/shots/*.png website/assets/screenshots/     # 先按需缩小
 ```
 
-渲染出 2 个场景 × 亮暗 × 中英 = 8 张，1600×900 左右：
+渲染出 8 个场景 × 中英 = 16 张，1600×900 左右：
 
-| 场景 | 内容 |
-| --- | --- |
-| `split` | 左右分屏：左边 Markdown 源码，右边 Go 代码 |
-| `settings` | 设置面板 |
+| 场景 | 内容 | 主题 |
+| --- | --- | --- |
+| `split` | 左右分屏：左边 Markdown 源码，右边 Go 代码 | ZPad 亮色 / 暗色 |
+| `settings` | 设置面板，主题下拉展开 | ZPad 亮色 / 暗色 |
+| `preview` | Markdown 原生预览，单栏 | GitHub Light |
+| `search` | 跨文件搜索，5 个标签全开 | One Dark |
+| `hero` | 与 `split` 同一个画面，只给首屏用 | GitHub Light / One Dark |
 
-Markdown 预览的截图暂时不放：预览的呈现方式还要调整，官网不展示一个会变的东西。功能卡里也只写「原生渲染标题、列表、代码块和本地图片」，不承诺具体布局。
+截图区用 `split`、`settings`、`preview`、`search` 共 6 张：前两组亮暗各一张，后两张各一张（预览亮、搜索暗），中英各一套。首屏不用 `split`，而是 `hero` 的 GitHub Light 版本，鼠标停在图上时由 CSS 淡入上面的 One Dark 版本（`hero-hover` / `hero-dark`，`@media (hover: hover)` 内，触屏不会卡在暗色）；首屏不再跟随站点亮暗切换。
 
-场景由测试里的 demo 工作区（`zpad-demo`，5 个文件）拼出来，改文案或改功能后重跑一次即可。原图按 `sips -Z 1600` 缩到 1600 宽再放进 `assets/`，Hugo 构建时转成 WebP（`shot.html`），整站产物约 550 KB。
+场景由测试里的 demo 工作区（`zpad-demo`，5 个文件）拼出来，改文案或改功能后重跑一次即可。原图按 `sips -Z 1600` 缩到 1600 宽再放进 `assets/`，Hugo 构建时转成 WebP（`shot.html`）。
 
-README 里的截图用同一套：`docs/screenshots/editor-light.png`、`editor-dark.png`、`settings-dark.png` 分别是 `split`、`split-dark`、`settings` 的副本，重截后一起覆盖。
+截图区固定展示 6 张（两列），点击用原生 `<dialog>` 放大：控制条在图片下方居中（上一张 / 张数 / 下一张 / 关闭），支持 Esc、点击遮罩、左右方向键，脚本不跑时链接直接打开原图。首屏大图不参与灯箱，点它不会弹出。
 
-首屏用 `split` + `split-dark`，跟随站点主题切换；截图区固定展示 4 张（亮暗各两张），点击用原生 `<dialog>` 放大：控制条在图片下方居中（上一张 / 张数 / 下一张 / 关闭），支持 Esc、点击遮罩、左右方向键，脚本不跑时链接直接打开原图。首屏大图不参与灯箱，点它不会弹出。
+README 的截图直接引用 `website/assets/screenshots/` 下的 `split`、`split-dark`、`settings`、`settings-dark`、`preview`、`search-dark`，重截后自动跟着更新。
 
 ## 下载数据
 
@@ -188,8 +191,8 @@ hugo --minify                      # 产出 website/public
 
 - [ ] 首页首屏显示版本号、截图、下载 / GitHub 按钮，logo 是应用图标
 - [ ] 语言切换在首页和下载页都能回到对应译文
-- [ ] 亮 / 暗切换后首屏截图跟着换，刷新后保持
-- [ ] 截图区四张、两列排布，点击后放大，按钮在图片下方居中，Esc / 遮罩 / 方向键可用
+- [ ] 亮 / 暗切换后页面配色跟着换，刷新后保持；首屏仍是 GitHub Light，悬停淡入 One Dark
+- [ ] 截图区六张、两列排布，点击后放大，按钮在图片下方居中，Esc / 遮罩 / 方向键可用
 - [ ] 常见问题折叠展开正常，内容与隐私表述一致
 - [ ] 对比表中英两种语言各 8 行，ZPad 列带底色高亮；手机（390px）下每行改成一张卡片，页面不横向滚动
 - [ ] 手机（390px）下导航、卡片、按钮、截图不溢出，截图单列
@@ -197,7 +200,7 @@ hugo --minify                      # 产出 website/public
 - [ ] 下载页每个平台两个按钮（Linux 为 deb / rpm）指向当前版本，安装说明含 sudo 与 `install.sh` 命令
 - [ ] `/download/mac-arm64` 302 到当前版本 dmg，`/download/linux` 302 到当前版本 deb
 - [ ] 新版本发布后 5 分钟内，官网版本号与下载链接更新
-- [ ] 无 JS 时页面仍可读、按钮仍可用（首屏截图固定暗色，截图链接直接开原图）
+- [ ] 无 JS 时页面仍可读、按钮仍可用（首屏固定 GitHub Light，悬停只靠 CSS；截图链接直接开原图）
 
 ## 实现记录
 
@@ -206,4 +209,5 @@ hugo --minify                      # 产出 website/public
 - 2026-11-23：标题定为「轻量、原生、纯粹的文本编辑器」；撤掉 Markdown 预览截图，图库缩为四张两列（预览呈现方式待调整）；灯箱控制条移到图片下方居中并加张数；导航加「反馈」进 GitHub issues；`word-break: keep-all` 避免手机端把「纯粹」拆行。
 - 2026-11-23：首页新增「对比」段（ZPad / Sublime Text / Notepad++，8 行），行数据写在首页 front matter 的 `compare_rows`，`index.html` 只负责渲染，样式在 `site.css` 的 `.compare*`；窄屏（≤720px）thead 隐藏、每人一列改成同一张卡片里按 `data-col` 标注；导航加「对比」。ZPad 列那层 `--accent-soft` 底色上普通 `--border` 分隔线几乎看不见，所以该列的分隔线走新增的 `--accent-line`（亮暗各一档）。脚注不写具体版本号：`TestWebsiteHasNoHardcodedVersion` 会拦住 `x.y.z` 文案，版本用「2026 年 11 月的稳定版本」表述。
 - 2026-11-23：下载页补上 Linux：生成脚本认领 `zpad_<版本>_amd64.deb`、`zpad-<版本>-1.x86_64.rpm`、`zpad-<版本>-linux-amd64.tar.gz`，新增 `/download/linux`、`/download/linux-rpm`、`/download/linux-tar` 短链并重新生成现有版本的数据；Linux 卡片给 deb（主按钮）与 rpm 两个按钮，与另外两个平台对齐，tar.gz 只在安装说明里通过 `install.sh` 一行命令出现。说明里写清 deb / rpm 由包管理器更新、只有装进 `~/.local` 的实例能自更新；首页首屏与常见问题同步去掉「即将上线」。
+- 2026-11-24：0.5.0 界面截图更新。截图场景扩到 4 组：分屏与设置保持 ZPad 亮 / 暗色，设置展开主题下拉；新增 Markdown 预览（GitHub Light）与跨文件搜索（One Dark），图库从 4 张变 6 张。功能卡「亮 / 暗主题」改为「20 套内置主题」。首屏换成 `hero`（GitHub Light），鼠标悬停淡入 One Dark 版本，不再跟站点主题切换；`shot.html` 与 `site.js` 里原来的首屏亮暗切换逻辑一并删掉。
 - 未接入统计：`cfAnalyticsToken` 留空，拿到 token 填入即生效。

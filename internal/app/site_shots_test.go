@@ -16,6 +16,11 @@ import (
 // from a window: no screen recording permission, the same demo workspace every
 // time, and one set per language and theme.
 //
+// The gallery keeps the default pair, except the two newer scenes, which show
+// named themes: the Markdown preview in GitHub Light and the search in One
+// Dark. The hero is the split scene in those same two named themes, so the
+// site can show GitHub Light and swap to One Dark as the pointer rests on it.
+//
 //	go run ./... is not how this runs; set the output and run the one test:
 //
 //	ZPAD_SHOTS=/tmp/shots go test ./internal/app -run TestSiteScreenshots
@@ -28,12 +33,15 @@ func TestSiteScreenshots(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	scenes := []struct {
-		name string
-		set  func(*testing.T, *App)
-	}{
-		{"split", splitScene},
-		{"settings", settingsScene},
+	scenes := []siteScene{
+		{name: "split", set: splitScene},
+		{name: "split", dark: true, set: splitScene},
+		{name: "settings", set: settingsScene, drive: openThemeMenu},
+		{name: "settings", dark: true, set: settingsScene, drive: openThemeMenu},
+		{name: "preview", theme: siteLightTheme, set: previewScene},
+		{name: "search", dark: true, theme: siteDarkTheme, set: searchScene},
+		{name: "hero", theme: siteLightTheme, set: splitScene},
+		{name: "hero", dark: true, theme: siteDarkTheme, set: splitScene},
 	}
 
 	for _, l := range []struct {
@@ -48,42 +56,67 @@ func TestSiteScreenshots(t *testing.T) {
 		writeSiteDemo(t, dir, l.notes)
 
 		for _, scene := range scenes {
-			for _, dark := range []bool{false, true} {
-				name := scene.name + l.suffix
-				if dark {
-					name += "-dark"
-				}
-				img := renderSiteApp(t, dir, dark, scene.set)
-				f, err := os.Create(filepath.Join(out, name+".png"))
-				if err != nil {
-					t.Fatal(err)
-				}
-				if err := png.Encode(f, img); err != nil {
-					f.Close()
-					t.Fatal(err)
-				}
-				if err := f.Close(); err != nil {
-					t.Fatal(err)
-				}
+			name := scene.name + l.suffix
+			if scene.dark {
+				name += "-dark"
+			}
+			img := renderSiteApp(t, dir, scene)
+			f, err := os.Create(filepath.Join(out, name+".png"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := png.Encode(f, img); err != nil {
+				f.Close()
+				t.Fatal(err)
+			}
+			if err := f.Close(); err != nil {
+				t.Fatal(err)
 			}
 		}
 	}
 }
 
-func renderSiteApp(t *testing.T, dir string, dark bool, setup func(*testing.T, *App)) image.Image {
+// Named themes the site shows off: the gallery's two newer scenes and both
+// halves of the hero's hover.
+const (
+	siteLightTheme = "github-light"
+	siteDarkTheme  = "one-dark"
+)
+
+// siteScene is one screenshot: the scene that fills the window, the theme it
+// draws with, and an optional step after the first frame, as a click that
+// opens a drop-down for the shot.
+type siteScene struct {
+	name  string
+	dark  bool
+	theme string // a named theme; "" draws the default ZPad light or dark
+	set   func(*testing.T, *App)
+	drive func(*testing.T, *ui.Tester, *App)
+}
+
+func renderSiteApp(t *testing.T, dir string, scene siteScene) image.Image {
 	t.Helper()
 	s := settings.Default()
 	s.SidebarOpen = true
+	if scene.theme != "" {
+		s.Theme = scene.theme
+	}
 	a := New(s, t.TempDir())
-	a.Dark = dark
+	if scene.theme == "" {
+		a.Dark = scene.dark
+	}
 	a.setWorkspace(dir)
-	setup(t, a)
+	scene.set(t, a)
 
 	tt := ui.NewTester(a.View, 1400, 900)
 	tt.SetScale(2)
-	tt.SetDark(dark)
+	tt.SetDark(scene.dark)
 	tt.SetWindowActive(true)
 	tt.Frame()
+	if scene.drive != nil {
+		scene.drive(t, tt, a)
+		tt.Frame()
+	}
 	return tt.Image()
 }
 
@@ -102,31 +135,90 @@ func splitScene(t *testing.T, a *App) {
 	a.addDocumentAt(1, siteDoc(t, a, "main.go"))
 }
 
+// settingsScene opens the settings sheet; openThemeMenu then drops its theme
+// list down, so the shot carries the named themes as well.
 func settingsScene(t *testing.T, a *App) {
-	a.addDocument(siteDoc(t, a, "notes.md"))
-	a.toggleSplit()
-	a.addDocumentAt(1, siteDoc(t, a, "main.go"))
+	splitScene(t, a)
 	a.openSettings()
+}
+
+func openThemeMenu(t *testing.T, tt *ui.Tester, a *App) {
+	t.Helper()
+	name, _ := themeOptionParts(themeLabel(a.Settings.Theme))
+	if err := tt.Click(name); err != nil {
+		t.Fatalf("open the theme drop-down: %v", err)
+	}
+}
+
+func previewScene(t *testing.T, a *App) {
+	a.addDocument(siteDoc(t, a, "notes.md"))
+	a.ToggleMarkdownPreview()
+}
+
+// searchScene opens every demo file, so the panel carries the matches of the
+// open tabs rather than an almost empty list.
+func searchScene(t *testing.T, a *App) {
+	for _, name := range []string{"main.go", "style.css", "index.html", "data.json", "notes.md"} {
+		a.addDocument(siteDoc(t, a, name))
+	}
+	a.searchOpen = true
+	a.searchQuery = "zpad"
+	a.startSearch()
 }
 
 const siteNotesZH = `# 发布清单
 
-- 打包 dmg 与安装包
-- 更新官网截图
-- 检查自动更新
+ZPad 0.5.0 的发布准备。
 
-保存时保留编码和行尾，
-UTF-8 与 GB18030 都能打开。
+## 待办
+
+- [x] 打包 dmg 与安装包
+- [ ] 更新官网截图
+- [ ] 检查自动更新
+
+## 编码
+
+保存时保留编码和行尾，UTF-8 与 GB18030 都能打开。
+
+> 只做编辑器该做的事。
+
+` + "```go" + `
+cfg := config{Name: "zpad", Size: 42}
+` + "```" + `
+
+| 平台 | 包 |
+| --- | --- |
+| macOS | dmg |
+| Windows | exe |
+| Linux | deb |
 `
 
-const siteNotesEN = `# Release notes
+const siteNotesEN = `# Release checklist
 
-- Build the dmg and the installer
-- Refresh the site's screenshots
-- Check the updater
+Preparing ZPad 0.5.0 for release.
 
-Encoding and line endings survive a
-save, from UTF-8 to GB18030.
+## To do
+
+- [x] Build the dmg and the installer
+- [ ] Refresh the site's screenshots
+- [ ] Check the updater
+
+## Encodings
+
+Encoding and line endings survive a save,
+from UTF-8 to GB18030.
+
+> It does the editing, and only that.
+
+` + "```go" + `
+cfg := config{Name: "zpad", Size: 42}
+` + "```" + `
+
+| Platform | Package |
+| --- | --- |
+| macOS | dmg |
+| Windows | exe |
+| Linux | deb |
 `
 
 func writeSiteDemo(t *testing.T, dir, notes string) {
@@ -181,7 +273,7 @@ body {
 `,
 		"data.json": `{
   "name": "zpad",
-  "version": "0.3.2",
+  "version": "0.5.0",
   "platforms": ["darwin", "windows"]
 }
 `,

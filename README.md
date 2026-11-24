@@ -11,7 +11,7 @@ ZPad 是一款轻量、原生、纯粹的文本编辑器，基于 [MyGo](https:/
 - 支持左右、上下分屏查看与编辑
 - 支持一键在线更新
 - 支持 Markdown 原生预览
-- 支持暗色、亮色两种模式
+- 内置 20 套主题：ZPad 亮 / 暗色、One Dark、Dracula、Nord 等，可跟随系统
 - 支持中文、英文双语切换
 - 内置基础文本工具：查找、替换、大小写转换等
 
@@ -24,6 +24,10 @@ ZPad 是一款轻量、原生、纯粹的文本编辑器，基于 [MyGo](https:/
 | 设置（亮色） | 设置（暗色） |
 | --- | --- |
 | ![设置亮色](./website/assets/screenshots/settings.png) | ![设置暗色](./website/assets/screenshots/settings-dark.png) |
+
+| Markdown 预览（GitHub Light） | 跨文件搜索（One Dark） |
+| --- | --- |
+| ![Markdown 预览](./website/assets/screenshots/preview.png) | ![跨文件搜索](./website/assets/screenshots/search-dark.png) |
 
 ## 联系
 

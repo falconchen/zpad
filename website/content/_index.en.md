@@ -6,9 +6,9 @@ hero:
   note: "macOS, Windows and Linux"
   primary: "Download"
   secondary: "GitHub"
-  shot: split-en
-  shot_dark: split-en-dark
-  alt: "ZPad with Markdown on the left and Go code on the right"
+  shot: hero-en
+  shot_hover: hero-en-dark
+  alt: "ZPad with a Markdown checklist on the left and Go code on the right"
 features_title: "It does the editing, and only that"
 features_lead: "No plugins, no cloud sync, no Git, no AI, no WebView."
 features:
@@ -25,8 +25,8 @@ features:
     title: "Markdown preview"
     text: "Renders headings, lists, code blocks and local images natively."
   - icon: sun
-    title: "Light and dark"
-    text: "Follows the system, or switch by hand — window and editor together."
+    title: "Twenty built-in themes"
+    text: "One Dark, Dracula, Nord, Tokyo Night and more — or follow the system, window and editor together."
   - icon: grid
     title: "Ready out of the box"
     text: "No setup wizard, no plugin market. Drop a file in and write."
@@ -85,11 +85,17 @@ gallery:
     alt: "Split panes in the dark theme"
     caption: "The dark theme, the whole window at once."
   - name: settings-en
-    alt: "The settings sheet"
-    caption: "Theme, font, size and language, applied at once."
+    alt: "The settings sheet with the theme drop-down open"
+    caption: "Settings: twenty themes, font, size and language, applied at once."
   - name: settings-en-dark
-    alt: "The settings sheet in the dark theme"
-    caption: "The same sheet in the dark."
+    alt: "The settings sheet in the dark, theme drop-down open"
+    caption: "The same sheet in the dark, switching themes from the drop-down."
+  - name: preview-en
+    alt: "Markdown preview in the GitHub Light theme"
+    caption: "Native Markdown preview: headings, task lists, code blocks and tables."
+  - name: search-en-dark
+    alt: "Searching open tabs in the One Dark theme"
+    caption: "Search across open tabs, grouped by file."
 faq_title: "Questions"
 faq:
   - q: "Is ZPad free?"

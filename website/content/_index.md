@@ -6,9 +6,9 @@ hero:
   note: "macOS、Windows 与 Linux"
   primary: "下载"
   secondary: "GitHub"
-  shot: split
-  shot_dark: split-dark
-  alt: "ZPad 主界面：左侧 Markdown，右侧 Go 代码，各占一栏"
+  shot: hero
+  shot_hover: hero-dark
+  alt: "ZPad 主界面：左侧 Markdown 清单，右侧 Go 代码，两栏分屏"
 features_title: "只做编辑器该做的事"
 features_lead: "没有插件、没有云同步、没有 Git、没有 AI、没有 WebView。"
 features:
@@ -25,8 +25,8 @@ features:
     title: "Markdown 预览"
     text: "原生渲染标题、列表、代码块和本地图片。"
   - icon: sun
-    title: "亮 / 暗主题"
-    text: "跟随系统，也能手动切换，窗口和编辑器一起变。"
+    title: "20 套内置主题"
+    text: "One Dark、Dracula、Nord、Tokyo Night 等，也能跟随系统，窗口和编辑器一起变。"
   - icon: grid
     title: "开箱即用"
     text: "没有配置向导和插件市场，文件拖进来就能写。"
@@ -85,11 +85,17 @@ gallery:
     alt: "暗色主题下的左右分屏"
     caption: "暗色主题，整个窗口一起变。"
   - name: settings
-    alt: "设置面板"
-    caption: "主题、字体、字号、语言，改完即生效。"
+    alt: "设置面板，主题下拉已展开"
+    caption: "设置：20 套主题、字体、字号、语言，改完即生效。"
   - name: settings-dark
-    alt: "暗色主题下的设置面板"
-    caption: "设置面板在暗色下的样子。"
+    alt: "暗色主题下的设置面板，主题下拉已展开"
+    caption: "暗色下的设置面板，主题在下拉里直接换。"
+  - name: preview
+    alt: "GitHub Light 主题下的 Markdown 预览"
+    caption: "Markdown 原生预览：标题、任务列表、代码块和表格。"
+  - name: search-dark
+    alt: "One Dark 主题下的跨文件搜索"
+    caption: "跨文件搜索：在已打开的标签里查找，结果按文件分组。"
 faq_title: "常见问题"
 faq:
   - q: "ZPad 收费吗？"

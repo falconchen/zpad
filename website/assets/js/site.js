@@ -14,21 +14,6 @@
     return root.dataset.theme === "dark" ? "dark" : "light";
   }
 
-  // The hero screenshot follows the theme, so a dark page never shows a light
-  // window. Both files are declared in the markup and swapped here, together
-  // with the lightbox link that points at the same file.
-  function swapShots() {
-    var theme = themeName();
-    document.querySelectorAll("img[data-light][data-dark]").forEach(function (img) {
-      img.src = img.getAttribute("data-" + theme) || img.getAttribute("data-light");
-    });
-    document.querySelectorAll("a[data-light-href]").forEach(function (a) {
-      a.href = a.getAttribute("data-" + theme + "-href") || a.getAttribute("data-light-href");
-    });
-  }
-
-  swapShots();
-
   var toggle = document.getElementById("theme-toggle");
   if (toggle) {
     toggle.addEventListener("click", function () {
@@ -36,7 +21,6 @@
       try {
         localStorage.setItem(KEY, root.dataset.theme);
       } catch (e) {}
-      swapShots();
     });
   }
 
@@ -44,7 +28,6 @@
   mq.addEventListener("change", function (event) {
     if (saved()) return;
     root.dataset.theme = event.matches ? "dark" : "light";
-    swapShots();
   });
 
   // Screenshots open in a dialog; the links still work on their own when the

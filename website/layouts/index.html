@@ -16,7 +16,16 @@
     <p class="hero-note">{{ $h.note }}</p>
   </div>
   <div class="wrap">
-    {{ partial "shot.html" (dict "name" $h.shot "dark" $h.shot_dark "alt" $h.alt "class" "hero-shot" "eager" true "zoom" false) }}
+    {{- /* Two images: GitHub Light resting, One Dark under the pointer. The
+           light one holds the box open, the dark one fades in over it. */ -}}
+    {{- $light := (resources.Get (printf "screenshots/%s.png" $h.shot)).Process "webp q84" -}}
+    {{- $dark := (resources.Get (printf "screenshots/%s.png" $h.shot_hover)).Process "webp q84" -}}
+    <figure class="shot hero-shot hero-hover">
+      <img class="hero-light" src="{{ $light.RelPermalink }}" width="{{ $light.Width }}" height="{{ $light.Height }}"
+        alt="{{ $h.alt }}" fetchpriority="high" decoding="async">
+      <img class="hero-dark" src="{{ $dark.RelPermalink }}" width="{{ $dark.Width }}" height="{{ $dark.Height }}"
+        alt="" aria-hidden="true" loading="lazy" decoding="async">
+    </figure>
   </div>
 </section>
 

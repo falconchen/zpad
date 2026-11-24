@@ -385,6 +385,27 @@ h1 {
   object-position: top center;
 }
 
+/* The hero rests on GitHub Light and fades to One Dark as the pointer rests
+   on it: the light image holds the box open, the dark one lies over it. */
+.hero-hover {
+  position: relative;
+}
+
+.hero-hover .hero-dark {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .hero-hover:hover .hero-dark {
+    opacity: 1;
+  }
+}
+
 .shot {
   position: relative;
   border: 1px solid var(--border);
