@@ -1,0 +1,254 @@
+package app
+
+import (
+	"bytes"
+	"encoding/base64"
+	"encoding/binary"
+	"hash/crc32"
+	"image"
+	"image/png"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"strings"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"github.com/egoist/mygo/ui"
+	"github.com/helloxz/zpad/internal/settings"
+)
+
+// testPNG returns a width × height PNG.
+func testPNG(t *testing.T, width, height int) []byte {
+	t.Helper()
+	var b bytes.Buffer
+	if err := png.Encode(&b, image.NewRGBA(image.Rect(0, 0, width, height))); err != nil {
+		t.Fatal(err)
+	}
+	return b.Bytes()
+}
+
+// testPNGHeader returns a PNG that says it is width × height, with no
+// pixels: enough for image.DecodeConfig, and small enough to keep a test of
+// the pixel limit from decoding one.
+func testPNGHeader(width, height uint32) []byte {
+	ihdr := make([]byte, 13)
+	binary.BigEndian.PutUint32(ihdr[0:], width)
+	binary.BigEndian.PutUint32(ihdr[4:], height)
+	ihdr[8], ihdr[9] = 8, 2 // bit depth 8, truecolor
+
+	var b bytes.Buffer
+	b.WriteString("\x89PNG\r\n\x1a\n")
+	binary.Write(&b, binary.BigEndian, uint32(len(ihdr)))
+	chunk := append([]byte("IHDR"), ihdr...)
+	b.Write(chunk)
+	binary.Write(&b, binary.BigEndian, crc32.ChecksumIEEE(chunk))
+	return b.Bytes()
+}
+
+func TestLoadPreviewImageFromTheWeb(t *testing.T) {
+	var hits int32
+	data := testPNG(t, 5, 3)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&hits, 1)
+		if agent := r.Header.Get("User-Agent"); !strings.HasPrefix(agent, "ZPad/") {
+			t.Errorf("user agent %q, want ZPad's", agent)
+		}
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(data)
+	}))
+	defer srv.Close()
+
+	dir := t.TempDir()
+	src, err := loadPreviewImage(dir, srv.URL+"/shot.png")
+	if err != nil {
+		t.Fatalf("load image: %v", err)
+	}
+	bm, ok := src.(*ui.Bitmap)
+	if !ok {
+		t.Fatalf("loaded %T, want a bitmap", src)
+	}
+	if w, h := bm.Size(); w != 5 || h != 3 {
+		t.Fatalf("bitmap %d×%d, want 5×3", w, h)
+	}
+
+	// A second look comes from the cache, without another request.
+	if _, err := loadPreviewImage(dir, srv.URL+"/shot.png"); err != nil {
+		t.Fatalf("load cached image: %v", err)
+	}
+	if n := atomic.LoadInt32(&hits); n != 1 {
+		t.Fatalf("%d requests, want one", n)
+	}
+}
+
+func TestLoadPreviewImageSVG(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/svg+xml")
+		w.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg" width="7" height="4"></svg>`))
+	}))
+	defer srv.Close()
+
+	src, err := loadPreviewImage(t.TempDir(), srv.URL+"/logo.svg")
+	if err != nil {
+		t.Fatalf("load SVG: %v", err)
+	}
+	if _, ok := src.(*ui.SVG); !ok {
+		t.Fatalf("loaded %T, want an SVG", src)
+	}
+	if w, h := ui.ImageSize(src); w != 7 || h != 4 {
+		t.Fatalf("SVG %v×%v, want 7×4", w, h)
+	}
+}
+
+func TestLoadPreviewImageInline(t *testing.T) {
+	data := testPNG(t, 2, 2)
+	raw := "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
+	src, err := loadPreviewImage(t.TempDir(), raw)
+	if err != nil {
+		t.Fatalf("load inline image: %v", err)
+	}
+	bm, ok := src.(*ui.Bitmap)
+	if !ok {
+		t.Fatalf("loaded %T, want a bitmap", src)
+	}
+	if w, h := bm.Size(); w != 2 || h != 2 {
+		t.Fatalf("bitmap %d×%d, want 2×2", w, h)
+	}
+
+	for _, bad := range []string{
+		"data:image/png;base64",
+		"data:image/png,notbase64",
+		"data:image/png;base64,!!!!",
+	} {
+		if _, err := loadPreviewImage(t.TempDir(), bad); err == nil {
+			t.Errorf("data URI %q loaded, want an error", bad)
+		}
+	}
+}
+
+func TestLoadPreviewImageFailures(t *testing.T) {
+	var bigBody bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/missing.png":
+			http.NotFound(w, r)
+		case "/page.html":
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte("<html>not a picture</html>"))
+		case "/declared.png":
+			w.Header().Set("Content-Length", "30000000")
+			w.WriteHeader(http.StatusOK)
+		case "/streamed.png":
+			bigBody = true
+			chunk := make([]byte, 1<<20)
+			for i := 0; i < 11; i++ {
+				if _, err := w.Write(chunk); err != nil {
+					return
+				}
+			}
+		default:
+			w.Write(testPNG(t, 1, 1))
+		}
+	}))
+	defer srv.Close()
+
+	for _, path := range []string{"/missing.png", "/page.html", "/declared.png", "/streamed.png"} {
+		if _, err := loadPreviewImage(t.TempDir(), srv.URL+path); err == nil {
+			t.Errorf("%s loaded, want an error", path)
+		}
+	}
+	if !bigBody {
+		t.Fatal("the streamed image never reached the server")
+	}
+}
+
+func TestLoadPreviewImageRefusesTooManyPixels(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(testPNGHeader(7000, 5000))
+	}))
+	defer srv.Close()
+
+	if _, err := loadPreviewImage(t.TempDir(), srv.URL+"/huge.png"); err == nil {
+		t.Fatal("an image over the pixel limit loaded")
+	}
+}
+
+func TestDropPreviewOptions(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	doc := docAt("/tmp/README.md", "![x](a.png)")
+	a.addDocument(doc)
+	a.ToggleMarkdownPreview()
+	a.markdownOptions(doc, ui.LightTheme()) // what the view builds while it shows
+	if doc.md == nil {
+		t.Fatal("the preview made no options")
+	}
+
+	// A split shows the same document in both panes: closing the preview in
+	// one keeps what the other still shows.
+	a.toggleSplit()
+	for _, tab := range a.left.tabs {
+		tab.preview = false
+	}
+	for _, tab := range a.right.tabs {
+		tab.preview = false
+	}
+	a.right.tabs[0].preview = true
+	a.dropPreviewOptions(doc)
+	if doc.md == nil {
+		t.Fatal("options dropped while the other pane previews")
+	}
+
+	a.right.tabs[0].preview = false
+	a.dropPreviewOptions(doc)
+	if doc.md != nil {
+		t.Fatal("options kept with no preview showing")
+	}
+}
+
+func TestToggleMarkdownPreviewDropsOptions(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	doc := docAt("/tmp/README.md", "![x](a.png)")
+	a.addDocument(doc)
+	a.ToggleMarkdownPreview()
+	a.markdownOptions(doc, ui.LightTheme()) // what the view builds while it shows
+	if doc.md == nil {
+		t.Fatal("the preview made no options")
+	}
+	a.ToggleMarkdownPreview()
+	if doc.md != nil {
+		t.Fatal("returning to the source kept the preview's images")
+	}
+}
+
+// TestMarkdownPreviewAsksForRemoteImages checks the whole way from the view
+// to the loader: a rendered preview requests the images its Markdown names.
+func TestMarkdownPreviewAsksForRemoteImages(t *testing.T) {
+	var hits int32
+	data := testPNG(t, 4, 4)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&hits, 1)
+		w.Header().Set("Content-Type", "image/png")
+		w.Write(data)
+	}))
+	defer srv.Close()
+
+	dir := t.TempDir()
+	doc := docAt(filepath.Join(dir, "README.md"), "![shot]("+srv.URL+"/shot.png)")
+	a := New(settings.Default(), dir)
+	a.addDocument(doc)
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+	a.ToggleMarkdownPreview()
+	tt.Frame()
+
+	deadline := time.Now().Add(3 * time.Second)
+	for atomic.LoadInt32(&hits) == 0 && time.Now().Before(deadline) {
+		tt.Frame()
+		time.Sleep(10 * time.Millisecond)
+	}
+	if atomic.LoadInt32(&hits) == 0 {
+		t.Fatal("the preview never asked for the image")
+	}
+}

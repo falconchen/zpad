@@ -537,6 +537,7 @@ func (a *App) removeTab(paneIdx, i int) {
 		a.focusEditor = true
 	}
 	a.pruneSearchDocument(doc)
+	a.dropPreviewOptions(doc)
 	if a.findTab(doc) == nil {
 		// The last tab of the document: its recovery copy goes with it.
 		a.forgetDraft(doc)

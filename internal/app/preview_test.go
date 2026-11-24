@@ -445,3 +445,153 @@ func TestMarkdownPreviewLinkHandling(t *testing.T) {
 		t.Fatalf("anchor %q version %d, want one", doc.md.Anchor, doc.md.AnchorVersion)
 	}
 }
+
+// TestMarkdownPreviewEscapeReturnsToSource checks the preview's way back:
+// Escape leaves it for the source, as the keyboard shortcut does.
+func TestMarkdownPreviewEscapeReturnsToSource(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/README.md", "# Hi"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+	a.ToggleMarkdownPreview()
+	tt.Frame()
+	if !a.activeTab().preview {
+		t.Fatal("the preview is not showing")
+	}
+
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if a.activeTab().preview {
+		t.Fatal("Escape kept the preview")
+	}
+}
+
+// TestMarkdownPreviewEscapeWorksOutsideIt checks that Escape works from
+// anywhere in the window, here after the tab bar took the focus.
+func TestMarkdownPreviewEscapeWorksOutsideIt(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/README.md", "# Hi"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+	a.ToggleMarkdownPreview()
+	tt.Frame()
+
+	if err := tt.Click("README.md"); err != nil {
+		t.Fatalf("click the tab: %v", err)
+	}
+	tt.Frame()
+	if tab := a.activeTab(); tab == nil || !tab.preview {
+		t.Fatal("the tab left its preview")
+	}
+
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if a.activeTab().preview {
+		t.Fatal("Escape outside the preview kept it")
+	}
+}
+
+// TestMarkdownPreviewEscapeClosesTheSearchFirst checks that Escape still
+// closes the dialog over a preview, and leaves the preview for the next one.
+func TestMarkdownPreviewEscapeClosesTheSearchFirst(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/README.md", "# Hi"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+	a.ToggleMarkdownPreview()
+	tt.Frame()
+	a.openSearchPanel()
+	tt.Frame()
+
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if a.searchOpen {
+		t.Fatal("Escape kept the search panel")
+	}
+	if !a.activeTab().preview {
+		t.Fatal("Escape closed the preview behind the search panel")
+	}
+
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if a.activeTab().preview {
+		t.Fatal("the second Escape kept the preview")
+	}
+}
+
+// TestEditorContextMenuPreviewsMarkdown checks the editor's own context
+// menu, the one a right click in the text opens: a Markdown file offers the
+// preview there too.
+func TestEditorContextMenuPreviewsMarkdown(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/README.md", "# Hi"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	tt.RightClickAt(450, 300)
+	tt.Frame()
+	menu := tt.Menu()
+	if !menuHas(menu, locales.PreviewMarkdown()) {
+		t.Fatalf("editor menu %q does not show %q", menu, locales.PreviewMarkdown())
+	}
+	if err := tt.ChooseMenuItem(locales.PreviewMarkdown()); err != nil {
+		t.Fatalf("choose the preview: %v", err)
+	}
+	tt.Frame()
+	if tab := a.activeTab(); tab == nil || !tab.preview {
+		t.Fatal("the editor menu did not start the preview")
+	}
+}
+
+// TestEditorContextMenuLeavesTextFilesAlone checks that the item is for
+// Markdown only.
+func TestEditorContextMenuLeavesTextFilesAlone(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/notes.txt", "x"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	tt.RightClickAt(450, 300)
+	tt.Frame()
+	if menu := tt.Menu(); menuHas(menu, locales.PreviewMarkdown()) {
+		t.Fatalf("a text file's editor menu shows the preview: %q", menu)
+	}
+}
+
+// TestEditorContextMenuSaysWhenThePreviewIsTooLarge checks that a Markdown
+// file over the limit says why it cannot preview, as the tab's menu does.
+func TestEditorContextMenuSaysWhenThePreviewIsTooLarge(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/big.md", strings.Repeat("x\n", markdownPreviewMaxLines+1)))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	tt.RightClickAt(450, 300)
+	tt.Frame()
+	menu := tt.Menu()
+	if !menuHas(menu, locales.PreviewTooLarge()) {
+		t.Fatalf("editor menu %q does not say %q", menu, locales.PreviewTooLarge())
+	}
+	if menuHas(menu, locales.PreviewMarkdown()) {
+		t.Fatalf("editor menu %q offers a preview it cannot show", menu)
+	}
+}
+
+// TestEditorContextMenuHasOneSeparator checks that the editor's menu shows
+// the app's items after a single line: MyGo draws one before the app's, so
+// the app adds none of its own.
+func TestEditorContextMenuHasOneSeparator(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/README.md", "# Hi"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	tt.RightClickAt(450, 300)
+	tt.Frame()
+	menu := tt.Menu()
+	for i := 1; i < len(menu); i++ {
+		if menu[i] == "-" && menu[i-1] == "-" {
+			t.Fatalf("editor menu %q has two separators in a row", menu)
+		}
+	}
+}

@@ -75,6 +75,7 @@ func (a *App) clearPreviewIfNotMarkdown(doc *Document) {
 			}
 		}
 	}
+	a.dropPreviewOptions(doc)
 }
 
 // ToggleMarkdownPreview shows the active Markdown tab as rendered Markdown,
@@ -97,9 +98,30 @@ func (a *App) toggleTabPreview(tab *Tab) {
 		return
 	}
 	tab.preview = !tab.preview
+	if !tab.preview {
+		a.dropPreviewOptions(tab.doc)
+	}
 	a.focusEditor = true
 	a.updateTitle()
 	a.update()
+}
+
+// dropPreviewOptions frees what a document's preview loaded, its images
+// included, once no tab shows it any more: editing needs none of it. A
+// preview opened again builds the options anew, which also retries the
+// images that failed, and finds the recent ones in previewImageCache.
+func (a *App) dropPreviewOptions(doc *Document) {
+	if doc == nil {
+		return
+	}
+	for _, p := range []*Pane{&a.left, &a.right} {
+		for _, tab := range p.tabs {
+			if tab.doc == doc && tab.preview {
+				return
+			}
+		}
+	}
+	doc.md = nil
 }
 
 // PreviewText returns the buffer's text, copied only when it has changed.
@@ -121,18 +143,19 @@ func (a *App) markdownOptions(doc *Document, t *ui.Theme) *markdown.Options {
 		if doc.Path != "" {
 			dir = filepath.Dir(doc.Path)
 		}
-		load := markdown.FileImages(dir)
 		opts := &markdown.Options{LoadImage: func(raw string) (ui.ImageSource, error) {
 			// Markdown written for GitHub often escapes spaces in image
-			// paths; decode those before looking the file up.
+			// paths; decode those before looking the file up. Addresses
+			// keep their escapes, which mean something in a URL.
 			if !strings.HasPrefix(raw, "data:") &&
 				!strings.HasPrefix(raw, "http://") &&
-				!strings.HasPrefix(raw, "https://") {
+				!strings.HasPrefix(raw, "https://") &&
+				!strings.HasPrefix(raw, "//") {
 				if decoded, err := url.PathUnescape(raw); err == nil {
 					raw = decoded
 				}
 			}
-			return load(raw)
+			return loadPreviewImage(dir, raw)
 		}}
 		opts.OnLink = func(raw string) { a.openMarkdownLink(doc, raw) }
 		doc.md = opts
@@ -185,7 +208,7 @@ func (a *App) previewButton(c *ui.Context, t *ui.Theme, tab *Tab) {
 	tip := label + " (" + markdownPreviewShortcut() + ")"
 	if tab.preview {
 		label = locales.BackToSource()
-		tip = label + " (" + markdownPreviewShortcut() + ")"
+		tip = label + " (Esc / " + markdownPreviewShortcut() + ")"
 	} else if !can {
 		tip = locales.PreviewTooLarge()
 	}

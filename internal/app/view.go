@@ -42,6 +42,15 @@ func (a *App) View(c *ui.Context) {
 		if c.Shortcut(ui.Cmd|ui.Shift, ui.KeyB) && !c.ShortcutRepeated() {
 			a.OpenActiveInBrowser()
 		}
+		// Escape leaves a Markdown preview wherever the focus is: the
+		// preview keeps a scroll state rather than a cursor, so there is
+		// nothing else for it to cancel. Dialogs, menus and toasts over
+		// the window take the key first, as overlays.
+		if !a.searchOpen && c.Shortcut(0, ui.KeyEscape) && !c.ShortcutRepeated() {
+			if tab := a.activeTab(); tab != nil && tab.preview {
+				a.toggleTabPreview(tab)
+			}
+		}
 	}
 
 	ui.Themed(c, t).Fill().Children(func() {
@@ -977,12 +986,24 @@ func (a *App) configureEditor(tab *Tab, t *ui.Theme) {
 			Shadow(0, 6, 20, 0, ui.RGBA(0, 0, 0, 0.18)).Padding(6)
 	}
 	st.ContextMenu = func(m *ui.Menu) {
-		a.editorContextMenu(m)
+		a.editorContextMenu(tab, m)
 	}
 }
 
-func (a *App) editorContextMenu(m *ui.Menu) {
-	m.Separator()
+func (a *App) editorContextMenu(tab *Tab, m *ui.Menu) {
+	// MyGo separates the app's items from its own: one line, not two.
+	// The Markdown preview is here because the editor's own menu has no
+	// place for it; the tab's menu shows the same item.
+	if tab != nil && isMarkdownPath(tab.doc.Path) {
+		can := a.canPreviewTab(tab)
+		label := locales.PreviewMarkdown()
+		if !can {
+			label = locales.PreviewTooLarge()
+		}
+		if m.Item(label).Shortcut(ui.Cmd|ui.Shift, ui.KeyV).Disabled(!can).Chosen() {
+			a.toggleTabPreview(tab)
+		}
+	}
 	m.Submenu(locales.CaseMenu(), func(mm *ui.Menu) {
 		if mm.Item(locales.UpperCase()).Chosen() {
 			a.ConvertCase(caseconv.Upper)
