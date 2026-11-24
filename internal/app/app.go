@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/plugins/updater"
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/files"
@@ -95,6 +96,10 @@ type App struct {
 	win     *mygo.Window
 	running bool
 	errMsg  string
+	// checkUpdates runs the update check, from the menu and the toolbar.
+	// It is a field because updater.CheckForUpdates panics when the plugin
+	// is not registered, as in the view tests.
+	checkUpdates func()
 
 	root           string
 	tree           *files.Tree
@@ -211,6 +216,7 @@ func New(s settings.Settings, settingsDir string) *App {
 		fontSize:     float64(s.FontSize),
 		lineHeight:   float64(s.LineHeight),
 		loadingPaths: map[string]bool{},
+		checkUpdates: updater.CheckForUpdates,
 	}
 }
 

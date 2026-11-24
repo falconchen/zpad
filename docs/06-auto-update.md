@@ -103,11 +103,12 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 
 - `main.go`：注册原生更新插件，图标取二进制内嵌的 `resources/icon.png`。
 - `internal/app/menu.go`：About 之后新增「检查更新…」；macOS 在应用菜单，其他平台在帮助菜单。
+- `internal/app/view.go`：左侧工具栏末尾加信息按钮（打开关于），右侧工具栏行首加检查更新按钮；图标为 `icons.go` 的 `iconInfo` / `iconUpdate`。两者与菜单共用 `App.checkUpdates`。
 - `locales/en.json`、`locales/zh-Hans.json`、`locales/catalog_gen.go`：`checkForUpdates`。
 - `mygo.json`：新增 `updates`（公钥 + `helloxz/zpad`）；0.3.1 起版本号随之更新。
 - `.github/workflows/release.yml`：构建带私钥并直接用 `-upload` 上传，不再重命名安装包；Windows 额外打绿色版并排除安装包与更新文件；末尾的 `site` 作业在 macOS / Windows 都上传完后 dispatch `website.yml -f tag=<tag>`（`permissions: actions: write`），保证先发布后上传也能补上官网数据。
 - `release_test.go`：公钥合法性、更新源与 CHANGELOG 版本小节。
-- `internal/app/menu_test.go`：菜单存在「检查更新…」且有回调（不点击，避免测试中未注册插件）。
+- `internal/app/menu_test.go`、`internal/app/about_ui_test.go`：菜单与工具栏的「检查更新」都可点击，并断言调用一次检查；点击通过 `App.checkUpdates` 注入的计数器，避免测试里未注册插件时 panic。工具栏的信息按钮断言打开关于对话框。
 - `CHANGELOG.md`：0.3.0、0.3.1 与 0.3.2 小节。
 - 文档：本文件、`docs/README.md`、`README.md`、`AGENTS.md`。
 
@@ -119,6 +120,7 @@ MYGO_UPDATER_PRIVATE_KEY="$(cat "$HOME/Library/Application Support/mygo/update-k
 ## 7. 验收清单
 
 - [ ] 0.3.2 发布后，「检查更新…」在中文 / 英文下都显示正确文案。
+- [ ] 工具栏右侧行首的检查更新按钮与菜单行为一致；左侧末尾的信息按钮在亮 / 暗主题下都打开关于对话框。
 - [ ] 开发版点击「检查更新…」提示不能更新，并说明原因。
 - [ ] 安装的 0.3.1 在启动后或手动检查时发现 0.3.2。
 - [ ] 更新窗口显示 0.3.2 的 `CHANGELOG.md` 小节，可安装、稍后提醒、跳过。

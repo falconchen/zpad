@@ -32,6 +32,22 @@ func TestAboutDialogShowsLicenseAndRepository(t *testing.T) {
 	}
 }
 
+// The toolbar's info button is the second way into the About dialog.
+func TestToolbarAboutButtonOpensDialog(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	tt := ui.NewTester(a.View, 1200, 800)
+	if err := tt.Click(locales.AboutApp()); err != nil {
+		t.Fatal(err)
+	}
+	if !a.aboutOpen {
+		t.Fatal("the toolbar's About button did not open the dialog")
+	}
+	tt.Frame()
+	if !tt.HasText(locales.AboutTagline()) {
+		t.Fatalf("the About dialog did not show; texts %q", tt.Texts())
+	}
+}
+
 // The license states the terms, so it is plain text: only the project and
 // the author's pages are links.
 func TestAboutLinksOpenInBrowser(t *testing.T) {

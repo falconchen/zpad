@@ -119,10 +119,12 @@ func findMenuItem(items []*mygo.MenuItem, label string) *mygo.MenuItem {
 
 // The update item is ours rather than the plugin's: the plugin's label
 // would panic in tests, where the plugin is not used, and could not follow
-// the app's own language the way the rest of the menu does. Its click is
-// the plugin's, so it is not exercised here.
+// the app's own language the way the rest of the menu does. It and the
+// toolbar button share the app's checkUpdates hook.
 func TestCheckForUpdatesMenuEntry(t *testing.T) {
 	a := New(settings.Default(), t.TempDir())
+	calls := 0
+	a.checkUpdates = func() { calls++ }
 	var item *mygo.MenuItem
 	var walk func(items []*mygo.MenuItem)
 	walk = func(items []*mygo.MenuItem) {
@@ -139,6 +141,24 @@ func TestCheckForUpdatesMenuEntry(t *testing.T) {
 	}
 	if item.Click == nil {
 		t.Fatalf("%q has no click handler", locales.CheckForUpdates())
+	}
+	item.Click(item, nil)
+	if calls != 1 {
+		t.Fatalf("the menu item checked %d times, want 1", calls)
+	}
+}
+
+// The toolbar opens the same check as the menu.
+func TestToolbarCheckForUpdatesButton(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	calls := 0
+	a.checkUpdates = func() { calls++ }
+	tt := ui.NewTester(a.View, 1200, 800)
+	if err := tt.Click(locales.CheckForUpdates()); err != nil {
+		t.Fatal(err)
+	}
+	if calls != 1 {
+		t.Fatalf("the toolbar button checked %d times, want 1", calls)
 	}
 }
 

@@ -110,7 +110,9 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 				a.ConvertCase(caseconv.Invert)
 			}
 		}, menuButtonCursorOptions()).Label(locales.CaseMenu()).Tooltip(locales.CaseMenu()).Cursor(ui.CursorPointer)
+		a.iconButton(c, t, iconInfo, locales.AboutApp(), a.aboutOpen, a.openAbout)
 		ui.Spacer(c)
+		a.iconButton(c, t, iconUpdate, locales.CheckForUpdates(), false, a.checkUpdates)
 		a.splitButton(c, t)
 		ui.PopoverMenuButton(c, locales.Theme(), func(m *ui.Menu) {
 			if m.Item(locales.ThemeLight()).Checked(a.ThemeIndex == 0).Chosen() {
