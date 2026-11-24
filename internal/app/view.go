@@ -1237,11 +1237,18 @@ func (a *App) languageControl(c *ui.Context, t *ui.Theme, doc *Document) {
 		if m.Item(locales.PlainText()).Checked(doc.Language == nil).Chosen() {
 			a.SelectLanguage(nil)
 		}
+		groups := untitledLanguageGroups()
 		m.Separator()
-		for _, lang := range untitledLanguages() {
-			l := lang
-			if m.Item(l.Name).Checked(doc.Language == l).Chosen() {
-				a.SelectLanguage(l)
+		for i, group := range [][]*editor.Language{groups.common, groups.rest} {
+			if i > 0 {
+				// A rule keeps the common languages apart from the rest.
+				m.Separator()
+			}
+			for _, lang := range group {
+				l := lang
+				if m.Item(l.Name).Checked(doc.Language == l).Chosen() {
+					a.SelectLanguage(l)
+				}
 			}
 		}
 	}, languageMenuOptions()).FontSize(11).Padding(0, 3).Cursor(ui.CursorPointer).

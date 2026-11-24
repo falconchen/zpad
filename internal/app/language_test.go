@@ -57,11 +57,19 @@ func TestUntitledLanguageChoice(t *testing.T) {
 }
 
 // TestUntitledLanguagesAreSavable keeps the list a document's save can name:
-// every language in it saves as an extension the app opens as text.
+// every language in it saves as an extension the app opens as text, and the
+// common ones come first.
 func TestUntitledLanguagesAreSavable(t *testing.T) {
-	var names []string
-	for _, l := range untitledLanguages() {
-		names = append(names, l.Name)
+	groups := untitledLanguageGroups()
+	names := func(langs []*editor.Language) []string {
+		out := make([]string, 0, len(langs))
+		for _, l := range langs {
+			out = append(out, l.Name)
+		}
+		return out
+	}
+	all := names(groups.all())
+	for _, l := range groups.all() {
 		if len(l.Extensions) == 0 {
 			t.Fatalf("%s has no extension", l.Name)
 		}
@@ -71,20 +79,27 @@ func TestUntitledLanguagesAreSavable(t *testing.T) {
 		}
 	}
 	for _, want := range []string{"JSON", "PHP", "YAML", "Go", "Markdown"} {
-		if !slices.Contains(names, want) {
-			t.Errorf("the list lacks %s: %q", want, names)
+		if !slices.Contains(all, want) {
+			t.Errorf("the list lacks %s: %q", want, all)
 		}
 	}
 	// A language known by a file name alone cannot name the file it saves.
 	for _, no := range []string{"Makefile", "Dockerfile"} {
-		if slices.Contains(names, no) {
+		if slices.Contains(all, no) {
 			t.Errorf("%s is offered, but has no extension to save with", no)
 		}
 	}
-	if !slices.IsSortedFunc(names, func(a, b string) int {
+	if got := names(groups.common); !slices.Equal(got, commonUntitledLanguages) {
+		t.Errorf("the common languages are %q, want %q", got, commonUntitledLanguages)
+	}
+	if !slices.IsSortedFunc(names(groups.rest), func(a, b string) int {
 		return strings.Compare(strings.ToLower(a), strings.ToLower(b))
 	}) {
-		t.Errorf("the languages are not ordered by name: %q", names)
+		t.Errorf("the rest are not ordered by name: %q", names(groups.rest))
+	}
+	if len(groups.all()) != len(groups.common)+len(groups.rest) {
+		t.Errorf("%d languages, but %d common and %d others",
+			len(groups.all()), len(groups.common), len(groups.rest))
 	}
 }
 
