@@ -6,6 +6,7 @@ import (
 	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
+	"github.com/helloxz/zpad/internal/theme"
 	"github.com/helloxz/zpad/locales"
 )
 
@@ -26,6 +27,126 @@ func TestSettingsModalOpens(t *testing.T) {
 	} {
 		if !tt.HasText(want) {
 			t.Errorf("settings panel does not show %q; texts %q", want, tt.Texts())
+		}
+	}
+}
+
+func TestThemeSelectAppliesNamedTheme(t *testing.T) {
+	i18n.SetLocaleFunc(func() string { return "en" })
+	defer i18n.SetLocaleFunc(func() string { return "en" })
+
+	dir := t.TempDir()
+	a := New(settings.Default(), dir)
+	a.setThemeID("nord")
+	a.showSettings = true
+	tt := ui.NewTester(a.View, 900, 760)
+	tt.Frame()
+
+	nord, ok := theme.Lookup("nord")
+	if !ok {
+		t.Fatal("nord theme is missing")
+	}
+	if !tt.HasText(nord.Name) {
+		t.Fatalf("settings select does not show the chosen theme; texts %q", tt.Texts())
+	}
+	if err := tt.Click(nord.Name); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+
+	dracula, ok := theme.Lookup("dracula")
+	if !ok {
+		t.Fatal("dracula theme is missing")
+	}
+	if err := tt.Click(dracula.Name); err != nil {
+		t.Fatal(err)
+	}
+	if a.Settings.Theme != "dracula" {
+		t.Fatalf("theme %q after choosing Dracula, want dracula", a.Settings.Theme)
+	}
+	if !a.Dark {
+		t.Fatal("Dracula did not switch the app to a dark palette")
+	}
+	loaded, err := settings.Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Theme != "dracula" {
+		t.Fatalf("saved theme %q, want dracula", loaded.Theme)
+	}
+}
+
+func TestSelectOptionsShowHandCursor(t *testing.T) {
+	i18n.SetLocaleFunc(func() string { return "en" })
+	defer i18n.SetLocaleFunc(func() string { return "en" })
+
+	a := New(settings.Default(), t.TempDir())
+	a.setThemeID("nord")
+	a.showSettings = true
+	tt := ui.NewTester(a.View, 900, 760)
+	tt.Frame()
+
+	nord, ok := theme.Lookup("nord")
+	if !ok {
+		t.Fatal("nord theme is missing")
+	}
+	if err := tt.Click(nord.Name); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+
+	dracula, ok := theme.Lookup("dracula")
+	if !ok {
+		t.Fatal("dracula theme is missing")
+	}
+	r, ok := tt.Find(dracula.Name)
+	if !ok {
+		t.Fatalf("theme options do not show %q", dracula.Name)
+	}
+	tt.Move(r.X+r.W/2, r.Y+r.H/2)
+	tt.Frame()
+	if got := tt.Cursor(); got != ui.CursorPointer {
+		t.Fatalf("cursor over a select option %v, want the pointing hand", got)
+	}
+	tt.Key(0, ui.KeyEscape)
+}
+
+func TestThemeTagsAlignRight(t *testing.T) {
+	i18n.SetLocaleFunc(func() string { return "en" })
+	defer i18n.SetLocaleFunc(func() string { return "en" })
+
+	a := New(settings.Default(), t.TempDir())
+	a.setThemeID("catppuccin-mocha")
+	a.showSettings = true
+	tt := ui.NewTester(a.View, 900, 760)
+	tt.Frame()
+
+	name, ok := tt.Find("Catppuccin Mocha")
+	if !ok {
+		t.Fatal("the chosen theme name is not shown")
+	}
+	tag, ok := tt.Find(locales.ThemeDarkTag())
+	if !ok {
+		t.Fatal("the chosen theme tag is not shown")
+	}
+	if tag.X <= name.X+name.W {
+		t.Fatalf("tag at %.0f, name ends at %.0f: not right-aligned", tag.X, name.X+name.W)
+	}
+}
+
+func TestEveryNamedThemeRenders(t *testing.T) {
+	for _, def := range theme.Named() {
+		s := settings.Default()
+		s.Theme = def.ID
+		a := New(s, t.TempDir())
+		a.showSettings = true
+		tt := ui.NewTester(a.View, 900, 760)
+		tt.Frame()
+		if !tt.HasText(def.Name) {
+			t.Errorf("theme %q is not listed; texts %q", def.Name, tt.Texts())
+		}
+		if a.Dark != def.Dark {
+			t.Errorf("theme %q dark = %v, want %v", def.ID, a.Dark, def.Dark)
 		}
 	}
 }

@@ -17,21 +17,21 @@ func TestThemedMenusOpen(t *testing.T) {
 	tt := ui.NewTester(a.View, 900, 600)
 	tt.Frame()
 
-	if err := tt.Click(locales.Theme()); err != nil {
+	if err := tt.Click(locales.CaseMenu()); err != nil {
 		t.Fatal(err)
 	}
 	menu := tt.Menu()
 	if len(menu) == 0 {
-		t.Fatal("the theme menu did not open")
+		t.Fatal("the case menu did not open")
 	}
-	if r, ok := tt.Find(locales.ThemeLight()); ok {
+	if r, ok := tt.Find(locales.UpperCase()); ok {
 		tt.Move(r.X+r.W/2, r.Y+r.H/2)
 		tt.Frame()
 		if got := tt.Cursor(); got != ui.CursorPointer {
 			t.Fatalf("cursor over a menu item %v, want the pointing hand", got)
 		}
 	} else {
-		t.Fatalf("theme menu has no %q item", locales.ThemeLight())
+		t.Fatalf("case menu has no %q item", locales.UpperCase())
 	}
 	tt.Key(0, ui.KeyEscape)
 

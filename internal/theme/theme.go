@@ -1,48 +1,125 @@
-// Package theme builds ZPad's light and dark palettes for the native UI.
+// Package theme builds ZPad's palettes for the native UI and the editor.
 package theme
 
 import (
+	"math"
+
 	"github.com/egoist/mygo/ui"
 	"github.com/egoist/mygo/ui/editor"
 )
 
-// For returns the palette for an appearance.
-func For(dark bool) *ui.Theme {
-	if dark {
-		return darkTheme()
-	}
-	return lightTheme()
+// Theme ids of the default pair and of following the desktop.
+const (
+	SystemID = "system"
+	LightID  = "light"
+	DarkID   = "dark"
+)
+
+// Definition is one selectable theme: the UI palette, the colors of the
+// window parts that ui.Theme has no fields for, and the editor's palette.
+// The default light and dark themes keep the colors they always had; the
+// named themes are built from a handful of seed colors.
+type Definition struct {
+	ID   string
+	Name string
+	Dark bool
+	UI   *ui.Theme
+	// Chrome colors the sidebar, the tab bar and the chosen tab.
+	Chrome Chrome
+	Code   *editor.Theme
 }
+
+// Chrome is the palette of the window parts ui.Theme does not color.
+type Chrome struct {
+	Sidebar   ui.Color
+	TabBar    ui.Color
+	ActiveTab ui.Color
+}
+
+var (
+	defaultLight *Definition
+	defaultDark  *Definition
+	named        []*Definition
+
+	byID map[string]*Definition
+	byUI map[*ui.Theme]*Definition
+)
+
+func init() {
+	defaultLight = defaultDefinition(LightID, false)
+	defaultDark = defaultDefinition(DarkID, true)
+	named = builtinThemes()
+
+	byID = make(map[string]*Definition, len(named)+2)
+	byUI = make(map[*ui.Theme]*Definition, len(named)+2)
+	for _, d := range append([]*Definition{defaultLight, defaultDark}, named...) {
+		byID[d.ID] = d
+		byUI[d.UI] = d
+	}
+}
+
+// Default returns the default theme for an appearance.
+func Default(dark bool) *Definition {
+	if dark {
+		return defaultDark
+	}
+	return defaultLight
+}
+
+// Lookup returns the theme with id, including the default light and dark
+// themes, or false when no such theme exists.
+func Lookup(id string) (*Definition, bool) {
+	d, ok := byID[id]
+	return d, ok
+}
+
+// Resolve returns the theme a setting stands for: the named one when it
+// exists, the default theme for an appearance otherwise (also for
+// "system"), or the default light theme for an unknown id.
+func Resolve(id string, systemDark bool) *Definition {
+	if id == SystemID {
+		return Default(systemDark)
+	}
+	if d, ok := byID[id]; ok {
+		return d
+	}
+	return Default(systemDark)
+}
+
+// Normalize returns id when it names a theme, the system setting for
+// anything else, so that a settings file written by hand cannot leave the
+// app with no palette.
+func Normalize(id string) string {
+	if id == SystemID {
+		return id
+	}
+	if _, ok := byID[id]; ok {
+		return id
+	}
+	return SystemID
+}
+
+// Named returns the named themes in display order, default light and dark
+// excluded.
+func Named() []*Definition { return named }
+
+// For returns the palette for an appearance.
+func For(dark bool) *ui.Theme { return Default(dark).UI }
 
 // Light returns the light palette.
-func Light() *ui.Theme { return lightTheme() }
+func Light() *ui.Theme { return defaultLight.UI }
 
 // Dark returns the dark palette.
-func Dark() *ui.Theme { return darkTheme() }
+func Dark() *ui.Theme { return defaultDark.UI }
 
 // Sidebar is the sidebar's background.
-func Sidebar(t *ui.Theme) ui.Color {
-	if t.Dark {
-		return ui.Hex("#12161F")
-	}
-	return ui.Hex("#F3F4F6")
-}
+func Sidebar(t *ui.Theme) ui.Color { return definitionFor(t).Chrome.Sidebar }
 
 // TabBar is the tab bar's background.
-func TabBar(t *ui.Theme) ui.Color {
-	if t.Dark {
-		return ui.Hex("#151922")
-	}
-	return ui.Hex("#F7F8FA")
-}
+func TabBar(t *ui.Theme) ui.Color { return definitionFor(t).Chrome.TabBar }
 
 // ActiveTab is the chosen tab's background.
-func ActiveTab(t *ui.Theme) ui.Color {
-	if t.Dark {
-		return ui.Hex("#1B202B")
-	}
-	return ui.Hex("#FFFFFF")
-}
+func ActiveTab(t *ui.Theme) ui.Color { return definitionFor(t).Chrome.ActiveTab }
 
 // Inverse is the fill of a tip and the color of text on it, as MyGo's own
 // tooltip and toast choose them: the theme's Inverse and InverseText where
@@ -88,6 +165,42 @@ func ResultList(t *ui.Theme) *ui.Theme {
 	return list
 }
 
+// EditorTheme colors the code editor to match t.
+func EditorTheme(t *ui.Theme) *editor.Theme { return definitionFor(t).Code }
+
+// definitionFor finds the theme t belongs to. A palette that did not come
+// from this package, as a test's ui.LightTheme, falls back to the default
+// for its appearance.
+func definitionFor(t *ui.Theme) *Definition {
+	if t != nil {
+		if d, ok := byUI[t]; ok {
+			return d
+		}
+		if t.Dark {
+			return defaultDark
+		}
+	}
+	return defaultLight
+}
+
+func defaultDefinition(id string, dark bool) *Definition {
+	t := lightTheme()
+	chrome := Chrome{
+		Sidebar:   ui.Hex("#F3F4F6"),
+		TabBar:    ui.Hex("#F7F8FA"),
+		ActiveTab: ui.Hex("#FFFFFF"),
+	}
+	if dark {
+		t = darkTheme()
+		chrome = Chrome{
+			Sidebar:   ui.Hex("#12161F"),
+			TabBar:    ui.Hex("#151922"),
+			ActiveTab: ui.Hex("#1B202B"),
+		}
+	}
+	return &Definition{ID: id, Dark: dark, UI: t, Chrome: chrome, Code: buildEditorTheme(t)}
+}
+
 func lightTheme() *ui.Theme {
 	t := ui.LightTheme()
 	t.Background = ui.Hex("#FFFFFF")
@@ -120,8 +233,41 @@ func lightTheme() *ui.Theme {
 	return t
 }
 
-// EditorTheme colors the code editor to match t.
-func EditorTheme(t *ui.Theme) *editor.Theme {
+func darkTheme() *ui.Theme {
+	t := ui.DarkTheme()
+	t.Background = ui.Hex("#0F1115")
+	t.Surface = ui.Hex("#151922")
+	t.SurfaceHover = ui.Hex("#1F2531")
+	t.SurfacePressed = ui.Hex("#252C3A")
+	t.Border = ui.Hex("#262C38")
+	t.Text = ui.Hex("#E6E9EF")
+	t.TextMuted = ui.Hex("#9AA4B2")
+	t.Accent = ui.Hex("#7C8CFF")
+	t.AccentHover = ui.Hex("#93A1FF")
+	t.AccentPressed = ui.Hex("#6B7AEB")
+	t.AccentText = ui.Hex("#0F1115")
+	t.Danger = ui.Hex("#F87171")
+	t.Warning = ui.Hex("#FBBF24")
+	t.Success = ui.Hex("#4ADE80")
+	t.Selection = ui.Hex("#2A3350")
+	t.Focus = ui.RGBA(124, 140, 255, 0.60)
+	t.FocusRingWidth = 2
+	t.FocusRingOffset = 1
+	t.Scrollbar = ui.RGBA(255, 255, 255, 0.16)
+	t.ScrollbarWidth = 6
+	t.ScrollbarStyle = ui.ScrollbarStyle{
+		TrackWidth: 10, ThumbWidth: 6, Radius: 3, MinLength: 20,
+		Thumb: ui.RGBA(255, 255, 255, 0.16), Hover: ui.RGBA(255, 255, 255, 0.26), Active: ui.RGBA(255, 255, 255, 0.36),
+	}
+	t.Radius = 8
+	t.Spacing = 4
+	t.FontSize = 13
+	return t
+}
+
+// buildEditorTheme colors the editor for one of the default palettes,
+// keeping the token colors the app has always used.
+func buildEditorTheme(t *ui.Theme) *editor.Theme {
 	ct := editor.DefaultTheme(t)
 	ct.Background = t.Background
 	ct.Text = t.Text
@@ -201,34 +347,38 @@ func EditorTheme(t *ui.Theme) *editor.Theme {
 	return ct
 }
 
-func darkTheme() *ui.Theme {
-	t := ui.DarkTheme()
-	t.Background = ui.Hex("#0F1115")
-	t.Surface = ui.Hex("#151922")
-	t.SurfaceHover = ui.Hex("#1F2531")
-	t.SurfacePressed = ui.Hex("#252C3A")
-	t.Border = ui.Hex("#262C38")
-	t.Text = ui.Hex("#E6E9EF")
-	t.TextMuted = ui.Hex("#9AA4B2")
-	t.Accent = ui.Hex("#7C8CFF")
-	t.AccentHover = ui.Hex("#93A1FF")
-	t.AccentPressed = ui.Hex("#6B7AEB")
-	t.AccentText = ui.Hex("#0F1115")
-	t.Danger = ui.Hex("#F87171")
-	t.Warning = ui.Hex("#FBBF24")
-	t.Success = ui.Hex("#4ADE80")
-	t.Selection = ui.Hex("#2A3350")
-	t.Focus = ui.RGBA(124, 140, 255, 0.60)
-	t.FocusRingWidth = 2
-	t.FocusRingOffset = 1
-	t.Scrollbar = ui.RGBA(255, 255, 255, 0.16)
-	t.ScrollbarWidth = 6
-	t.ScrollbarStyle = ui.ScrollbarStyle{
-		TrackWidth: 10, ThumbWidth: 6, Radius: 3, MinLength: 20,
-		Thumb: ui.RGBA(255, 255, 255, 0.16), Hover: ui.RGBA(255, 255, 255, 0.26), Active: ui.RGBA(255, 255, 255, 0.36),
+// contrast is the WCAG contrast ratio of two opaque colors, used to pick
+// legible text on an accent.
+func contrast(a, b ui.Color) float64 {
+	la, lb := luminance(a), luminance(b)
+	if la < lb {
+		la, lb = lb, la
 	}
-	t.Radius = 8
-	t.Spacing = 4
-	t.FontSize = 13
-	return t
+	return (la + 0.05) / (lb + 0.05)
+}
+
+func luminance(c ui.Color) float64 {
+	channel := func(v uint8) float64 {
+		s := float64(v) / 255
+		if s <= 0.03928 {
+			return s / 12.92
+		}
+		return math.Pow((s+0.055)/1.055, 2.4)
+	}
+	return 0.2126*channel(c.R) + 0.7152*channel(c.G) + 0.0722*channel(c.B)
+}
+
+// inkOn picks the theme's background as text on fill when it is legible
+// there, black or white otherwise, so primary buttons stay readable in
+// every theme.
+func inkOn(fill, background ui.Color) ui.Color {
+	if contrast(fill, background) >= 4.5 {
+		return background
+	}
+	black := ui.RGB(0, 0, 0)
+	white := ui.RGB(255, 255, 255)
+	if contrast(fill, black) >= contrast(fill, white) {
+		return black
+	}
+	return white
 }

@@ -18,7 +18,7 @@ const fileName = "settings.json"
 // build values without a constructor. Missing fields in an older file keep
 // the defaults of Default.
 type Settings struct {
-	Theme    string `json:"theme"`    // light | dark | system
+	Theme    string `json:"theme"`    // system | light | dark | a named theme id
 	Language string `json:"language"` // "" follows the system, else zh-Hans | en
 
 	FontFamily string  `json:"fontFamily"` // "" is the system's monospaced font
@@ -116,9 +116,10 @@ func Ensure(dir string, s Settings) error {
 }
 
 func (s *Settings) normalize() {
-	switch s.Theme {
-	case "light", "dark", "system":
-	default:
+	// Theme ids are checked against the theme registry by the app, which
+	// knows every built-in palette; an empty value only means the user
+	// has not chosen one yet.
+	if s.Theme == "" {
 		s.Theme = "system"
 	}
 	switch s.Language {

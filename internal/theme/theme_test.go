@@ -7,6 +7,101 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 )
 
+func TestDefaultThemesKeepTheirColors(t *testing.T) {
+	light, dark := Default(false), Default(true)
+	if light.UI.Background != ui.Hex("#FFFFFF") || light.UI.Accent != ui.Hex("#4F46E5") {
+		t.Error("default light palette changed")
+	}
+	if light.Chrome.Sidebar != ui.Hex("#F3F4F6") ||
+		light.Chrome.TabBar != ui.Hex("#F7F8FA") ||
+		light.Chrome.ActiveTab != ui.Hex("#FFFFFF") {
+		t.Error("default light chrome changed")
+	}
+	if dark.UI.Background != ui.Hex("#0F1115") || dark.UI.Accent != ui.Hex("#7C8CFF") {
+		t.Error("default dark palette changed")
+	}
+	if dark.Chrome.Sidebar != ui.Hex("#12161F") ||
+		dark.Chrome.TabBar != ui.Hex("#151922") ||
+		dark.Chrome.ActiveTab != ui.Hex("#1B202B") {
+		t.Error("default dark chrome changed")
+	}
+	if got := light.Code.Tokens[editor.TokenKeyword].Color; got != ui.Hex("#7C3AED") {
+		t.Errorf("light keyword %v, want #7C3AED", got)
+	}
+	if got := dark.Code.Tokens[editor.TokenKeyword].Color; got != ui.Hex("#C4A7FF") {
+		t.Errorf("dark keyword %v, want #C4A7FF", got)
+	}
+}
+
+func TestNamedThemesAreComplete(t *testing.T) {
+	named := Named()
+	if len(named) != 10 {
+		t.Fatalf("%d named themes, want 10", len(named))
+	}
+	seen := map[string]bool{}
+	darkCount := 0
+	for _, d := range named {
+		if d.ID == "" || d.ID == SystemID || d.ID == LightID || d.ID == DarkID {
+			t.Errorf("named theme id %q collides with a reserved id", d.ID)
+		}
+		if seen[d.ID] {
+			t.Errorf("duplicate theme id %q", d.ID)
+		}
+		seen[d.ID] = true
+		if d.Name == "" || d.UI == nil || d.Code == nil {
+			t.Errorf("theme %q is incomplete", d.ID)
+		}
+		if d.Dark {
+			darkCount++
+		}
+		if Normalize(d.ID) != d.ID {
+			t.Errorf("theme %q does not normalize to itself", d.ID)
+		}
+		if got, ok := Lookup(d.ID); !ok || got != d {
+			t.Errorf("lookup %q = %v, %v; want the theme", d.ID, got, ok)
+		}
+		if Resolve(d.ID, !d.Dark) != d {
+			t.Errorf("theme %q changes with the system appearance", d.ID)
+		}
+		if Sidebar(d.UI) != d.Chrome.Sidebar || TabBar(d.UI) != d.Chrome.TabBar ||
+			ActiveTab(d.UI) != d.Chrome.ActiveTab {
+			t.Errorf("theme %q chrome does not resolve from its palette", d.ID)
+		}
+		for k := editor.TokenText; k <= editor.TokenInvalid; k++ {
+			if d.Code.Tokens[k].Color == (ui.Color{}) {
+				t.Errorf("theme %q leaves token %d uncolored", d.ID, k)
+			}
+		}
+	}
+	if darkCount == 0 || darkCount == len(named) {
+		t.Errorf("%d of %d named themes are dark", darkCount, len(named))
+	}
+	if Resolve(SystemID, false) != Default(false) || Resolve(SystemID, true) != Default(true) {
+		t.Error("system does not follow the appearance")
+	}
+	if Normalize("neon") != SystemID {
+		t.Error("an unknown id does not normalize to system")
+	}
+	if Resolve("neon", true) != Default(true) {
+		t.Error("an unknown id does not resolve to the default theme")
+	}
+}
+
+func TestThemeContrast(t *testing.T) {
+	themes := append([]*Definition{Default(false), Default(true)}, Named()...)
+	for _, d := range themes {
+		if c := contrast(d.UI.Text, d.UI.Background); c < 4.5 {
+			t.Errorf("theme %q text contrast %.2f, want at least 4.5", d.ID, c)
+		}
+		if c := contrast(d.UI.TextMuted, d.UI.Background); c < 3 {
+			t.Errorf("theme %q muted text contrast %.2f, want at least 3", d.ID, c)
+		}
+		if c := contrast(d.UI.AccentText, d.UI.Accent); c < 4.5 {
+			t.Errorf("theme %q accent text contrast %.2f, want at least 4.5", d.ID, c)
+		}
+	}
+}
+
 func TestFor(t *testing.T) {
 	light, dark := For(false), For(true)
 	if light.Dark {

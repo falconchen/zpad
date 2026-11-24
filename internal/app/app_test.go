@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
+	"github.com/helloxz/zpad/internal/theme"
 	"github.com/helloxz/zpad/locales"
 )
 
@@ -152,11 +153,8 @@ func TestThemeSwitchPersists(t *testing.T) {
 	dir := t.TempDir()
 	a := New(settings.Default(), dir)
 
-	a.setThemeIndex(1)
-	if a.ThemeIndex != 1 {
-		t.Fatalf("theme index %d, want 1", a.ThemeIndex)
-	}
-	if a.Settings.Theme != "dark" {
+	a.setThemeID(theme.DarkID)
+	if a.Settings.Theme != theme.DarkID {
 		t.Fatalf("settings theme %q, want dark", a.Settings.Theme)
 	}
 	if !a.Dark {
@@ -165,5 +163,26 @@ func TestThemeSwitchPersists(t *testing.T) {
 
 	if _, err := os.Stat(filepath.Join(dir, "settings.json")); err != nil {
 		t.Fatalf("settings were not saved: %v", err)
+	}
+
+	a.setThemeID("dracula")
+	if a.Settings.Theme != "dracula" || !a.Dark {
+		t.Fatalf("named theme %q dark %v, want dracula and dark", a.Settings.Theme, a.Dark)
+	}
+	loaded, err := settings.Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Theme != "dracula" {
+		t.Fatalf("saved theme %q, want dracula", loaded.Theme)
+	}
+}
+
+func TestUnknownThemeFallsBackToSystem(t *testing.T) {
+	s := settings.Default()
+	s.Theme = "neon"
+	a := New(s, t.TempDir())
+	if a.Settings.Theme != theme.SystemID {
+		t.Fatalf("theme %q, want %q", a.Settings.Theme, theme.SystemID)
 	}
 }

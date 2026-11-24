@@ -107,7 +107,6 @@ func TestCorruptFileIsBackedUp(t *testing.T) {
 func TestNormalizeClampsOutOfRangeValues(t *testing.T) {
 	dir := t.TempDir()
 	bad := Default()
-	bad.Theme = "neon"
 	bad.FontSize = 99
 	bad.LineHeight = -1
 	bad.TabSize = 3
@@ -126,6 +125,24 @@ func TestNormalizeClampsOutOfRangeValues(t *testing.T) {
 	want := Default()
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %+v, want %+v", got, want)
+	}
+}
+
+// Theme ids are checked by the app against the theme registry, so the
+// settings file must keep them as written.
+func TestThemeIDSurvivesLoad(t *testing.T) {
+	dir := t.TempDir()
+	s := Default()
+	s.Theme = "dracula"
+	if err := Save(dir, s); err != nil {
+		t.Fatal(err)
+	}
+	got, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Theme != "dracula" {
+		t.Fatalf("theme %q, want dracula", got.Theme)
 	}
 }
 

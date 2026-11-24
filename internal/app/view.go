@@ -29,7 +29,7 @@ func (a *App) View(c *ui.Context) {
 		w, h := c.Size()
 		log.Printf("window %.0fx%.0f", w, h)
 	}
-	t := theme.For(a.Dark)
+	t := a.themeDefinition().UI
 	c.SetTheme(t)
 	c.SetMenuPresentation(ui.PopoverMenus)
 	if !a.showSettings && !a.aboutOpen && !a.renameOpen {
@@ -114,17 +114,6 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 		ui.Spacer(c)
 		a.iconButton(c, t, iconUpdate, locales.CheckForUpdates(), false, a.checkUpdates)
 		a.splitButton(c, t)
-		ui.PopoverMenuButton(c, locales.Theme(), func(m *ui.Menu) {
-			if m.Item(locales.ThemeLight()).Checked(a.ThemeIndex == 0).Chosen() {
-				a.setThemeIndex(0)
-			}
-			if m.Item(locales.ThemeDark()).Checked(a.ThemeIndex == 1).Chosen() {
-				a.setThemeIndex(1)
-			}
-			if m.Item(locales.ThemeSystem()).Checked(a.ThemeIndex == 2).Chosen() {
-				a.setThemeIndex(2)
-			}
-		}, menuButtonCursorOptions()).Label(locales.Theme()).Tooltip(locales.Theme()).Cursor(ui.CursorPointer)
 		a.iconButton(c, t, iconSettings, locales.Settings(), a.showSettings, a.openSettings).
 			KeyShortcuts(ui.Cmd, ui.KeyComma)
 	}).Padding(8, 10).Background(t.Surface).Height(toolbarHeight).

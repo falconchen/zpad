@@ -14,6 +14,7 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/files"
 	"github.com/helloxz/zpad/internal/settings"
+	"github.com/helloxz/zpad/internal/theme"
 	"github.com/helloxz/zpad/locales"
 )
 
@@ -89,9 +90,10 @@ type App struct {
 	Settings    settings.Settings
 	SettingsDir string
 	// LogPath is where SetupLogging writes, "" when logging is off.
-	LogPath    string
-	ThemeIndex int // 0 light, 1 dark, 2 system
-	Dark       bool
+	LogPath string
+	// Dark reports whether the current theme is built on a dark palette.
+	// Settings.Theme says which theme it is.
+	Dark bool
 
 	win     *mygo.Window
 	running bool
@@ -195,19 +197,13 @@ type App struct {
 // New returns an app with saved settings and the directory to save them
 // in.
 func New(s settings.Settings, settingsDir string) *App {
-	idx := 2
-	switch s.Theme {
-	case "light":
-		idx = 0
-	case "dark":
-		idx = 1
-	}
+	s.Theme = theme.Normalize(s.Theme)
+	def := theme.Resolve(s.Theme, false)
 	return &App{
 		Settings:     s,
 		SettingsDir:  settingsDir,
 		LogPath:      filepath.Join(settingsDir, LogName),
-		ThemeIndex:   idx,
-		Dark:         s.Theme == "dark",
+		Dark:         def.Dark,
 		treeSelected: -1,
 		left:         Pane{active: -1},
 		right:        Pane{active: -1},
@@ -220,15 +216,24 @@ func New(s settings.Settings, settingsDir string) *App {
 	}
 }
 
-// SetThemeSource applies the saved appearance before App.Run.
-func SetThemeSource(mode string) {
-	switch mode {
-	case "light":
-		mygo.Theme.SetSource(mygo.ThemeLight)
-	case "dark":
-		mygo.Theme.SetSource(mygo.ThemeDark)
-	default:
+// SetThemeSource applies a theme's appearance to the native window
+// chrome before App.Run and when the theme changes: a named theme keeps
+// the light or dark title bar it is built on, "system" follows the
+// desktop.
+func SetThemeSource(id string) {
+	if id == "" || id == theme.SystemID {
 		mygo.Theme.SetSource(mygo.ThemeSystem)
+		return
+	}
+	def, ok := theme.Lookup(id)
+	if !ok {
+		mygo.Theme.SetSource(mygo.ThemeSystem)
+		return
+	}
+	if def.Dark {
+		mygo.Theme.SetSource(mygo.ThemeDark)
+	} else {
+		mygo.Theme.SetSource(mygo.ThemeLight)
 	}
 }
 
@@ -852,31 +857,27 @@ func (a *App) toggleHidden() {
 	a.update()
 }
 
-func (a *App) setTheme() {
-	mode := "system"
-	switch a.ThemeIndex {
-	case 0:
-		mode = "light"
-	case 1:
-		mode = "dark"
-	}
-	a.Settings.Theme = mode
-
-	switch mode {
-	case "light":
-		a.Dark = false
-	case "dark":
-		a.Dark = true
-	}
-
+// setThemeID switches to the theme id, saves it and redraws. An unknown id
+// falls back to following the system, so a settings file cannot leave the
+// app without a palette.
+func (a *App) setThemeID(id string) {
+	id = theme.Normalize(id)
+	a.Settings.Theme = id
+	def := theme.Resolve(id, a.Dark)
+	a.Dark = def.Dark
 	if a.running {
-		SetThemeSource(mode)
-		if mode == "system" {
+		SetThemeSource(id)
+		if id == theme.SystemID {
 			a.Dark = mygo.Theme.IsDark()
 		}
 	}
 	a.saveSettings()
 	a.update()
+}
+
+// themeDefinition is the theme the window draws with right now.
+func (a *App) themeDefinition() *theme.Definition {
+	return theme.Resolve(a.Settings.Theme, a.Dark)
 }
 
 func (a *App) saveSettings() {

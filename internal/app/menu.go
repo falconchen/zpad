@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/caseconv"
 	"github.com/helloxz/zpad/internal/encoding"
+	"github.com/helloxz/zpad/internal/theme"
 	"github.com/helloxz/zpad/locales"
 )
 
@@ -71,9 +72,11 @@ func (a *App) menuItems() []*mygo.MenuItem {
 		}},
 		mygo.Separator(),
 		{Label: locales.Theme(), Submenu: []*mygo.MenuItem{
-			{Label: locales.ThemeLight(), Click: func(*mygo.MenuItem, *mygo.Window) { a.setThemeIndex(0) }},
-			{Label: locales.ThemeDark(), Click: func(*mygo.MenuItem, *mygo.Window) { a.setThemeIndex(1) }},
-			{Label: locales.ThemeSystem(), Click: func(*mygo.MenuItem, *mygo.Window) { a.setThemeIndex(2) }},
+			{Label: locales.ThemeLight(), Click: func(*mygo.MenuItem, *mygo.Window) { a.setThemeID(theme.LightID) }},
+			{Label: locales.ThemeDark(), Click: func(*mygo.MenuItem, *mygo.Window) { a.setThemeID(theme.DarkID) }},
+			{Label: locales.ThemeSystem(), Click: func(*mygo.MenuItem, *mygo.Window) { a.setThemeID(theme.SystemID) }},
+			mygo.Separator(),
+			{Label: locales.MoreThemesEllipsis(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openSettings() }},
 		}},
 		mygo.Separator(),
 		{Label: locales.SettingsEllipsis(), Accelerator: "CmdOrCtrl+,", Click: func(*mygo.MenuItem, *mygo.Window) { a.openSettings() }},
@@ -135,11 +138,6 @@ func (a *App) menuItems() []*mygo.MenuItem {
 		}})
 	}
 	return items
-}
-
-func (a *App) setThemeIndex(i int) {
-	a.ThemeIndex = i
-	a.setTheme()
 }
 
 func encodingItems(run func(encoding.Kind)) []*mygo.MenuItem {

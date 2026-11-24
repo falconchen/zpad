@@ -926,6 +926,46 @@ func (msgs Messages) ThemeSystem() string {
 	return Catalog.Format(msgs.locale, "themeSystem", nil)
 }
 
+// ThemeLightTag says "Light"
+// in the language the app shows.
+func ThemeLightTag() string { return In(i18n.Locale()).ThemeLightTag() }
+
+// ThemeLightTag says "Light"
+// in the language of msgs.
+func (msgs Messages) ThemeLightTag() string {
+	return Catalog.Format(msgs.locale, "themeLightTag", nil)
+}
+
+// ThemeDarkTag says "Dark"
+// in the language the app shows.
+func ThemeDarkTag() string { return In(i18n.Locale()).ThemeDarkTag() }
+
+// ThemeDarkTag says "Dark"
+// in the language of msgs.
+func (msgs Messages) ThemeDarkTag() string {
+	return Catalog.Format(msgs.locale, "themeDarkTag", nil)
+}
+
+// ThemeDescription says "Changes the colors of the window and the editor."
+// in the language the app shows.
+func ThemeDescription() string { return In(i18n.Locale()).ThemeDescription() }
+
+// ThemeDescription says "Changes the colors of the window and the editor."
+// in the language of msgs.
+func (msgs Messages) ThemeDescription() string {
+	return Catalog.Format(msgs.locale, "themeDescription", nil)
+}
+
+// MoreThemesEllipsis says "More Themes…"
+// in the language the app shows.
+func MoreThemesEllipsis() string { return In(i18n.Locale()).MoreThemesEllipsis() }
+
+// MoreThemesEllipsis says "More Themes…"
+// in the language of msgs.
+func (msgs Messages) MoreThemesEllipsis() string {
+	return Catalog.Format(msgs.locale, "moreThemesEllipsis", nil)
+}
+
 // Settings says "Settings"
 // in the language the app shows.
 func Settings() string { return In(i18n.Locale()).Settings() }
@@ -1086,6 +1126,16 @@ func (msgs Messages) LanguageEnglish() string {
 	return Catalog.Format(msgs.locale, "languageEnglish", nil)
 }
 
+// LanguageDescription says "The language of menus, dialogs and messages."
+// in the language the app shows.
+func LanguageDescription() string { return In(i18n.Locale()).LanguageDescription() }
+
+// LanguageDescription says "The language of menus, dialogs and messages."
+// in the language of msgs.
+func (msgs Messages) LanguageDescription() string {
+	return Catalog.Format(msgs.locale, "languageDescription", nil)
+}
+
 // EditorSection says "Editor"
 // in the language the app shows.
 func EditorSection() string { return In(i18n.Locale()).EditorSection() }
@@ -1116,6 +1166,16 @@ func (msgs Messages) SystemMonospace() string {
 	return Catalog.Format(msgs.locale, "systemMonospace", nil)
 }
 
+// FontFamilyDescription says "The monospaced font for the editor and Markdown code."
+// in the language the app shows.
+func FontFamilyDescription() string { return In(i18n.Locale()).FontFamilyDescription() }
+
+// FontFamilyDescription says "The monospaced font for the editor and Markdown code."
+// in the language of msgs.
+func (msgs Messages) FontFamilyDescription() string {
+	return Catalog.Format(msgs.locale, "fontFamilyDescription", nil)
+}
+
 // FontSize says "Font Size"
 // in the language the app shows.
 func FontSize() string { return In(i18n.Locale()).FontSize() }
@@ -1126,6 +1186,16 @@ func (msgs Messages) FontSize() string {
 	return Catalog.Format(msgs.locale, "fontSize", nil)
 }
 
+// FontSizeDescription says "Editor text size, from 10 to 28."
+// in the language the app shows.
+func FontSizeDescription() string { return In(i18n.Locale()).FontSizeDescription() }
+
+// FontSizeDescription says "Editor text size, from 10 to 28."
+// in the language of msgs.
+func (msgs Messages) FontSizeDescription() string {
+	return Catalog.Format(msgs.locale, "fontSizeDescription", nil)
+}
+
 // LineHeight says "Line Height"
 // in the language the app shows.
 func LineHeight() string { return In(i18n.Locale()).LineHeight() }
@@ -1134,6 +1204,16 @@ func LineHeight() string { return In(i18n.Locale()).LineHeight() }
 // in the language of msgs.
 func (msgs Messages) LineHeight() string {
 	return Catalog.Format(msgs.locale, "lineHeight", nil)
+}
+
+// LineHeightDescription says "Editor line spacing, from 1.2 to 2.0."
+// in the language the app shows.
+func LineHeightDescription() string { return In(i18n.Locale()).LineHeightDescription() }
+
+// LineHeightDescription says "Editor line spacing, from 1.2 to 2.0."
+// in the language of msgs.
+func (msgs Messages) LineHeightDescription() string {
+	return Catalog.Format(msgs.locale, "lineHeightDescription", nil)
 }
 
 // SoftWrap says "Word Wrap"
@@ -1164,6 +1244,16 @@ func LineNumbers() string { return In(i18n.Locale()).LineNumbers() }
 // in the language of msgs.
 func (msgs Messages) LineNumbers() string {
 	return Catalog.Format(msgs.locale, "lineNumbers", nil)
+}
+
+// LineNumbersDescription says "Show absolute or relative line numbers, or hide the gutter."
+// in the language the app shows.
+func LineNumbersDescription() string { return In(i18n.Locale()).LineNumbersDescription() }
+
+// LineNumbersDescription says "Show absolute or relative line numbers, or hide the gutter."
+// in the language of msgs.
+func (msgs Messages) LineNumbersDescription() string {
+	return Catalog.Format(msgs.locale, "lineNumbersDescription", nil)
 }
 
 // LineNumbersAbsolute says "Absolute"
@@ -1206,6 +1296,16 @@ func (msgs Messages) TabSize() string {
 	return Catalog.Format(msgs.locale, "tabSize", nil)
 }
 
+// TabSizeDescription says "Spaces inserted when Tab is pressed."
+// in the language the app shows.
+func TabSizeDescription() string { return In(i18n.Locale()).TabSizeDescription() }
+
+// TabSizeDescription says "Spaces inserted when Tab is pressed."
+// in the language of msgs.
+func (msgs Messages) TabSizeDescription() string {
+	return Catalog.Format(msgs.locale, "tabSizeDescription", nil)
+}
+
 // Indent says "Indent"
 // in the language the app shows.
 func Indent() string { return In(i18n.Locale()).Indent() }
@@ -1214,6 +1314,16 @@ func Indent() string { return In(i18n.Locale()).Indent() }
 // in the language of msgs.
 func (msgs Messages) Indent() string {
 	return Catalog.Format(msgs.locale, "indent", nil)
+}
+
+// IndentDescription says "Insert spaces or tabs when Tab is pressed."
+// in the language the app shows.
+func IndentDescription() string { return In(i18n.Locale()).IndentDescription() }
+
+// IndentDescription says "Insert spaces or tabs when Tab is pressed."
+// in the language of msgs.
+func (msgs Messages) IndentDescription() string {
+	return Catalog.Format(msgs.locale, "indentDescription", nil)
 }
 
 // IndentSpaces says "Spaces"
@@ -1246,6 +1356,16 @@ func (msgs Messages) IndentGuides() string {
 	return Catalog.Format(msgs.locale, "indentGuides", nil)
 }
 
+// IndentGuidesDescription says "Show a vertical guide for each level of indentation."
+// in the language the app shows.
+func IndentGuidesDescription() string { return In(i18n.Locale()).IndentGuidesDescription() }
+
+// IndentGuidesDescription says "Show a vertical guide for each level of indentation."
+// in the language of msgs.
+func (msgs Messages) IndentGuidesDescription() string {
+	return Catalog.Format(msgs.locale, "indentGuidesDescription", nil)
+}
+
 // AutoClose says "Auto-close Brackets"
 // in the language the app shows.
 func AutoClose() string { return In(i18n.Locale()).AutoClose() }
@@ -1254,6 +1374,16 @@ func AutoClose() string { return In(i18n.Locale()).AutoClose() }
 // in the language of msgs.
 func (msgs Messages) AutoClose() string {
 	return Catalog.Format(msgs.locale, "autoClose", nil)
+}
+
+// AutoCloseDescription says "Close brackets and quotes as they are typed."
+// in the language the app shows.
+func AutoCloseDescription() string { return In(i18n.Locale()).AutoCloseDescription() }
+
+// AutoCloseDescription says "Close brackets and quotes as they are typed."
+// in the language of msgs.
+func (msgs Messages) AutoCloseDescription() string {
+	return Catalog.Format(msgs.locale, "autoCloseDescription", nil)
 }
 
 // FilesSection says "Files"
@@ -1276,6 +1406,16 @@ func (msgs Messages) DefaultEncoding() string {
 	return Catalog.Format(msgs.locale, "defaultEncoding", nil)
 }
 
+// EncodingDescription says "Encoding for new files."
+// in the language the app shows.
+func EncodingDescription() string { return In(i18n.Locale()).EncodingDescription() }
+
+// EncodingDescription says "Encoding for new files."
+// in the language of msgs.
+func (msgs Messages) EncodingDescription() string {
+	return Catalog.Format(msgs.locale, "encodingDescription", nil)
+}
+
 // DefaultLineEnding says "Default Line Ending"
 // in the language the app shows.
 func DefaultLineEnding() string { return In(i18n.Locale()).DefaultLineEnding() }
@@ -1286,6 +1426,16 @@ func (msgs Messages) DefaultLineEnding() string {
 	return Catalog.Format(msgs.locale, "defaultLineEnding", nil)
 }
 
+// LineEndingDescription says "Line ending for new files."
+// in the language the app shows.
+func LineEndingDescription() string { return In(i18n.Locale()).LineEndingDescription() }
+
+// LineEndingDescription says "Line ending for new files."
+// in the language of msgs.
+func (msgs Messages) LineEndingDescription() string {
+	return Catalog.Format(msgs.locale, "lineEndingDescription", nil)
+}
+
 // LargeFileThreshold says "Large File Threshold"
 // in the language the app shows.
 func LargeFileThreshold() string { return In(i18n.Locale()).LargeFileThreshold() }
@@ -1294,6 +1444,16 @@ func LargeFileThreshold() string { return In(i18n.Locale()).LargeFileThreshold()
 // in the language of msgs.
 func (msgs Messages) LargeFileThreshold() string {
 	return Catalog.Format(msgs.locale, "largeFileThreshold", nil)
+}
+
+// LargeFileDescription says "Open files larger than this read-only."
+// in the language the app shows.
+func LargeFileDescription() string { return In(i18n.Locale()).LargeFileDescription() }
+
+// LargeFileDescription says "Open files larger than this read-only."
+// in the language of msgs.
+func (msgs Messages) LargeFileDescription() string {
+	return Catalog.Format(msgs.locale, "largeFileDescription", nil)
 }
 
 // WorkspaceSection says "Workspace"
@@ -1316,6 +1476,16 @@ func (msgs Messages) SidebarDefault() string {
 	return Catalog.Format(msgs.locale, "sidebarDefault", nil)
 }
 
+// SidebarDefaultDescription says "Show the sidebar when the app starts."
+// in the language the app shows.
+func SidebarDefaultDescription() string { return In(i18n.Locale()).SidebarDefaultDescription() }
+
+// SidebarDefaultDescription says "Show the sidebar when the app starts."
+// in the language of msgs.
+func (msgs Messages) SidebarDefaultDescription() string {
+	return Catalog.Format(msgs.locale, "sidebarDefaultDescription", nil)
+}
+
 // RestoreSession says "Restore Session on Launch"
 // in the language the app shows.
 func RestoreSession() string { return In(i18n.Locale()).RestoreSession() }
@@ -1326,6 +1496,16 @@ func (msgs Messages) RestoreSession() string {
 	return Catalog.Format(msgs.locale, "restoreSession", nil)
 }
 
+// RestoreSessionDescription says "Restore the files, splits and scroll positions from the last launch."
+// in the language the app shows.
+func RestoreSessionDescription() string { return In(i18n.Locale()).RestoreSessionDescription() }
+
+// RestoreSessionDescription says "Restore the files, splits and scroll positions from the last launch."
+// in the language of msgs.
+func (msgs Messages) RestoreSessionDescription() string {
+	return Catalog.Format(msgs.locale, "restoreSessionDescription", nil)
+}
+
 // ConfirmClose says "Confirm Unsaved Files on Close"
 // in the language the app shows.
 func ConfirmClose() string { return In(i18n.Locale()).ConfirmClose() }
@@ -1334,6 +1514,16 @@ func ConfirmClose() string { return In(i18n.Locale()).ConfirmClose() }
 // in the language of msgs.
 func (msgs Messages) ConfirmClose() string {
 	return Catalog.Format(msgs.locale, "confirmClose", nil)
+}
+
+// ConfirmCloseDescription says "Ask before closing a file with unsaved changes."
+// in the language the app shows.
+func ConfirmCloseDescription() string { return In(i18n.Locale()).ConfirmCloseDescription() }
+
+// ConfirmCloseDescription says "Ask before closing a file with unsaved changes."
+// in the language of msgs.
+func (msgs Messages) ConfirmCloseDescription() string {
+	return Catalog.Format(msgs.locale, "confirmCloseDescription", nil)
 }
 
 // RestoreDefaults says "Restore Defaults"
