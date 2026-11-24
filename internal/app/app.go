@@ -162,6 +162,15 @@ type App struct {
 	renameErr   string
 	renameFocus bool
 
+	// createOpen asks for the name of a new file or folder in createDir;
+	// createIsDir says which of the two it makes.
+	createOpen  bool
+	createDir   string
+	createIsDir bool
+	createValue string
+	createErr   string
+	createFocus bool
+
 	// The search across open documents: the panel, its query and toggles,
 	// the rows it shows, and the scan on its way. searchGen says which scan
 	// is current, so an older one's results are ignored; searchCancel stops

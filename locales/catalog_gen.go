@@ -1696,6 +1696,46 @@ func (msgs Messages) NameExists() string {
 	return Catalog.Format(msgs.locale, "nameExists", nil)
 }
 
+// NewFolder says "New Folder"
+// in the language the app shows.
+func NewFolder() string { return In(i18n.Locale()).NewFolder() }
+
+// NewFolder says "New Folder"
+// in the language of msgs.
+func (msgs Messages) NewFolder() string {
+	return Catalog.Format(msgs.locale, "newFolder", nil)
+}
+
+// NameLabel says "Name"
+// in the language the app shows.
+func NameLabel() string { return In(i18n.Locale()).NameLabel() }
+
+// NameLabel says "Name"
+// in the language of msgs.
+func (msgs Messages) NameLabel() string {
+	return Catalog.Format(msgs.locale, "nameLabel", nil)
+}
+
+// Create says "Create"
+// in the language the app shows.
+func Create() string { return In(i18n.Locale()).Create() }
+
+// Create says "Create"
+// in the language of msgs.
+func (msgs Messages) Create() string {
+	return Catalog.Format(msgs.locale, "create", nil)
+}
+
+// CreateFailed says "Could not create {name}"
+// in the language the app shows.
+func CreateFailed(name string) string { return In(i18n.Locale()).CreateFailed(name) }
+
+// CreateFailed says "Could not create {name}"
+// in the language of msgs.
+func (msgs Messages) CreateFailed(name string) string {
+	return Catalog.Format(msgs.locale, "createFailed", map[string]any{"name": name})
+}
+
 // RenameFailed says "Could not rename {name}"
 // in the language the app shows.
 func RenameFailed(name string) string { return In(i18n.Locale()).RenameFailed(name) }

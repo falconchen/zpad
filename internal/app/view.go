@@ -32,7 +32,7 @@ func (a *App) View(c *ui.Context) {
 	t := a.themeDefinition().UI
 	c.SetTheme(t)
 	c.SetMenuPresentation(ui.PopoverMenus)
-	if !a.showSettings && !a.aboutOpen && !a.renameOpen {
+	if !a.showSettings && !a.aboutOpen && !a.renameOpen && !a.createOpen {
 		if c.Shortcut(ui.Cmd|ui.Shift, ui.KeyF) && !c.ShortcutRepeated() {
 			a.openSearchPanel()
 		}
@@ -64,6 +64,7 @@ func (a *App) View(c *ui.Context) {
 			a.aboutModal(c, t)
 			if !a.aboutOpen {
 				a.renameModal(c, t)
+				a.createModal(c, t)
 				a.searchModal(c, t)
 			}
 		}
@@ -378,7 +379,19 @@ func (a *App) workspacePanel(c *ui.Context, t *ui.Theme) {
 		ui.Icon(c, iconFolder).FontSize(13).TextColor(t.TextMuted)
 		ui.Text(c, a.tree.Name()).FontSize(12).Bold().SingleLine()
 	})
-	ui.Themed(c, theme.FileTree(t)).Grow(1).Background(ui.Transparent).Children(func() {
+	root := a.tree.Root()
+	tree := ui.Themed(c, theme.FileTree(t)).Grow(1).Background(ui.Transparent)
+	// The rows have menus of their own, so this one opens on the space
+	// below them and creates at the top of the workspace.
+	tree.PopoverMenu(func(m *ui.Menu) {
+		if m.Item(locales.NewFile()).Chosen() {
+			a.beginCreate(root, false)
+		}
+		if m.Item(locales.NewFolder()).Chosen() {
+			a.beginCreate(root, true)
+		}
+	}, sidebarMenuOptions(t))
+	tree.Children(func() {
 		a.treeState.List.Selected = &a.treeSelected
 		a.treeState.Generation = a.treeGeneration
 		// treeRow draws the indentation and the arrow itself, inside the
@@ -428,10 +441,16 @@ func (a *App) treeRow(c *ui.Context, t *ui.Theme, path string) {
 	pathTooltip(c, t, row, path)
 	row.PopoverMenu(func(m *ui.Menu) {
 		a.selectTreePath(path)
-		if !isDir {
-			if m.Item(locales.OpenInOtherPane()).Chosen() {
-				a.openInOtherPane(path)
+		if isDir {
+			if m.Item(locales.NewFile()).Chosen() {
+				a.beginCreate(path, false)
 			}
+			if m.Item(locales.NewFolder()).Chosen() {
+				a.beginCreate(path, true)
+			}
+			m.Separator()
+		} else if m.Item(locales.OpenInOtherPane()).Chosen() {
+			a.openInOtherPane(path)
 		}
 		if m.Item(locales.Rename()).Chosen() {
 			a.beginRename(path)

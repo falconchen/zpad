@@ -214,6 +214,18 @@
   "nameEmpty": "The name cannot be empty.",
   "nameInvalid": "The name cannot contain “/” or “\\”.",
   "nameExists": "A file or folder with that name already exists.",
+  "newFolder": "New Folder",
+  "nameLabel": "Name",
+  "create": "Create",
+  "createFailed": "Could not create {name}",
+  "@createFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "notes.md"
+      }
+    }
+  },
   "renameFailed": "Could not rename {name}",
   "@renameFailed": {
     "placeholders": {

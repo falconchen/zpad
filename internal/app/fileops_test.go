@@ -3,7 +3,9 @@ package app
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/helloxz/zpad/internal/settings"
@@ -302,5 +304,179 @@ func TestOpenFilesContextMenu(t *testing.T) {
 	tt.Frame()
 	if !a.split || a.activePane != 1 || len(a.right.tabs) != 1 || a.right.tabs[0].doc != doc {
 		t.Fatalf("split %v, active pane %d, right tabs %d", a.split, a.activePane, len(a.right.tabs))
+	}
+}
+
+// eventually waits for ok, which file work settles into on its goroutine.
+func eventually(t *testing.T, what string, ok func() bool) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if ok() {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	t.Fatalf("timed out waiting for %s", what)
+}
+
+func TestWorkspaceBlankMenu(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	// The space under the tree's only row.
+	tt.RightClickAt(60, 420)
+	tt.Frame()
+	menu := tt.Menu()
+	for _, want := range []string{locales.NewFile(), locales.NewFolder()} {
+		if !slices.Contains(menu, want) {
+			t.Fatalf("blank menu %q does not show %q", menu, want)
+		}
+	}
+	if err := tt.ChooseMenuItem(locales.NewFolder()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !a.createOpen || a.createDir != dir || !a.createIsDir {
+		t.Fatalf("create dialog %v, dir %q, folder %v", a.createOpen, a.createDir, a.createIsDir)
+	}
+	if !tt.HasText(locales.NameLabel()) {
+		t.Fatalf("create dialog has no name field; texts %q", tt.Texts())
+	}
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if a.createOpen {
+		t.Fatal("Escape did not close the create dialog")
+	}
+
+	// A row keeps its own menu: no creating beside a file from its row.
+	tt.RightClickAt(60, 420)
+	tt.Frame()
+	tt.Key(0, ui.KeyEscape)
+	tt.Frame()
+	if err := tt.RightClick("a.txt"); err != nil {
+		t.Fatal(err)
+	}
+	if menu := tt.Menu(); slices.Contains(menu, locales.NewFolder()) {
+		t.Fatalf("file menu %q offers to create a folder", menu)
+	}
+}
+
+func TestCreateFileFromBlankMenu(t *testing.T) {
+	dir := t.TempDir()
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	a.beginCreate(dir, false)
+	a.createValue = "new.txt"
+	a.applyCreate()
+	if a.createOpen {
+		t.Fatal("the create dialog stayed open")
+	}
+	path := filepath.Join(dir, "new.txt")
+	eventually(t, "the new file to open", func() bool {
+		return a.findDocument(path) != nil
+	})
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("the file was not created: %v", err)
+	}
+	if len(a.left.tabs) != 1 || a.left.tabs[0].doc.Path != path {
+		t.Fatalf("left tabs %d, want the new file", len(a.left.tabs))
+	}
+	tt.Frame()
+	if roots := a.tree.Roots(); len(roots) != 1 || roots[0] != path {
+		t.Fatalf("tree roots %q, want %q", roots, path)
+	}
+}
+
+func TestFolderMenuCreatesInsideFolder(t *testing.T) {
+	dir := t.TempDir()
+	sub := filepath.Join(dir, "docs")
+	if err := os.Mkdir(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+
+	tt := ui.NewTester(a.View, 900, 600)
+	tt.Frame()
+	if err := tt.RightClick("docs"); err != nil {
+		t.Fatal(err)
+	}
+	menu := tt.Menu()
+	for _, want := range []string{locales.NewFile(), locales.NewFolder()} {
+		if !slices.Contains(menu, want) {
+			t.Fatalf("folder menu %q does not show %q", menu, want)
+		}
+	}
+	if err := tt.ChooseMenuItem(locales.NewFolder()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !a.createOpen || a.createDir != sub || !a.createIsDir {
+		t.Fatalf("create dialog %v, dir %q, folder %v", a.createOpen, a.createDir, a.createIsDir)
+	}
+	a.createValue = "notes"
+	a.applyCreate()
+	newDir := filepath.Join(sub, "notes")
+	eventually(t, "the new folder", func() bool {
+		info, err := os.Stat(newDir)
+		return err == nil && info.IsDir()
+	})
+	tt.Frame()
+	if !a.treeState.Open.Has(sub) {
+		t.Fatal("the folder holding the new entry is not expanded")
+	}
+	if len(a.left.tabs) != 0 {
+		t.Fatalf("left tabs %d, a new folder opened one", len(a.left.tabs))
+	}
+}
+
+func TestCreateValidation(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "a.txt"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a := New(settings.Default(), t.TempDir())
+	a.setWorkspace(dir)
+	a.createOpen = true
+	a.createDir = dir
+
+	for _, tc := range []struct {
+		name string
+		want string
+	}{
+		{"  ", locales.NameEmpty()},
+		{"sub/x.txt", locales.NameInvalid()},
+		{`sub\x.txt`, locales.NameInvalid()},
+		{"a.txt", locales.NameExists()},
+	} {
+		a.createErr = ""
+		a.createValue = tc.name
+		a.applyCreate()
+		if a.createErr != tc.want {
+			t.Errorf("create %q error %q, want %q", tc.name, a.createErr, tc.want)
+		}
+		if !a.createOpen {
+			t.Errorf("create %q closed the dialog", tc.name)
+		}
+	}
+
+	// A document still open under a name deleted from disk keeps the name.
+	gone := filepath.Join(dir, "gone.txt")
+	a.addDocument(docAt(gone, "x"))
+	a.createErr = ""
+	a.createValue = "gone.txt"
+	a.applyCreate()
+	if a.createErr != locales.NameExists() {
+		t.Fatalf("open document name error %q, want %q", a.createErr, locales.NameExists())
 	}
 }

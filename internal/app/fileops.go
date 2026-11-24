@@ -38,6 +38,18 @@ func (a *App) selectTreePath(path string) {
 	}
 }
 
+// checkName reports what is wrong with a typed file or folder name itself,
+// without looking at the directory: an empty name or a path separator.
+func checkName(name string) string {
+	switch {
+	case name == "":
+		return locales.NameEmpty()
+	case name == "." || name == ".." || strings.ContainsAny(name, `/\`):
+		return locales.NameInvalid()
+	}
+	return ""
+}
+
 // beginRename opens the rename dialog for path.
 func (a *App) beginRename(path string) {
 	a.renameOpen = true
@@ -52,13 +64,8 @@ func (a *App) beginRename(path string) {
 func (a *App) applyRename() {
 	name := strings.TrimSpace(a.renameValue)
 	old := a.renamePath
-	switch {
-	case name == "":
-		a.renameErr = locales.NameEmpty()
-		a.update()
-		return
-	case name == "." || name == ".." || strings.ContainsAny(name, `/\`):
-		a.renameErr = locales.NameInvalid()
+	if msg := checkName(name); msg != "" {
+		a.renameErr = msg
 		a.update()
 		return
 	}
@@ -136,6 +143,80 @@ func (a *App) finishRename(old, newPath string) {
 	}
 	a.updateTitle()
 	a.saveSession()
+	a.update()
+}
+
+// beginCreate asks for the name of a new file or folder in dir.
+func (a *App) beginCreate(dir string, isDir bool) {
+	a.createOpen = true
+	a.createDir = dir
+	a.createIsDir = isDir
+	a.createValue = ""
+	a.createErr = ""
+	a.createFocus = true
+	a.update()
+}
+
+// createNameError returns what is wrong with creating name in dir, or "".
+func (a *App) createNameError(dir, name string) string {
+	if msg := checkName(name); msg != "" {
+		return msg
+	}
+	path := filepath.Join(dir, name)
+	if _, err := os.Stat(path); err == nil {
+		return locales.NameExists()
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err.Error()
+	}
+	if a.findDocument(path) != nil {
+		return locales.NameExists()
+	}
+	return ""
+}
+
+// applyCreate checks the typed name and starts creating the new entry.
+func (a *App) applyCreate() {
+	name := strings.TrimSpace(a.createValue)
+	if msg := a.createNameError(a.createDir, name); msg != "" {
+		a.createErr = msg
+		a.update()
+		return
+	}
+	path := filepath.Join(a.createDir, name)
+	isDir := a.createIsDir
+	a.createOpen = false
+	go a.createPath(path, isDir)
+}
+
+// createPath makes an empty file, or a folder, and shows it in the tree.
+func (a *App) createPath(path string, isDir bool) {
+	var err error
+	if isDir {
+		err = os.Mkdir(path, 0o755)
+	} else {
+		var f *os.File
+		if f, err = os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644); err == nil {
+			err = f.Close()
+		}
+	}
+	if err != nil {
+		a.fail(locales.CreateFailed(filepath.Base(path)), err)
+		return
+	}
+	a.onUI(func() { a.finishCreate(path, isDir) })
+}
+
+// finishCreate opens a new file in the active pane and shows the new entry
+// in the tree, expanding the folder it sits in.
+func (a *App) finishCreate(path string, isDir bool) {
+	if a.tree != nil {
+		a.treeState.Open.Add(filepath.Dir(path))
+		a.tree.Refresh()
+		a.treeGeneration++
+	}
+	if !isDir {
+		a.OpenPaths([]string{path})
+	}
 	a.update()
 }
 

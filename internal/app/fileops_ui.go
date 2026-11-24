@@ -46,3 +46,47 @@ func (a *App) renameModal(c *ui.Context, t *ui.Theme) {
 		})
 	})
 }
+
+// createModal asks for the name of a new file or folder.
+func (a *App) createModal(c *ui.Context, t *ui.Theme) {
+	if !a.createOpen {
+		return
+	}
+	title := locales.NewFile()
+	if a.createIsDir {
+		title = locales.NewFolder()
+	}
+	ui.DialogBase(c, &a.createOpen, func(backdrop, panel ui.Element) {
+		c.SetTheme(t)
+		backdrop.Background(ui.RGBA(0, 0, 0, 0.4))
+		panel.Width(420).Padding(20).Gap(12).
+			Background(t.Background).Border(1, t.Border).Radius(14).
+			Shadow(0, 16, 48, 0, ui.RGBA(0, 0, 0, 0.28))
+		panel.Children(func() {
+			ui.Text(c, title).FontSize(16).Bold()
+			ui.Text(c, a.createDir).FontSize(11).TextColor(t.TextMuted).
+				SingleLine().TruncateStart()
+			in := ui.TextInput(c, &a.createValue).FillWidth().Label(locales.NameLabel())
+			if a.createFocus {
+				in.AutoFocus()
+				a.createFocus = false
+			}
+			if a.createErr != "" {
+				ui.Text(c, a.createErr).FontSize(11).TextColor(t.Danger).SingleLine()
+			}
+			submit := in.Submitted()
+			ui.Row(c).AlignItems(ui.Center).Gap(8).Children(func() {
+				ui.Spacer(c)
+				if ui.Button(c, locales.Cancel()).Cursor(ui.CursorPointer).Clicked() {
+					a.createOpen = false
+				}
+				if ui.PrimaryButton(c, locales.Create()).Cursor(ui.CursorPointer).Clicked() {
+					submit = true
+				}
+			})
+			if submit {
+				a.applyCreate()
+			}
+		})
+	})
+}
