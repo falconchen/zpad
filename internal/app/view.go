@@ -823,7 +823,17 @@ func (a *App) tabItem(c *ui.Context, t *ui.Theme, paneIdx int, p *Pane, i int, t
 		Radius(0).Background(bg).Label(tab.doc.Name()).
 		Tooltip(a.documentTooltip(tab.doc)).Cursor(ui.CursorPointer).
 		Drag(paneDrag{kind: dragTab, pane: paneIdx, id: tab.doc.ID}).
-		PopoverMenu(func(m *ui.Menu) { a.tabContextMenu(m, paneIdx, i) }, menuCursorOptions())
+		PopoverMenu(func(m *ui.Menu) { a.tabContextMenu(m, paneIdx, i) }, menuCursorOptions()).
+		// A middle press closes the tab at once, as editors do, without
+		// activating it: MyGo's clicks are the primary button's, so the
+		// tab takes the press; other buttons go on as they would.
+		HandleInput(func(ev ui.InputEvent) bool {
+			if ev.Kind != ui.InputPointerDown || ev.Button != 2 {
+				return false
+			}
+			a.CloseTab(paneIdx, i)
+			return true
+		})
 	if !active && b.Hovered() {
 		b.Background(t.SurfaceHover)
 	}

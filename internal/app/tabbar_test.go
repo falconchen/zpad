@@ -103,3 +103,97 @@ func TestToolbarButtonShowsHandCursor(t *testing.T) {
 		t.Fatalf("cursor over the button %v, want the pointing hand", got)
 	}
 }
+
+// A middle press closes the tab under the pointer at once, as editors do,
+// without activating it: MyGo's clicks are the primary button's, so the
+// tab takes the press itself.
+func TestMiddlePressClosesTab(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/a.txt", "a"))
+	a.addDocument(docAt("/tmp/b.txt", "b"))
+	tt := ui.NewTester(a.View, 700, 500)
+	tt.Frame()
+	r, ok := tt.Find("b.txt")
+	if !ok {
+		t.Fatalf("no tab for b.txt; texts %q", tt.Texts())
+	}
+	tt.PressButton(2, r.X+r.W/2, r.Y+r.H/2)
+	tt.Frame()
+	if len(a.left.tabs) != 1 || a.left.tabs[0].doc.Name() != "a.txt" {
+		t.Fatalf("middle press left %d tabs", len(a.left.tabs))
+	}
+	if a.left.active != 0 {
+		t.Fatalf("middle press moved the active tab to %d, want 0", a.left.active)
+	}
+}
+
+// A middle press beside the tabs, on the bar or its new tab button, closes
+// nothing: only a tab takes it.
+func TestMiddlePressOnTabBarClosesNothing(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/a.txt", "a"))
+	tt := ui.NewTester(a.View, 700, 500)
+	tt.Frame()
+	r, ok := tt.Find("a.txt")
+	if !ok {
+		t.Fatalf("no tab for a.txt; texts %q", tt.Texts())
+	}
+	tt.PressButton(2, r.X+r.W+12, r.Y+r.H/2)
+	tt.ReleaseButton(2, r.X+r.W+12, r.Y+r.H/2)
+	tt.Frame()
+	if len(a.left.tabs) != 1 {
+		t.Fatalf("middle press on the bar left %d tabs, want 1", len(a.left.tabs))
+	}
+}
+
+// Taking the middle press leaves the primary button's click alone: a left
+// click still activates the tab, and closes nothing.
+func TestLeftClickOnTabStillActivates(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/a.txt", "a"))
+	a.addDocument(docAt("/tmp/b.txt", "b"))
+	tt := ui.NewTester(a.View, 700, 500)
+	tt.Frame()
+	r, ok := tt.Find("b.txt")
+	if !ok {
+		t.Fatalf("no tab for b.txt; texts %q", tt.Texts())
+	}
+	tt.ClickAt(r.X+r.W/2, r.Y+r.H/2)
+	tt.Frame()
+	if len(a.left.tabs) != 2 {
+		t.Fatalf("left click left %d tabs, want 2", len(a.left.tabs))
+	}
+	if a.left.active != 1 {
+		t.Fatalf("left click chose tab %d, want 1", a.left.active)
+	}
+}
+
+// The tab a middle press closes is the one under the pointer, in whichever
+// pane it is: closing the other pane's tab keeps its neighbour there.
+func TestMiddlePressClosesTheOtherPanesTab(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	a.addDocument(docAt("/tmp/a.txt", "a"))
+	a.addDocument(docAt("/tmp/b.txt", "b"))
+	a.toggleSplit()
+	a.addDocument(docAt("/tmp/c.txt", "c"))
+	if !a.split || len(a.left.tabs) != 2 || len(a.right.tabs) != 2 {
+		t.Fatalf("split %v, left %d, right %d", a.split, len(a.left.tabs), len(a.right.tabs))
+	}
+	tt := ui.NewTester(a.View, 1000, 600)
+	tt.Frame()
+	r, ok := tt.Find("c.txt")
+	if !ok {
+		t.Fatalf("no tab for c.txt; texts %q", tt.Texts())
+	}
+	tt.PressButton(2, r.X+r.W/2, r.Y+r.H/2)
+	tt.Frame()
+	if !a.split {
+		t.Fatal("closing one of the right pane's tabs collapsed the split")
+	}
+	if len(a.right.tabs) != 1 || a.right.tabs[0].doc.Name() != "b.txt" {
+		t.Fatalf("right pane has %d tabs after the middle press", len(a.right.tabs))
+	}
+	if len(a.left.tabs) != 2 {
+		t.Fatalf("left pane has %d tabs, want its own 2", len(a.left.tabs))
+	}
+}
