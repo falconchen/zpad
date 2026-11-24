@@ -13,7 +13,12 @@ import (
 
 // InstallMenu builds the application menu.
 func (a *App) InstallMenu() {
-	mygo.App.SetMenu(mygo.NewMenu(a.menuItems()))
+	items := a.menuItems()
+	// The labels the Windows menu bar draws, in the menus' order; the
+	// menus themselves are rebuilt when one opens, for their current
+	// state.
+	a.menuBarNames = topMenuLabels(items)
+	mygo.App.SetMenu(mygo.NewMenu(items))
 }
 
 // menuItems is the application menu. It is rebuilt when the language

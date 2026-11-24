@@ -53,6 +53,9 @@ func (a *App) View(c *ui.Context) {
 	}
 
 	ui.Themed(c, t).Fill().Children(func() {
+		if a.customMenuBar {
+			a.menuBar(c, t)
+		}
 		a.toolbar(c, t)
 		if a.Settings.SidebarOpen {
 			sp := ui.Split(c, &a.Settings.SidebarWidth,
@@ -84,10 +87,10 @@ func (a *App) View(c *ui.Context) {
 }
 
 func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
-	// A window with a hidden title bar draws its controls over the toolbar
-	// (macOS traffic lights): keep the buttons clear of them, and let the
-	// empty parts of the bar move the window as the title bar did. In full
-	// screen the controls are gone and TitleBar is zero.
+	// On macOS the toolbar is the title bar: keep its buttons clear of the
+	// traffic lights and let its empty parts move the window. Windows draws
+	// a menu bar above instead, which is the title bar there, so this bar
+	// keeps its own padding.
 	bar := c.TitleBar()
 	tb := ui.Toolbar(c, func() {
 		a.iconButton(c, t, iconSidebar, locales.ToggleSidebar(), a.Settings.SidebarOpen, a.toggleSidebar).
@@ -117,10 +120,15 @@ func (a *App) toolbar(c *ui.Context, t *ui.Theme) {
 		a.splitButton(c, t)
 		a.iconButton(c, t, iconSettings, locales.Settings(), a.showSettings, a.openSettings).
 			KeyShortcuts(ui.Cmd, ui.KeyComma)
-	}).Padding(8, 10+bar.Right, 8, 10+bar.Left).Background(t.Surface).Height(toolbarHeight).
+	}).Background(t.Surface).Height(toolbarHeight).
 		BorderWidth(0, 0, 1, 0).BorderColor(t.Border)
-	if bar.Height > 0 {
-		tb = tb.DragWindow()
+	if a.customMenuBar {
+		tb = tb.Padding(8, 10)
+	} else {
+		tb = tb.Padding(8, 10+bar.Right, 8, 10+bar.Left)
+		if bar.Height > 0 {
+			tb = tb.DragWindow()
+		}
 	}
 }
 
@@ -564,7 +572,7 @@ func (a *App) content(c *ui.Context, t *ui.Theme) {
 		if a.centerSplit {
 			w, h := c.Size()
 			if a.splitVertical {
-				if room := h - toolbarHeight - statusBarHeight; room > 2 {
+				if room := h - a.chromeHeight() - statusBarHeight; room > 2 {
 					a.splitHeight = halfSplit(room)
 				}
 			} else {

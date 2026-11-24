@@ -4,6 +4,7 @@ package app
 import (
 	"log"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"sync"
 	"time"
@@ -99,6 +100,13 @@ type App struct {
 	win     *mygo.Window
 	running bool
 	errMsg  string
+	// customMenuBar draws the application menu's top-level menus in the
+	// window's title bar, as Windows does: the window is created without a
+	// title bar there, and the menus open in native popups. menuBarNames
+	// are their labels, in order, rebuilt with the menu on a language
+	// change.
+	customMenuBar bool
+	menuBarNames  []string
 	// checkUpdates runs the update check, from the menu and the toolbar.
 	// It is a field because updater.CheckForUpdates panics when the plugin
 	// is not registered, as in the view tests.
@@ -270,6 +278,10 @@ func (a *App) Prepare() {
 // Attach remembers the window, installs the menu and takes dropped files.
 func (a *App) Attach(win *mygo.Window) {
 	a.win = win
+	// Windows hides its title bar and draws the menu bar in it; the view
+	// tests build the window without Attach and draw no menu bar unless
+	// they ask for one.
+	a.customMenuBar = runtime.GOOS == "windows"
 	win.OnClose(a.onWindowClose)
 	win.OnFocus(func() { a.checkExternalChanges() })
 	win.OnFileDrop(func(e *mygo.FileDropEvent) {

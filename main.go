@@ -99,6 +99,11 @@ func main() {
 			// them in the 45 DIP toolbar of internal/app.
 			opts.TitleBarStyle = mygo.TitleBarHidden
 			opts.TrafficLightPosition = &mygo.Point{X: 20, Y: 14}
+		} else if runtime.GOOS == "windows" {
+			// The window draws the application menu as its title bar, in a
+			// band the system's minimize, maximize and close buttons share.
+			opts.TitleBarStyle = mygo.TitleBarHidden
+			opts.TitleBarHeight = app.MenuBarHeight
 		}
 		win := mygo.NewWindow(opts)
 		a.Attach(win)
