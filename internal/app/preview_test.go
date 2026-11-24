@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/egoist/mygo/ui/editor"
 	"github.com/helloxz/zpad/internal/settings"
 	"github.com/helloxz/zpad/locales"
 )
@@ -102,6 +103,111 @@ func TestToggleMarkdownPreview(t *testing.T) {
 	a.ToggleMarkdownPreview()
 	if text.preview {
 		t.Fatal("a text tab started a Markdown preview")
+	}
+}
+
+// TestUntitledMarkdownCanPreview lets a new document's language choice stand
+// in for the name it does not have yet: choosing Markdown in the status bar
+// gives it the preview.
+func TestUntitledMarkdownCanPreview(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	doc := a.newUntitledDocument()
+	doc.Buffer.Set("# Hi")
+	a.addDocument(doc)
+	tab := a.activeTab()
+
+	if a.canPreviewTab(tab) {
+		t.Fatal("an untitled plain document is previewable")
+	}
+	a.SelectLanguage(editor.LanguageNamed("markdown"))
+	if !a.canPreviewTab(tab) {
+		t.Fatal("an untitled Markdown document is not previewable")
+	}
+
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+	if _, ok := tt.Access(locales.PreviewMarkdown()); !ok {
+		t.Fatalf("the status bar shows no preview button for an untitled Markdown document; texts %q", tt.Texts())
+	}
+
+	a.ToggleMarkdownPreview()
+	if !tab.preview {
+		t.Fatal("the untitled Markdown document did not start a preview")
+	}
+	tt.Frame()
+	if _, ok := tt.Access(locales.BackToSource()); !ok {
+		t.Fatalf("the status bar has no way back to the source; texts %q", tt.Texts())
+	}
+
+	a.ToggleMarkdownPreview()
+	if tab.preview {
+		t.Fatal("the untitled Markdown document did not return to the source")
+	}
+}
+
+// TestUntitledMarkdownPreviewStopsWithTheLanguage returns the document to the
+// source when its language changes away from Markdown, and offers the preview
+// again when it changes back.
+func TestUntitledMarkdownPreviewStopsWithTheLanguage(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	doc := a.newUntitledDocument()
+	doc.Buffer.Set("# Hi")
+	a.addDocument(doc)
+	tab := a.activeTab()
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	a.SelectLanguage(editor.LanguageNamed("markdown"))
+	a.ToggleMarkdownPreview()
+	tt.Frame()
+	if !tab.preview {
+		t.Fatal("the preview did not start")
+	}
+	if doc.md == nil {
+		t.Fatal("the preview has no options")
+	}
+
+	a.SelectLanguage(editor.LanguageNamed("json"))
+	tt.Frame()
+	if tab.preview {
+		t.Fatal("the document kept its preview after leaving Markdown")
+	}
+	if doc.md != nil {
+		t.Fatal("the preview options stayed after leaving Markdown")
+	}
+
+	a.SelectLanguage(editor.LanguageNamed("markdown"))
+	if !a.canPreviewTab(tab) {
+		t.Fatal("the document is not previewable after choosing Markdown again")
+	}
+}
+
+// TestUntitledMarkdownTabMenuPreviews offers the preview in the tab's menu,
+// where a file with a path has it, and keeps the file actions away.
+func TestUntitledMarkdownTabMenuPreviews(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	doc := a.newUntitledDocument()
+	doc.Buffer.Set("# Hi")
+	a.addDocument(doc)
+	a.SelectLanguage(editor.LanguageNamed("markdown"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	if err := tt.RightClick(doc.Name()); err != nil {
+		t.Fatal(err)
+	}
+	menu := tt.Menu()
+	if !menuHas(menu, locales.PreviewMarkdown()) {
+		t.Fatalf("tab menu %q does not show %q", menu, locales.PreviewMarkdown())
+	}
+	if menuHas(menu, locales.RevealInFileManager()) {
+		t.Fatalf("an untitled document's menu shows the reveal action: %q", menu)
+	}
+	if err := tt.ChooseMenuItem(locales.PreviewMarkdown()); err != nil {
+		t.Fatal(err)
+	}
+	if !a.activeTab().preview {
+		t.Fatal("the tab menu did not start the preview")
 	}
 }
 
@@ -540,6 +646,25 @@ func TestEditorContextMenuPreviewsMarkdown(t *testing.T) {
 	tt.Frame()
 	if tab := a.activeTab(); tab == nil || !tab.preview {
 		t.Fatal("the editor menu did not start the preview")
+	}
+}
+
+// TestEditorContextMenuPreviewsUntitledMarkdown checks that the editor's own
+// menu offers the preview for an untitled document whose language is
+// Markdown.
+func TestEditorContextMenuPreviewsUntitledMarkdown(t *testing.T) {
+	a := New(settings.Default(), t.TempDir())
+	doc := a.newUntitledDocument()
+	doc.Buffer.Set("# Hi")
+	a.addDocument(doc)
+	a.SelectLanguage(editor.LanguageNamed("markdown"))
+	tt := ui.NewTester(a.View, 900, 700)
+	tt.Frame()
+
+	tt.RightClickAt(450, 300)
+	tt.Frame()
+	if menu := tt.Menu(); !menuHas(menu, locales.PreviewMarkdown()) {
+		t.Fatalf("editor menu %q does not show %q", menu, locales.PreviewMarkdown())
 	}
 }
 

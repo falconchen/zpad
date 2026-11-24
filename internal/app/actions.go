@@ -440,15 +440,17 @@ func (a *App) SetLineEnding(eol string) {
 }
 
 // SelectLanguage gives the active untitled document the language chosen in
-// the status bar, which changes its highlight and the name its save starts
-// from. A file that already has a path takes its language from that path, so
-// renaming it is how its highlight changes.
+// the status bar, which changes its highlight, the name its save starts
+// from, and whether it can be previewed as Markdown. A file that already has
+// a path takes its language from that path, so renaming it is how its
+// highlight changes.
 func (a *App) SelectLanguage(lang *editor.Language) {
 	tab := a.activeTab()
 	if tab == nil || tab.doc.Path != "" {
 		return
 	}
 	tab.doc.selectLanguage(lang)
+	a.clearPreviewIfNotMarkdown(tab.doc)
 	a.draftLanguageChanged(tab.doc)
 	a.update()
 }

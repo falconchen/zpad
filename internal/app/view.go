@@ -628,7 +628,7 @@ func (a *App) paneContent(c *ui.Context, t *ui.Theme, index int) {
 		if tab == nil {
 			return
 		}
-		if tab.preview && !isMarkdownPath(tab.doc.Path) {
+		if tab.preview && !isMarkdownDoc(tab.doc) {
 			tab.preview = false
 		}
 		a.configureEditor(tab, t)
@@ -917,22 +917,28 @@ func (a *App) tabContextMenu(m *ui.Menu, paneIdx, i int) {
 		if m.Item(locales.RevealInFileManager()).Chosen() {
 			a.revealDocument(tab.doc)
 		}
-		if isMarkdownPath(tab.doc.Path) {
-			can := a.canPreviewTab(tab)
-			label := locales.PreviewMarkdown()
-			if tab.preview {
-				label = locales.BackToSource()
-			} else if !can {
-				label = locales.PreviewTooLarge()
-			}
-			if m.Item(label).Disabled(!can).Chosen() {
-				a.activateTab(paneIdx, i)
-				a.toggleTabPreview(tab)
-			}
+	}
+	if isMarkdownDoc(tab.doc) {
+		if tab.doc.Path == "" {
+			// The saved-file block above drew the rule for a file with a
+			// path; an untitled document has only this entry after copying.
+			m.Separator()
 		}
-		if isHTMLPath(tab.doc.Path) && m.Item(locales.OpenInBrowser()).Chosen() {
-			a.openTabInBrowser(tab)
+		can := a.canPreviewTab(tab)
+		label := locales.PreviewMarkdown()
+		if tab.preview {
+			label = locales.BackToSource()
+		} else if !can {
+			label = locales.PreviewTooLarge()
 		}
+		if m.Item(label).Disabled(!can).Chosen() {
+			a.activateTab(paneIdx, i)
+			a.toggleTabPreview(tab)
+		}
+	}
+	if tab.doc.Path != "" && isHTMLPath(tab.doc.Path) &&
+		m.Item(locales.OpenInBrowser()).Chosen() {
+		a.openTabInBrowser(tab)
 	}
 }
 
@@ -995,7 +1001,7 @@ func (a *App) editorContextMenu(tab *Tab, m *ui.Menu) {
 	// MyGo separates the app's items from its own: one line, not two.
 	// The Markdown preview is here because the editor's own menu has no
 	// place for it; the tab's menu shows the same item.
-	if tab != nil && isMarkdownPath(tab.doc.Path) {
+	if tab != nil && isMarkdownDoc(tab.doc) {
 		can := a.canPreviewTab(tab)
 		label := locales.PreviewMarkdown()
 		if !can {

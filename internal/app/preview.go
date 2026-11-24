@@ -43,11 +43,25 @@ func isMarkdownPath(path string) bool {
 	return false
 }
 
+// isMarkdownDoc reports whether doc is Markdown: a file whose name says so,
+// or an untitled document given Markdown as its language in the status bar.
+// Until it has a path, that choice is the only thing that says what the text
+// is, so the preview has to go by it.
+func isMarkdownDoc(doc *Document) bool {
+	if doc == nil {
+		return false
+	}
+	if doc.Path != "" {
+		return isMarkdownPath(doc.Path)
+	}
+	return doc.Language != nil && doc.Language.Name == "Markdown"
+}
+
 // canPreviewTab reports whether tab can show a preview now. A preview that
 // is already showing can always return to the source, even when the text
 // has grown past the limit.
 func (a *App) canPreviewTab(tab *Tab) bool {
-	if tab == nil || !isMarkdownPath(tab.doc.Path) {
+	if tab == nil || !isMarkdownDoc(tab.doc) {
 		return false
 	}
 	if tab.preview {
@@ -57,11 +71,11 @@ func (a *App) canPreviewTab(tab *Tab) bool {
 		tab.doc.Buffer.LineCount() <= markdownPreviewMaxLines
 }
 
-// clearPreviewIfNotMarkdown returns tabs to the editor when a save-as or
-// rename stops their file being Markdown: there would be no preview control
-// left to switch them back.
+// clearPreviewIfNotMarkdown returns tabs to the editor when a save-as,
+// rename, or an untitled document's language choice stops their document
+// being Markdown: there would be no preview control left to switch them back.
 func (a *App) clearPreviewIfNotMarkdown(doc *Document) {
-	if doc == nil || isMarkdownPath(doc.Path) {
+	if doc == nil || isMarkdownDoc(doc) {
 		return
 	}
 	for _, p := range []*Pane{&a.left, &a.right} {
@@ -82,7 +96,7 @@ func (a *App) clearPreviewIfNotMarkdown(doc *Document) {
 // or returns it to the editor.
 func (a *App) ToggleMarkdownPreview() {
 	tab := a.activeTab()
-	if tab == nil || !isMarkdownPath(tab.doc.Path) {
+	if tab == nil || !isMarkdownDoc(tab.doc) {
 		return
 	}
 	if !a.canPreviewTab(tab) {
@@ -200,7 +214,7 @@ func (a *App) markdownPreview(c *ui.Context, t *ui.Theme, tab *Tab, pane int, fo
 // language it belongs to. Other files have no such action, so the status
 // bar shows nothing for them.
 func (a *App) previewButton(c *ui.Context, t *ui.Theme, tab *Tab) {
-	if tab == nil || !isMarkdownPath(tab.doc.Path) {
+	if tab == nil || !isMarkdownDoc(tab.doc) {
 		return
 	}
 	can := a.canPreviewTab(tab)
